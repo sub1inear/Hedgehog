@@ -1,6 +1,8 @@
 #pragma once
 #include <cstdint>
 #include <cstring>
+#include <cstdio>
+#include <initializer_list>
 
 using h_i8 = int8_t;
 using h_u8 = uint8_t;
@@ -48,11 +50,14 @@ class h_sref {
 public:
     T *_data;
 
-    h_sref(T (&ref)[S]) {
-        _data = &ref;
+    h_sref(T (&data)[S]) {
+        _data = &data;
     }
-    T operator [](h_u64 idx) {
-        return _data[idx];
+    h_sref(T *data) {
+        _data = data;
+    }
+    T operator [](h_u64 i) {
+        return _data[i];
     }
     constexpr h_u64 size() {
         return S;
@@ -66,16 +71,16 @@ public:
     h_u64 _size;
 
     template <h_u64 S>
-    h_uref(T (&ref)[S]) {
-        _data = &ref;
+    h_uref(T (&data)[S]) {
+        _data = &data;
         _size = S;
     }
     h_uref(T *data, h_u64 size) {
         _data = data;
         _size = size;
     }
-    T operator [](h_u64 idx) {
-        return _data[idx];
+    T operator [](h_u64 i) {
+        return _data[i];
     }
     h_u64 size() {
         return _size;
@@ -86,12 +91,12 @@ template <typename T>
 class h_list {
 public:
     T *_data;
-    h_u64 _size;
-    h_u64 _capacity;
+    h_i64 _size;
+    h_i64 _capacity;
 
     h_list() {}
 
-    template <h_u64 S>
+    template <h_i64 S>
     h_list(T (&list)[S]);
 
     h_list(h_list &list);
@@ -102,37 +107,61 @@ public:
     operator h_uref<T>() {
         return { _data, _size };
     }
-    T operator[](h_u64 idx);
+    T operator[](h_i64 i);
 
     void append(T item);
     void append(h_list<T> list);
 
-    h_u64 find(T item);
-    h_u64 find_reverse(T item);
-    h_list<h_u64> find_all(T item);
+    h_i64 find(T item);
+    h_i64 find_reverse(T item);
+    h_list<h_i64> find_all(T item);
 
     void remove(T item);
     void remove_reverse(T item);
     void remove_all(T item);
 
     h_uref<T> data();
-    h_u64 size();
-    h_u64 capacity();
+    h_i64 size();
+    h_i64 capacity();
 };
 
-template <typename T, h_u64 S>
+template <typename T, h_i64 S>
 class h_array {
 public:
-    T data[S];
+    T _data[S];
 
-    operator h_sref<T, S>();
-    operator h_uref<T>();
+    operator h_sref<T, S>() {
+        return { _data }; 
+    }
+    operator h_uref<T>() {
+        return { _data, S };
+    }
 
-    h_u64 find(T item);
-    h_u64 find_reverse(T item);
-    h_list<h_u64> find_all(T item);
+    T operator[](h_i64 i) {
+        return _data[i];
+    }
 
-    h_u64 size();
+    h_i64 find(T item) {
+        for (h_i64 i = 0; i < S; i++) {
+            if (_data[i] == item) {
+                return i;    
+            }
+        }
+        return -1;
+    }
+    h_i64 find_reverse(T item) {
+        for (h_i64 i = S - 1; i >= 0; i--) {
+            if (_data[i] == item) {
+                return i;
+            }
+        }
+        return -1;
+    }
+    h_list<h_i64> find_all(T item);
+
+    constexpr h_i64 size() {
+        return S;
+    }
 };
 
 class h_str : public h_list<h_char>  {
@@ -141,15 +170,15 @@ public:
     using base = h_list<h_char>;
     using base::base;
 
-    template <h_u64 S>
+    template <h_i64 S>
     h_str(const char (&str)[S]) {
         _data = (h_char *)str;
         _size = S;
     }
 
-    h_u64 find(h_str str);
-    h_u64 find_reverse(h_str str);
-    h_list<h_u64> find_all(h_str str);
+    h_i64 find(h_str str);
+    h_i64 find_reverse(h_str str);
+    h_list<h_i64> find_all(h_str str);
 
     void replace(h_str str1, h_str str2);
     void replace_reverse(h_str str1, h_str str2);
@@ -203,21 +232,64 @@ class h_random {
     h_i32 random();
 };
 
-h_i32 print(h_char c);
-h_i32 print(const char *str);
-template <typename ...A>
-h_i32 print(const char *fmt, A... args);
-h_i32 print(h_uref<h_char> str);
-template <typename ...A>
-h_i32 print(h_uref<h_char> fmt, A... args);
+inline h_i32 print(h_char c) {
+    return putchar(c) == EOF ? 0 : 1;
+}
 
-h_i32 println(h_char c);
-h_i32 println(const char *str);
+inline h_i32 print(const char *str) {
+    h_i32 result = fputs((char *)str, stdout);
+    return result == EOF ? 0 : result;
+}
+
 template <typename ...A>
-h_i32 println(const char *fmt, A... args);
-h_i32 println(h_uref<h_char> str);
+inline h_i32 print(const char *fmt, A... args) {
+    h_i32 result = printf(fmt, args...);
+    return result < 0 ? 0 : result;
+}
+
+inline h_i32 print(h_uref<h_char> str) {
+    return print((char *)str._data);
+}
+
 template <typename ...A>
-h_i32 println(h_uref<h_char> fmt, A... args);
+inline h_i32 print(h_uref<h_char> fmt, A... args) {
+    return print((char *)fmt._data, args...);
+}
+
+inline h_i32 println(h_char c) {
+    h_i32 result_c = putchar(c);
+    h_i32 result_ln = putchar('\n');
+    return result_c == EOF || result_ln == EOF ? 0 : 2;
+}
+
+inline h_i32 println(const char *str) {
+    h_i32 result = puts(str);
+    return result == EOF ? 0 : result;
+}
+
+template <typename ...A>
+inline h_i32 println(const char *fmt, A... args) {
+    h_i32 result_f = printf(fmt, args...);
+    h_i32 result_l = putchar('\n');
+
+    h_i32 result = 0;
+    if (result_f >= 0) {
+        result += result_f;
+    }
+    if (result_l != EOF) {
+        result++;
+    }
+    return result;
+}
+
+inline h_i32 println(h_uref<h_char> str) {
+    return println((char *)str._data);
+}
+
+template <typename ...A>
+inline h_i32 println(h_uref<h_char> fmt, A... args) {
+    println((char *)fmt._data, args...);
+}
 
 void read(h_uref<h_char> ref);
 template <typename ...A>
