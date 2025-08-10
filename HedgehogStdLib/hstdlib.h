@@ -364,18 +364,17 @@ class h_random {
 };
 
 inline h_i32 print(h_char c) {
-    return putchar(c) == EOF ? 0 : 1;
+    return putchar(c) == EOF ? EOF : 1;
 }
 
 inline h_i32 print(const char *str) {
-    h_i32 result = fputs((char *)str, stdout);
-    return result == EOF ? 0 : result;
+    return fputs((char *)str, stdout);
 }
 
 template <typename ...A>
 inline h_i32 print(const char *fmt, A... args) {
     h_i32 result = printf(fmt, args...);
-    return result < 0 ? 0 : result;
+    return result < 0 ? EOF : result;
 }
 
 inline h_i32 print(h_uref<h_char> str) {
