@@ -1,8 +1,13 @@
 #pragma once
+#include <cstdlib>
 #include <cstdint>
 #include <cstring>
 #include <cstdio>
 #include <initializer_list>
+
+#define H_TO_STR_HELPER(x) #x
+#define H_TO_STR(x) H_TO_STR_HELPER(x)
+#define H_RUNTIME_ERROR(str) do { puts("Error: " str "\nFile: " __FILE__ "\nLine: " H_TO_STR(__LINE__) "\n"); exit(1); } while (0)
 
 using h_i8 = int8_t;
 using h_u8 = uint8_t;
@@ -94,35 +99,151 @@ public:
     h_i64 _size;
     h_i64 _capacity;
 
-    h_list() {}
+    h_list() {
+        _size = _capacity = 8;
+        
+        T *m = (T *)malloc(_capacity * sizeof(T));
+        if (m == nullptr) {
+            H_RUNTIME_ERROR("Memory allocation failed");
+        }
+    }
 
-    template <h_i64 S>
-    h_list(T (&list)[S]);
+    h_list(std::initializer_list<T> list) {
+        _size = _capacity = list.size();
 
-    h_list(h_list &list);
-    h_list(h_list &&list);
+        _data = (T *)malloc(_capacity * sizeof(T));
+        if (_data == nullptr) {
+            H_RUNTIME_ERROR("Memory allocation failed");
+        }
 
-    ~h_list() {}
+        for (h_i64 i = 0; i < _size; i++) {
+            new (&_data[i]) T(list.begin()[i]);
+        }
+    }
+
+    h_list(h_list &list) {
+        _size = list._size;
+        _capacity = list._capacity;
+        
+        _data = (T *)malloc(_capacity * sizeof(T));
+        if (_data == nullptr) {
+            H_RUNTIME_ERROR("Memory allocation failed");
+        }
+        memcpy(_data, list._data, _capacity);
+    }
+
+    h_list(h_list &&list) {
+        _size = list._size;
+        _capacity = list._capacity;
+        _data = list._data;
+    }
+
+    ~h_list() {
+        for (h_i64 i = 0; i < _size; i++) {
+            _data[i].~T();
+        }
+        free(_data);
+    }
     
     operator h_uref<T>() {
         return { _data, _size };
     }
-    T operator[](h_i64 i);
+    T operator[](h_i64 i) {
+        return _data[i];
+    }
 
-    void append(T item);
-    void append(h_list<T> list);
+    void append(T item) {
+        if (_size >= _capacity) {
+            _capacity *= 2;
+            _data = realloc(_data, _capacity);
+            if (_data == nullptr) {
+                H_RUNTIME_ERROR("Memory allocation failed");
+            }
+        }
+        _data[_size++] = item;
+    }
+    void append(h_list<T> list) {
+        T *end = _data + _size;
 
-    h_i64 find(T item);
-    h_i64 find_reverse(T item);
-    h_list<h_i64> find_all(T item);
+        _size += list._size;
+        if (_size > _capacity) {
+            _capacity += list._capacity;
+            _capacity *= 2;
+            _data = realloc(_data, _capacity);
+            if (_data == nullptr) {
+                H_RUNTIME_ERROR("Memory allocation failed");
+            }
+        }
+        
+        memcpy(end, list._data, list._size);
+    }
 
-    void remove(T item);
-    void remove_reverse(T item);
-    void remove_all(T item);
+    h_i64 find(T item) {
+        for (h_i64 i = 0; i < _size; i++) {
+            if (_data[i] == item) {
+                return i;    
+            }
+        }
+        return -1;
+    }
+    h_i64 find_reverse(T item) {
+        for (h_i64 i = _size - 1; i >= 0; i--) {
+            if (_data[i] == item) {
+                return i;
+            }
+        }
+        return -1;
+    }
+    h_list<h_i64> find_all(T item) {
+        h_list<h_i64> result;
+        for (h_i64 i = 0; i < _size; i++) {
+            if (_data[i] == item) {
+                result.append(i);
+            }
+        }
+        return result;
+    }
 
-    h_uref<T> data();
-    h_i64 size();
-    h_i64 capacity();
+    void remove(T item) {
+        for (h_i64 i = 0; i < _size; i++) {
+            if (_data[i] == item) {
+                _size--;
+                memcpy(&_data[i + 1], &_data[i], _size - 1);
+                break;
+            }
+        }
+    }
+
+    void remove_reverse(T item) {
+        for (h_i64 i = _size - 1; i >= 0; i--) {
+            if (_data[i] == item) {
+                _size--;
+                memcpy(&_data[i + 1], &_data[i], _size - 1);
+                break;
+            }
+        }
+    }
+
+    void remove_all(T item) {
+        for (h_i64 i = 0; i < _size; i++) {
+            if (_data[i] == item) {
+                _size--;
+                memcpy(&_data[i + 1], &_data[i], _size - 1);
+            }
+        }
+    }
+
+    h_uref<T> data() {
+        return { _data, _size };
+    }
+
+    h_i64 size() {
+        return _size;
+    }
+    
+    h_i64 capacity() {
+        return _capacity;
+    }
 };
 
 template <typename T, h_i64 S>
@@ -149,6 +270,7 @@ public:
         }
         return -1;
     }
+    
     h_i64 find_reverse(T item) {
         for (h_i64 i = S - 1; i >= 0; i--) {
             if (_data[i] == item) {
@@ -157,7 +279,16 @@ public:
         }
         return -1;
     }
-    h_list<h_i64> find_all(T item);
+
+    h_list<h_i64> find_all(T item) {
+        h_list<h_i64> result;
+        for (h_i64 i = 0; i < S; i++) {
+            if (_data[i] == item) {
+                result.append(i);
+            }
+        }
+        return result;
+    }
 
     constexpr h_i64 size() {
         return S;
