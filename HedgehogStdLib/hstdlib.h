@@ -115,50 +115,23 @@ class h_char {
 public:
     unsigned char c;
 
-    constexpr h_char(unsigned char c): c(c) {};
-    operator unsigned char() {
-        return c;
-    }
-    h_bool is_alpha() {
-        return isalpha(c);
-    }
-    h_bool is_digit() {
-        return isdigit(c);
-    }
-    h_bool is_alnum() {
-        return isalnum(c);
-    }
-    h_bool is_cntrl() {
-        return iscntrl(c);
-    }
-    h_bool is_graph() {
-        return isgraph(c);
-    }
-    h_bool is_upper() {
-        return isupper(c);
-    }
-    h_bool is_lower() {
-        return islower(c);
-    }
-    h_bool is_print() {
-        return isprint(c);
-    }
-    h_bool is_punct() {
-        return ispunct(c);
-    }
-    h_bool is_space() {
-        return isspace(c);
-    }
-    h_bool is_xdigit() {
-        return isxdigit(c);
-    }
+    constexpr h_char(unsigned char c);
+    operator unsigned char();
 
-    void to_upper() {
-        c = toupper(c);
-    }
-    void to_lower() {
-        c = tolower(c);
-    }
+    h_bool is_alpha();
+    h_bool is_digit();
+    h_bool is_alnum();
+    h_bool is_cntrl();
+    h_bool is_graph();
+    h_bool is_upper();
+    h_bool is_lower();
+    h_bool is_print();
+    h_bool is_punct();
+    h_bool is_space();
+    h_bool is_xdigit();
+
+    void to_upper();
+    void to_lower();
 };
 
 template <typename T, h_i64 S>
