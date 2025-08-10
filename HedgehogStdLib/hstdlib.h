@@ -28,6 +28,86 @@ using h_float = double;
 
 using h_bool = bool;
 
+namespace h_math {
+h_f32 sin(h_f32 x);
+h_f64 sin(h_f64 x);
+h_float sin(h_float x);
+
+h_f32 cos(h_f32 x);
+h_f64 cos(h_f64 x);
+h_float cos(h_float x);
+
+h_f32 tan(h_f32 x);
+h_f64 tan(h_f64 x);
+h_float tan(h_float x);
+
+h_f32 asin(h_f32 x);
+h_f64 asin(h_f64 x);
+h_float asin(h_float x);
+
+h_f32 acos(h_f32 x);
+h_f64 acos(h_f64 x);
+h_float acos(h_float x);
+
+h_f32 atan(h_f32 x);
+h_f64 atan(h_f64 x);
+h_float atan(h_float x);
+
+h_f32 atan2(h_f32 y, h_f32 x);
+h_f64 atan2(h_f64 y, h_f64 x);
+h_float atan2(h_float y, h_float x);
+
+h_f32 sqrt(h_f32 x);
+h_f64 sqrt(h_f64 x);
+h_float sqrt(h_float x);
+
+h_f32 hypot(h_f32 x, h_f32 y);
+h_f64 hypot(h_f64 x, h_f64 y);
+h_float hypot(h_float x, h_float y);
+
+h_f32 sinh(h_f32 x);
+h_f64 sinh(h_f64 x);
+h_float sinh(h_float x);
+
+h_f32 cosh(h_f32 x);
+h_f64 cosh(h_f64 x);
+h_float cosh(h_float x);
+
+h_f32 tanh(h_f32 x);
+h_f64 tanh(h_f64 x);
+h_float tanh(h_float x);
+
+h_f32 log(h_f32 x);
+h_f64 log(h_f64 x);
+h_float log(h_float x);
+
+h_f32 log10(h_f32 x);
+h_f64 log10(h_f64 x);
+h_float log10(h_float x);
+
+h_f32 log2(h_f32 x);
+h_f64 log2(h_f64 x);
+h_float log2(h_float x);
+
+h_f32 floor(h_f32 x);
+h_f64 floor(h_f64 x);
+h_float floor(h_float x);
+
+h_f32 ceil(h_f32 x);
+h_f64 ceil(h_f64 x);
+h_float ceil(h_float x);
+
+template <typename T>
+T abs(T x);
+
+template <typename T>
+T min(T a, T b);
+
+template <typename T>
+T max(T a, T b);
+
+}
+
 class h_char {
 public:
     unsigned char c;
@@ -61,10 +141,10 @@ public:
     h_sref(T *data) {
         _data = data;
     }
-    T operator [](h_u64 i) {
+    T operator [](h_i64 i) {
         return _data[i];
     }
-    constexpr h_u64 size() {
+    constexpr h_i64 size() {
         return S;
     }
 };
@@ -73,21 +153,21 @@ template <typename T>
 class h_uref {
 public:
     T *_data;
-    h_u64 _size;
+    h_i64 _size;
 
-    template <h_u64 S>
+    template <h_i64 S>
     h_uref(T (&data)[S]) {
         _data = &data;
         _size = S;
     }
-    h_uref(T *data, h_u64 size) {
+    h_uref(T *data, h_i64 size) {
         _data = data;
         _size = size;
     }
-    T operator [](h_u64 i) {
+    T operator [](h_i64 i) {
         return _data[i];
     }
-    h_u64 size() {
+    h_i64 size() {
         return _size;
     }
 };
@@ -148,17 +228,22 @@ public:
     operator h_uref<T>() {
         return { _data, _size };
     }
+    
     T operator[](h_i64 i) {
         return _data[i];
     }
 
+    void reserve(h_i64 capacity) {
+        _capacity = capacity;
+        _data = (T *)realloc(_data, _capacity);
+        if (_data == nullptr) {
+            H_RUNTIME_ERROR("Memory allocation failed");
+        }
+    }
+
     void append(T item) {
         if (_size >= _capacity) {
-            _capacity *= 2;
-            _data = realloc(_data, _capacity);
-            if (_data == nullptr) {
-                H_RUNTIME_ERROR("Memory allocation failed");
-            }
+            reserve(_capacity * 2);
         }
         _data[_size++] = item;
     }
@@ -167,12 +252,7 @@ public:
 
         _size += list._size;
         if (_size > _capacity) {
-            _capacity += list._capacity;
-            _capacity *= 2;
-            _data = realloc(_data, _capacity);
-            if (_data == nullptr) {
-                H_RUNTIME_ERROR("Memory allocation failed");
-            }
+            reserve((_capacity + list._size) * 2);
         }
         
         memcpy(end, list._data, list._size);
@@ -208,7 +288,7 @@ public:
         for (h_i64 i = 0; i < _size; i++) {
             if (_data[i] == item) {
                 _size--;
-                memcpy(&_data[i + 1], &_data[i], _size - 1);
+                memmove(&_data[i + 1], &_data[i], _size - 1);
                 break;
             }
         }
@@ -218,7 +298,7 @@ public:
         for (h_i64 i = _size - 1; i >= 0; i--) {
             if (_data[i] == item) {
                 _size--;
-                memcpy(&_data[i + 1], &_data[i], _size - 1);
+                memmove(&_data[i + 1], &_data[i], _size - 1);
                 break;
             }
         }
@@ -228,7 +308,7 @@ public:
         for (h_i64 i = 0; i < _size; i++) {
             if (_data[i] == item) {
                 _size--;
-                memcpy(&_data[i + 1], &_data[i], _size - 1);
+                memmove(&_data[i + 1], &_data[i], _size - 1);
             }
         }
     }
@@ -297,26 +377,144 @@ public:
 
 class h_str : public h_list<h_char>  {
 public:
-    
     using base = h_list<h_char>;
     using base::base;
 
     template <h_i64 S>
     h_str(const char (&str)[S]) {
-        _data = (h_char *)str;
-        _size = S;
+        _size = _capacity = S;
+        _data = (h_char *)malloc(_capacity * sizeof(h_char));
+        if (_data == nullptr) {
+            H_RUNTIME_ERROR("Memory allocation failed");
+        }
+        memcpy(_data, &str, _capacity);
     }
 
-    h_i64 find(h_str str);
-    h_i64 find_reverse(h_str str);
-    h_list<h_i64> find_all(h_str str);
+    h_i64 find(h_str str) {
+        for (h_i64 i = 0; i <= _size - str._size; i++) {
+            h_i64 j;
+            h_i64 k;
+            h_i64 len = str._size - 1;
+            for (j = 0, k = i; 
+                 j < len && _data[k] == str[j];
+                 j++, k++) {}
+            if (j == len) {
+                return i;
+            }
+        }
+        return -1;
+    }
 
-    void replace(h_str str1, h_str str2);
-    void replace_reverse(h_str str1, h_str str2);
-    void replace_all(h_str str1, h_str str2);
+    h_i64 find_reverse(h_str str) {
+        for (h_i64 i = _size - str._size; i >= 0; i--) {
+            h_i64 j;
+            h_i64 k;
+            h_i64 len = str._size - 1;
+            for (j = 0, k = i; 
+                 j < len && _data[k] == str[j];
+                 j++, k++) {}
+            if (j == len) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    h_list<h_i64> find_all(h_str str) {
+        h_list<h_i64> result;
+        for (h_i64 i = 0; i <= _size - str._size; i++) {
+            h_i64 j;
+            h_i64 k;
+            h_i64 len = str._size - 1;
+            for (j = 0, k = i; 
+                 j < len && _data[k] == str[j];
+                 j++, k++) {}
+            if (j == len) {
+                result.append(i);
+            }
+        }
+        return result;
+    }
+
+    void replace(h_str str1, h_str str2) {
+        h_i64 str1_len = str1._size - 1;
+        h_i64 str2_len = str2._size - 1;
+        for (h_i64 i = 0; i <= _size - str1._size; i++) {
+            h_i64 j;
+            h_i64 k;
+            for (j = 0, k = i; 
+                 j < str1_len && _data[k] == str1[j];
+                 j++, k++) {}
+            if (j == str1_len) {
+                if (str2_len > str1_len) {
+                    if (_capacity < _size + (str2._size - str1._size)) {
+                        reserve((_capacity + (str2._size - str1._size)) * 2);
+                    }
+                    memmove(&_data[i + str2_len], &_data[i + str1_len], _size - str2_len);              
+                } else if (str1_len > str2_len) {
+                    memmove(&_data[i + str2_len], &_data[i + str1_len], _size - str1_len);              
+                }
+                memcpy(&_data[i], str2._data, str2_len);
+                break;
+            }
+        }
+    }
+    void replace_reverse(h_str str1, h_str str2) {
+        h_i64 str1_len = str1._size - 1;
+        h_i64 str2_len = str2._size - 1;
+       for (h_i64 i = _size - str1._size; i >= 0; i--) {
+            h_i64 j;
+            h_i64 k;
+            for (j = 0, k = i; 
+                 j < str1_len && _data[k] == str1[j];
+                 j++, k++) {}
+            if (j == str1_len) {
+                if (str2_len > str1_len) {
+                    if (_capacity < _size + (str2._size - str1._size)) {
+                        reserve((_capacity + (str2._size - str1._size)) * 2);
+                    }
+                    memmove(&_data[i + str2_len], &_data[i + str1_len], _size - str2_len);              
+                } else if (str1_len > str2_len) {
+                    memmove(&_data[i + str2_len], &_data[i + str1_len], _size - str1_len);              
+                }
+                memcpy(&_data[i], str2._data, str2_len);
+                break;
+            }
+        }
+    }
+    void replace_all(h_str str1, h_str str2) {
+        h_i64 str1_len = str1._size - 1;
+        h_i64 str2_len = str2._size - 1;
+        for (h_i64 i = 0; i <= _size - str1._size; i++) {
+            h_i64 j;
+            h_i64 k;
+            for (j = 0, k = i; 
+                 j < str1_len && _data[k] == str1[j];
+                 j++, k++) {}
+            if (j == str1_len) {
+                if (str2_len > str1_len) {
+                    if (_capacity < _size + (str2._size - str1._size)) {
+                        reserve((_capacity + (str2._size - str1._size)) * 2);
+                    }
+                    memmove(&_data[i + str2_len], &_data[i + str1_len], _size - str2_len);              
+                } else if (str1_len > str2_len) {
+                    memmove(&_data[i + str2_len], &_data[i + str1_len], _size - str1_len);              
+                }
+                memcpy(&_data[i], str2._data, str2_len);
+            }
+        }
+    }
     
-    void to_upper();
-    void to_lower();
+    void to_upper() {
+        for (h_i64 i = 0; i < _size; i++) {
+            _data[i].to_upper();
+        }
+    }
+    void to_lower() {
+        for (h_i64 i = 0; i < _size; i++) {
+            _data[i].to_lower();
+        }
+    }
 };
 
 class h_file {
@@ -424,76 +622,3 @@ inline h_i32 println(h_uref<h_char> fmt, A... args) {
 void read(h_uref<h_char> ref);
 template <typename ...A>
 void scan(h_uref<h_char> fmt, A... args);
-
-namespace h_math {
-h_f32 sin(h_f32 x);
-h_f64 sin(h_f64 x);
-h_float sin(h_float x);
-
-h_f32 cos(h_f32 x);
-h_f64 cos(h_f64 x);
-h_float cos(h_float x);
-
-h_f32 tan(h_f32 x);
-h_f64 tan(h_f64 x);
-h_float tan(h_float x);
-
-h_f32 asin(h_f32 x);
-h_f64 asin(h_f64 x);
-h_float asin(h_float x);
-
-h_f32 acos(h_f32 x);
-h_f64 acos(h_f64 x);
-h_float acos(h_float x);
-
-h_f32 atan(h_f32 x);
-h_f64 atan(h_f64 x);
-h_float atan(h_float x);
-
-h_f32 atan2(h_f32 y, h_f32 x);
-h_f64 atan2(h_f64 y, h_f64 x);
-h_float atan2(h_float y, h_float x);
-
-h_f32 sqrt(h_f32 x);
-h_f64 sqrt(h_f64 x);
-h_float sqrt(h_float x);
-
-h_f32 hypot(h_f32 x, h_f32 y);
-h_f64 hypot(h_f64 x, h_f64 y);
-h_float hypot(h_float x, h_float y);
-
-h_f32 sinh(h_f32 x);
-h_f64 sinh(h_f64 x);
-h_float sinh(h_float x);
-
-h_f32 cosh(h_f32 x);
-h_f64 cosh(h_f64 x);
-h_float cosh(h_float x);
-
-h_f32 tanh(h_f32 x);
-h_f64 tanh(h_f64 x);
-h_float tanh(h_float x);
-
-h_f32 log(h_f32 x);
-h_f64 log(h_f64 x);
-h_float log(h_float x);
-
-h_f32 log10(h_f32 x);
-h_f64 log10(h_f64 x);
-h_float log10(h_float x);
-
-h_f32 log2(h_f32 x);
-h_f64 log2(h_f64 x);
-h_float log2(h_float x);
-
-h_f32 floor(h_f32 x);
-h_f64 floor(h_f64 x);
-h_float floor(h_float x);
-
-h_f32 ceil(h_f32 x);
-h_f64 ceil(h_f64 x);
-h_float ceil(h_float x);
-
-template <typename T>
-T abs(T x);
-}
