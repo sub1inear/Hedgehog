@@ -1,6 +1,6 @@
 #include "hstdlib.h"
 
-h_char(unsigned char c) : c(c) {}
+constexpr h_char::h_char(unsigned char c) : c(c) {}
 
 h_char::operator unsigned char() {
     return c;

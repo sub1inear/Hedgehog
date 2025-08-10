@@ -5,6 +5,7 @@
 #include <cstring>
 #include <cstdio>
 #include <cctype>
+#include <new>
 #include <initializer_list>
 
 #define H_TO_STR_HELPER(x) #x
