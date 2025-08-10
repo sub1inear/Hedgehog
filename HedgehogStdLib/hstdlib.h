@@ -389,12 +389,12 @@ inline h_i32 print(h_uref<h_char> fmt, A... args) {
 inline h_i32 println(h_char c) {
     h_i32 result_c = putchar(c);
     h_i32 result_ln = putchar('\n');
-    return result_c == EOF || result_ln == EOF ? 0 : 2;
+    return result_c == EOF || result_ln == EOF ? EOF : 2;
 }
 
 inline h_i32 println(const char *str) {
     h_i32 result = puts(str);
-    return result == EOF ? 0 : result;
+    return result == EOF ? EOF : result;
 }
 
 template <typename ...A>
