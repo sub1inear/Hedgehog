@@ -1,4 +1,5 @@
 #pragma once
+#define _CRT_SECURE_NO_WARNINGS
 #include <cstdlib>
 #include <cstdint>
 #include <cstring>
@@ -8,7 +9,8 @@
 
 #define H_TO_STR_HELPER(x) #x
 #define H_TO_STR(x) H_TO_STR_HELPER(x)
-#define H_RUNTIME_ERROR(error, desc) do { puts(error ": " desc "\nFile: " __FILE__ "\nLine: " H_TO_STR(__LINE__) "\n"); exit(1); } while (0)
+#define H_RUNTIME_ERROR(error, desc) do { puts(error ": " desc "\nFile: " __FILE__ "\nLine: " H_TO_STR(__LINE__)); exit(1); } while (0)
+#define H_RUNTIME_ERROR_F(error, fmt, ...) do { printf(error ": " fmt "\nFile: " __FILE__ "\nLine: " H_TO_STR(__LINE__) "\n", __VA_ARGS__ ); exit(1); } while (0)
 
 using h_i8 = int8_t;
 using h_u8 = uint8_t;
@@ -118,37 +120,37 @@ public:
         return c;
     }
     h_bool is_alpha() {
-	    return isalpha(c);
+        return isalpha(c);
     }
     h_bool is_digit() {
-	    return isdigit(c);
+        return isdigit(c);
     }
     h_bool is_alnum() {
-	    return isalnum(c);
+        return isalnum(c);
     }
     h_bool is_cntrl() {
-	    return iscntrl(c);
+        return iscntrl(c);
     }
     h_bool is_graph() {
-	    return isgraph(c);
+        return isgraph(c);
     }
     h_bool is_upper() {
-	    return isupper(c);
+        return isupper(c);
     }
     h_bool is_lower() {
-	    return islower(c);
+        return islower(c);
     }
     h_bool is_print() {
-	    return isprint(c);
+        return isprint(c);
     }
     h_bool is_punct() {
-	    return ispunct(c);
+        return ispunct(c);
     }
     h_bool is_space() {
-	    return isspace(c);
+        return isspace(c);
     }
     h_bool is_xdigit() {
-	    return isxdigit(c);
+        return isxdigit(c);
     }
 
     void to_upper() {
@@ -203,41 +205,51 @@ public:
 
 template <typename T>
 class h_list {
+protected:
+    void malloc_data() {
+        _data = (T *)malloc(_capacity * sizeof(T));
+        if (_data == nullptr) {
+            H_RUNTIME_ERROR("AllocError", "Memory allocation failed");
+        }
+    }
+    void reserve_internal(h_i64 capacity) {
+        _capacity = capacity;
+        _data = (T *)realloc(_data, _capacity);
+        if (_data == nullptr) {
+            H_RUNTIME_ERROR("AllocError", "Memory allocation failed");
+        }
+    }
 public:
     T *_data;
     h_i64 _size;
     h_i64 _capacity;
 
+    void reserve(h_i64 capacity) {
+        if (capacity <= _capacity) {
+            return;
+        }
+        reserve_internal(capacity);
+    }
+
     h_list() {
         _size = _capacity = 8;
-        
-        T *m = (T *)malloc(_capacity * sizeof(T));
-        if (m == nullptr) {
-            H_RUNTIME_ERROR("AllocError", "Memory allocation failed");
-        }
+        malloc_data();
     }
 
     h_list(std::initializer_list<T> list) {
         _size = _capacity = list.size();
 
-        _data = (T *)malloc(_capacity * sizeof(T));
-        if (_data == nullptr) {
-            H_RUNTIME_ERROR("AllocError", "Memory allocation failed");
-        }
-
+        malloc_data();
         for (h_i64 i = 0; i < _size; i++) {
             new (&_data[i]) T(list.begin()[i]);
         }
     }
 
-    h_list(h_list &list) {
+    h_list(const h_list &list) {
         _size = list._size;
         _capacity = list._capacity;
-        
-        _data = (T *)malloc(_capacity * sizeof(T));
-        if (_data == nullptr) {
-            H_RUNTIME_ERROR("AllocError", "Memory allocation failed");
-        }
+         
+        malloc_data();
         memcpy(_data, list._data, _capacity);
     }
 
@@ -254,25 +266,39 @@ public:
         free(_data);
     }
     
+    h_list &operator=(const h_list &list) {
+        _size = list._size;
+        reserve(list._capacity);
+        memcpy(_data, list._data, _capacity);
+        return *this;
+    }
+
+    h_list &operator=(const std::initializer_list<T> &list) {
+        _size = _capacity = list.size();
+        
+        free(_data);
+        malloc_data();
+        return *this;
+    }
+
+    h_list &operator=(h_list &&list) {
+        _size = list._size;
+        _capacity = list._capacity;
+        _data = list._data;
+        return *this;
+    }
+        
     operator h_uref<T>() {
         return { _data, _size };
     }
-    
+
     T operator[](h_i64 i) {
         return _data[i];
     }
 
-    void reserve(h_i64 capacity) {
-        _capacity = capacity;
-        _data = (T *)realloc(_data, _capacity);
-        if (_data == nullptr) {
-            H_RUNTIME_ERROR("AllocError", "Memory allocation failed");
-        }
-    }
-
     void append(T item) {
         if (_size >= _capacity) {
-            reserve(_capacity * 2);
+            reserve_internal(_capacity * 2);
         }
         _data[_size++] = item;
     }
@@ -281,7 +307,7 @@ public:
 
         _size += list._size;
         if (_size > _capacity) {
-            reserve((_capacity + list._size) * 2);
+            reserve_internal((_capacity + list._size) * 2);
         }
         
         memcpy(end, list._data, list._size);
@@ -477,17 +503,20 @@ public:
             if (j == str1_len) {
                 if (str2_len > str1_len) {
                     if (_capacity < _size + (str2._size - str1._size)) {
-                        reserve((_capacity + (str2._size - str1._size)) * 2);
+                        reserve_internal((_capacity + (str2._size - str1._size)) * 2);
                     }
-                    memmove(&_data[i + str2_len], &_data[i + str1_len], _size - str2_len);              
+                    memmove(&_data[i + str2_len], &_data[i + str1_len], _size - str2_len);
+                    _size += str2_len - str1_len;
                 } else if (str1_len > str2_len) {
-                    memmove(&_data[i + str2_len], &_data[i + str1_len], _size - str1_len);              
+                    memmove(&_data[i + str2_len], &_data[i + str1_len], _size - str1_len);  
+                    _size -= str1_len - str2_len;
                 }
                 memcpy(&_data[i], str2._data, str2_len);
                 break;
             }
         }
     }
+
     void replace_reverse(h_str str1, h_str str2) {
         h_i64 str1_len = str1._size - 1;
         h_i64 str2_len = str2._size - 1;
@@ -500,17 +529,20 @@ public:
             if (j == str1_len) {
                 if (str2_len > str1_len) {
                     if (_capacity < _size + (str2._size - str1._size)) {
-                        reserve((_capacity + (str2._size - str1._size)) * 2);
+                        reserve_internal((_capacity + (str2._size - str1._size)) * 2);
                     }
-                    memmove(&_data[i + str2_len], &_data[i + str1_len], _size - str2_len);              
+                    memmove(&_data[i + str2_len], &_data[i + str1_len], _size - str2_len);     
+                    _size += str2_len - str1_len;
                 } else if (str1_len > str2_len) {
-                    memmove(&_data[i + str2_len], &_data[i + str1_len], _size - str1_len);              
+                    memmove(&_data[i + str2_len], &_data[i + str1_len], _size - str1_len);
+                    _size -= str1_len - str2_len;
                 }
                 memcpy(&_data[i], str2._data, str2_len);
                 break;
             }
         }
     }
+
     void replace_all(h_str str1, h_str str2) {
         h_i64 str1_len = str1._size - 1;
         h_i64 str2_len = str2._size - 1;
@@ -523,11 +555,13 @@ public:
             if (j == str1_len) {
                 if (str2_len > str1_len) {
                     if (_capacity < _size + (str2._size - str1._size)) {
-                        reserve((_capacity + (str2._size - str1._size)) * 2);
+                        reserve_internal((_capacity + (str2._size - str1._size)) * 2);
                     }
-                    memmove(&_data[i + str2_len], &_data[i + str1_len], _size - str2_len);              
+                    memmove(&_data[i + str2_len], &_data[i + str1_len], _size - str2_len);
+                    _size += str2_len - str1_len;
                 } else if (str1_len > str2_len) {
-                    memmove(&_data[i + str2_len], &_data[i + str1_len], _size - str1_len);              
+                    memmove(&_data[i + str2_len], &_data[i + str1_len], _size - str1_len);
+                    _size -= str1_len - str2_len;
                 }
                 memcpy(&_data[i], str2._data, str2_len);
             }
@@ -539,6 +573,7 @@ public:
             _data[i].to_upper();
         }
     }
+
     void to_lower() {
         for (h_i64 i = 0; i < _size; i++) {
             _data[i].to_lower();
@@ -552,22 +587,22 @@ public:
     h_file(const char *filename, const char *mode) {
         file = fopen(filename, mode);
         if (file == nullptr) {
-            H_RUNTIME_ERROR("FileError", strerror(errno));
+            H_RUNTIME_ERROR_F("FileError", "%s", strerror(errno));
         }
     }
 
-    h_file(h_uref<h_char> filename, const char *mode) : h_file(filename._data, mode) {}
+    h_file(h_uref<h_char> filename, const char *mode) : h_file((char *)filename._data, mode) {}
     
-    h_file(const char *filename, h_uref<h_char> mode) : h_file(filename, mode._data) {}
+    h_file(const char *filename, h_uref<h_char> mode) : h_file(filename, (char *)mode._data) {}
 
-    h_file(h_uref<h_char> filename, h_uref<h_char> mode) : h_file(filename._data, move._data) {}
+    h_file(h_uref<h_char> filename, h_uref<h_char> mode) : h_file((char *)filename._data, (char *)mode._data) {}
 
     ~h_file() {
         fclose(file);
     }
 
-    h_i32 seek_start(h_i32 offset) {
-        return fseek(file, offset, SEEK_START) == 0 ? false : true;
+    h_i32 seek_set(h_i32 offset) {
+        return fseek(file, offset, SEEK_SET) == 0 ? false : true;
     }
     
     h_i32 seek_cur(h_i32 offset) {
