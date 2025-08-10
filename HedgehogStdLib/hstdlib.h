@@ -166,18 +166,10 @@ class h_sref {
 public:
     T *_data;
 
-    h_sref(T (&data)[S]) {
-        _data = &data;
-    }
-    h_sref(T *data) {
-        _data = data;
-    }
-    T operator [](h_i64 i) {
-        return _data[i];
-    }
-    constexpr h_i64 size() {
-        return S;
-    }
+    h_sref(T (&data)[S]);
+    h_sref(T *data);
+    T operator [](h_i64 i);
+    constexpr h_i64 size();
 };
 
 template <typename T>
@@ -187,198 +179,51 @@ public:
     h_i64 _size;
 
     template <h_i64 S>
-    h_uref(T (&data)[S]) {
-        _data = &data;
-        _size = S;
-    }
-    h_uref(T *data, h_i64 size) {
-        _data = data;
-        _size = size;
-    }
-    T operator [](h_i64 i) {
-        return _data[i];
-    }
-    h_i64 size() {
-        return _size;
-    }
+    h_uref(T (&data)[S]);
+    h_uref(T *data, h_i64 size);
+    T operator [](h_i64 i);
+    h_i64 size();
 };
 
 template <typename T>
 class h_list {
-protected:
-    void malloc_data() {
-        _data = (T *)malloc(_capacity * sizeof(T));
-        if (_data == nullptr) {
-            H_RUNTIME_ERROR("AllocError", "Memory allocation failed");
-        }
-    }
-    void reserve_internal(h_i64 capacity) {
-        _capacity = capacity;
-        _data = (T *)realloc(_data, _capacity);
-        if (_data == nullptr) {
-            H_RUNTIME_ERROR("AllocError", "Memory allocation failed");
-        }
-    }
 public:
     T *_data;
     h_i64 _size;
     h_i64 _capacity;
 
-    void reserve(h_i64 capacity) {
-        if (capacity <= _capacity) {
-            return;
-        }
-        reserve_internal(capacity);
-    }
+    void reserve(h_i64 capacity);
 
-    h_list() {
-        _size = _capacity = 8;
-        malloc_data();
-    }
+    h_list();
+    h_list(std::initializer_list<T> list);
+    h_list(const h_list &list);
+    h_list(h_list &&list);
+    ~h_list();
 
-    h_list(std::initializer_list<T> list) {
-        _size = _capacity = list.size();
+    h_list &operator=(const h_list &list);
+    h_list &operator=(const std::initializer_list<T> &list);
+    h_list &operator=(h_list &&list);
 
-        malloc_data();
-        for (h_i64 i = 0; i < _size; i++) {
-            new (&_data[i]) T(list.begin()[i]);
-        }
-    }
+    operator h_uref<T>();
+    T operator[](h_i64 i);
 
-    h_list(const h_list &list) {
-        _size = list._size;
-        _capacity = list._capacity;
-         
-        malloc_data();
-        memcpy(_data, list._data, _capacity);
-    }
+    void append(T item);
+    void append(h_list<T> list);
 
-    h_list(h_list &&list) {
-        _size = list._size;
-        _capacity = list._capacity;
-        _data = list._data;
-    }
+    h_i64 find(T item);
+    h_i64 find_reverse(T item);
+    h_list<h_i64> find_all(T item);
 
-    ~h_list() {
-        for (h_i64 i = 0; i < _size; i++) {
-            _data[i].~T();
-        }
-        free(_data);
-    }
-    
-    h_list &operator=(const h_list &list) {
-        _size = list._size;
-        reserve(list._capacity);
-        memcpy(_data, list._data, _capacity);
-        return *this;
-    }
+    void remove(T item);
+    void remove_reverse(T item);
+    void remove_all(T item);
 
-    h_list &operator=(const std::initializer_list<T> &list) {
-        _size = _capacity = list.size();
-        
-        free(_data);
-        malloc_data();
-        return *this;
-    }
-
-    h_list &operator=(h_list &&list) {
-        _size = list._size;
-        _capacity = list._capacity;
-        _data = list._data;
-        return *this;
-    }
-        
-    operator h_uref<T>() {
-        return { _data, _size };
-    }
-
-    T operator[](h_i64 i) {
-        return _data[i];
-    }
-
-    void append(T item) {
-        if (_size >= _capacity) {
-            reserve_internal(_capacity * 2);
-        }
-        _data[_size++] = item;
-    }
-    void append(h_list<T> list) {
-        T *end = _data + _size;
-
-        _size += list._size;
-        if (_size > _capacity) {
-            reserve_internal((_capacity + list._size) * 2);
-        }
-        
-        memcpy(end, list._data, list._size);
-    }
-
-    h_i64 find(T item) {
-        for (h_i64 i = 0; i < _size; i++) {
-            if (_data[i] == item) {
-                return i;    
-            }
-        }
-        return -1;
-    }
-    h_i64 find_reverse(T item) {
-        for (h_i64 i = _size - 1; i >= 0; i--) {
-            if (_data[i] == item) {
-                return i;
-            }
-        }
-        return -1;
-    }
-    h_list<h_i64> find_all(T item) {
-        h_list<h_i64> result;
-        for (h_i64 i = 0; i < _size; i++) {
-            if (_data[i] == item) {
-                result.append(i);
-            }
-        }
-        return result;
-    }
-
-    void remove(T item) {
-        for (h_i64 i = 0; i < _size; i++) {
-            if (_data[i] == item) {
-                _size--;
-                memmove(&_data[i + 1], &_data[i], _size - 1);
-                break;
-            }
-        }
-    }
-
-    void remove_reverse(T item) {
-        for (h_i64 i = _size - 1; i >= 0; i--) {
-            if (_data[i] == item) {
-                _size--;
-                memmove(&_data[i + 1], &_data[i], _size - 1);
-                break;
-            }
-        }
-    }
-
-    void remove_all(T item) {
-        for (h_i64 i = 0; i < _size; i++) {
-            if (_data[i] == item) {
-                _size--;
-                memmove(&_data[i + 1], &_data[i], _size - 1);
-            }
-        }
-    }
-
-    h_uref<T> data() {
-        return { _data, _size };
-    }
-
-    h_i64 size() {
-        return _size;
-    }
-    
-    h_i64 capacity() {
-        return _capacity;
-    }
+    h_uref<T> data();
+    h_i64 size();
+    h_i64 capacity();
+protected:
+    void malloc_data();
+    void reserve_internal(h_i64 capacity);
 };
 
 template <typename T, h_i64 S>
@@ -386,48 +231,16 @@ class h_array {
 public:
     T _data[S];
 
-    operator h_sref<T, S>() {
-        return { _data }; 
-    }
-    operator h_uref<T>() {
-        return { _data, S };
-    }
+    operator h_sref<T, S>();
+    operator h_uref<T>();
 
-    T operator[](h_i64 i) {
-        return _data[i];
-    }
+    T operator[](h_i64 i);
 
-    h_i64 find(T item) {
-        for (h_i64 i = 0; i < S; i++) {
-            if (_data[i] == item) {
-                return i;    
-            }
-        }
-        return -1;
-    }
-    
-    h_i64 find_reverse(T item) {
-        for (h_i64 i = S - 1; i >= 0; i--) {
-            if (_data[i] == item) {
-                return i;
-            }
-        }
-        return -1;
-    }
+    h_i64 find(T item);
+    h_i64 find_reverse(T item);
+    h_list<h_i64> find_all(T item);
 
-    h_list<h_i64> find_all(T item) {
-        h_list<h_i64> result;
-        for (h_i64 i = 0; i < S; i++) {
-            if (_data[i] == item) {
-                result.append(i);
-            }
-        }
-        return result;
-    }
-
-    constexpr h_i64 size() {
-        return S;
-    }
+    constexpr h_i64 size();
 };
 
 class h_str : public h_list<h_char>  {
@@ -436,186 +249,34 @@ public:
     using base::base;
 
     template <h_i64 S>
-    h_str(const char (&str)[S]) {
-        _size = _capacity = S;
-        _data = (h_char *)malloc(_capacity * sizeof(h_char));
-        if (_data == nullptr) {
-            H_RUNTIME_ERROR("AllocError", "Memory allocation failed");
-        }
-        memcpy(_data, &str, _capacity);
-    }
+    h_str(const char (&str)[S]);
 
-    h_i64 find(h_str str) {
-        for (h_i64 i = 0; i <= _size - str._size; i++) {
-            h_i64 j;
-            h_i64 k;
-            h_i64 len = str._size - 1;
-            for (j = 0, k = i; 
-                 j < len && _data[k] == str[j];
-                 j++, k++) {}
-            if (j == len) {
-                return i;
-            }
-        }
-        return -1;
-    }
+    h_i64 find(h_str str);
+    h_i64 find_reverse(h_str str);
+    h_list<h_i64> find_all(h_str str);
 
-    h_i64 find_reverse(h_str str) {
-        for (h_i64 i = _size - str._size; i >= 0; i--) {
-            h_i64 j;
-            h_i64 k;
-            h_i64 len = str._size - 1;
-            for (j = 0, k = i; 
-                 j < len && _data[k] == str[j];
-                 j++, k++) {}
-            if (j == len) {
-                return i;
-            }
-        }
-        return -1;
-    }
+    void replace(h_str str1, h_str str2);
+    void replace_reverse(h_str str1, h_str str2);
+    void replace_all(h_str str1, h_str str2);
 
-    h_list<h_i64> find_all(h_str str) {
-        h_list<h_i64> result;
-        for (h_i64 i = 0; i <= _size - str._size; i++) {
-            h_i64 j;
-            h_i64 k;
-            h_i64 len = str._size - 1;
-            for (j = 0, k = i; 
-                 j < len && _data[k] == str[j];
-                 j++, k++) {}
-            if (j == len) {
-                result.append(i);
-            }
-        }
-        return result;
-    }
-
-    void replace(h_str str1, h_str str2) {
-        h_i64 str1_len = str1._size - 1;
-        h_i64 str2_len = str2._size - 1;
-        for (h_i64 i = 0; i <= _size - str1._size; i++) {
-            h_i64 j;
-            h_i64 k;
-            for (j = 0, k = i; 
-                 j < str1_len && _data[k] == str1[j];
-                 j++, k++) {}
-            if (j == str1_len) {
-                if (str2_len > str1_len) {
-                    if (_capacity < _size + (str2._size - str1._size)) {
-                        reserve_internal((_capacity + (str2._size - str1._size)) * 2);
-                    }
-                    memmove(&_data[i + str2_len], &_data[i + str1_len], _size - str2_len);
-                    _size += str2_len - str1_len;
-                } else if (str1_len > str2_len) {
-                    memmove(&_data[i + str2_len], &_data[i + str1_len], _size - str1_len);  
-                    _size -= str1_len - str2_len;
-                }
-                memcpy(&_data[i], str2._data, str2_len);
-                break;
-            }
-        }
-    }
-
-    void replace_reverse(h_str str1, h_str str2) {
-        h_i64 str1_len = str1._size - 1;
-        h_i64 str2_len = str2._size - 1;
-       for (h_i64 i = _size - str1._size; i >= 0; i--) {
-            h_i64 j;
-            h_i64 k;
-            for (j = 0, k = i; 
-                 j < str1_len && _data[k] == str1[j];
-                 j++, k++) {}
-            if (j == str1_len) {
-                if (str2_len > str1_len) {
-                    if (_capacity < _size + (str2._size - str1._size)) {
-                        reserve_internal((_capacity + (str2._size - str1._size)) * 2);
-                    }
-                    memmove(&_data[i + str2_len], &_data[i + str1_len], _size - str2_len);     
-                    _size += str2_len - str1_len;
-                } else if (str1_len > str2_len) {
-                    memmove(&_data[i + str2_len], &_data[i + str1_len], _size - str1_len);
-                    _size -= str1_len - str2_len;
-                }
-                memcpy(&_data[i], str2._data, str2_len);
-                break;
-            }
-        }
-    }
-
-    void replace_all(h_str str1, h_str str2) {
-        h_i64 str1_len = str1._size - 1;
-        h_i64 str2_len = str2._size - 1;
-        for (h_i64 i = 0; i <= _size - str1._size; i++) {
-            h_i64 j;
-            h_i64 k;
-            for (j = 0, k = i; 
-                 j < str1_len && _data[k] == str1[j];
-                 j++, k++) {}
-            if (j == str1_len) {
-                if (str2_len > str1_len) {
-                    if (_capacity < _size + (str2._size - str1._size)) {
-                        reserve_internal((_capacity + (str2._size - str1._size)) * 2);
-                    }
-                    memmove(&_data[i + str2_len], &_data[i + str1_len], _size - str2_len);
-                    _size += str2_len - str1_len;
-                } else if (str1_len > str2_len) {
-                    memmove(&_data[i + str2_len], &_data[i + str1_len], _size - str1_len);
-                    _size -= str1_len - str2_len;
-                }
-                memcpy(&_data[i], str2._data, str2_len);
-            }
-        }
-    }
-    
-    void to_upper() {
-        for (h_i64 i = 0; i < _size; i++) {
-            _data[i].to_upper();
-        }
-    }
-
-    void to_lower() {
-        for (h_i64 i = 0; i < _size; i++) {
-            _data[i].to_lower();
-        }
-    }
+    void to_upper();
+    void to_lower();
 };
 
 class h_file {
     FILE *file;
 public:
-    h_file(const char *filename, const char *mode) {
-        file = fopen(filename, mode);
-        if (file == nullptr) {
-            H_RUNTIME_ERROR_F("FileError", "%s", strerror(errno));
-        }
-    }
+    h_file(const char *filename, const char *mode);
+    h_file(h_uref<h_char> filename, const char *mode);
+    h_file(const char *filename, h_uref<h_char> mode);
+    h_file(h_uref<h_char> filename, h_uref<h_char> mode);
 
-    h_file(h_uref<h_char> filename, const char *mode) : h_file((char *)filename._data, mode) {}
-    
-    h_file(const char *filename, h_uref<h_char> mode) : h_file(filename, (char *)mode._data) {}
+    ~h_file();
 
-    h_file(h_uref<h_char> filename, h_uref<h_char> mode) : h_file((char *)filename._data, (char *)mode._data) {}
-
-    ~h_file() {
-        fclose(file);
-    }
-
-    h_i32 seek_set(h_i32 offset) {
-        return fseek(file, offset, SEEK_SET) == 0 ? false : true;
-    }
-    
-    h_i32 seek_cur(h_i32 offset) {
-        return fseek(file, offset, SEEK_CUR) == 0 ? false : true;
-    }
-
-    h_i32 seek_end(h_i32 offset) {
-        return fseek(file, offset, SEEK_END) == 0 ? false : true;
-    }
-
-    h_i32 tell() {
-        return ftell(file);
-    }
+    h_i32 seek_set(h_i32 offset);
+    h_i32 seek_cur(h_i32 offset);
+    h_i32 seek_end(h_i32 offset);
+    h_i32 tell();
 
     template <typename T>
     h_u64 read(h_uref<T> arr);
@@ -625,7 +286,7 @@ public:
 
     template <typename T>
     h_u64 write(h_uref<T> arr);
-    
+
     void print(h_char c);
     void print(h_uref<h_char> str);
     template <typename ...A>
@@ -636,17 +297,9 @@ public:
     template <typename ...A>
     h_i32 println(h_uref<h_char> fmt, A... args);
 
-    bool flush() {
-        return fflush(file) == 0 ? false : true;
-    }
-
-    bool error() {
-        return ferror(file);
-    }
-
-    bool eof() {
-        return feof(file);
-    }
+    bool flush();
+    bool error();
+    bool eof();
 };
 
 class h_random {
@@ -717,3 +370,5 @@ inline h_i32 println(h_uref<h_char> fmt, A... args) {
 void read(h_uref<h_char> ref);
 template <typename ...A>
 void scan(h_uref<h_char> fmt, A... args);
+
+#include "hstdlib.ipp"
