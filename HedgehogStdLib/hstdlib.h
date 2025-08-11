@@ -378,9 +378,15 @@ inline bool read_line(h_uref<h_char> ref) {
 }
 
 template <typename ...A>
-inline h_tuple<h_i32, bool> scan(h_uref<h_char> fmt, A... args) {
-    h_i32 result = scanf((char *)fmt.ptr(), args...);
+inline h_tuple<h_i32, bool> scan(const char *fmt, A... args) {
+    h_i32 result = scanf(fmt, args...);
     return { result, result == EOF };
+}
+
+
+template <typename ...A>
+inline h_tuple<h_i32, bool> scan(h_uref<h_char> fmt, A... args) {
+    return scan((char *)fmt.ptr());
 }
 
 #include "hstdlib.ipp"

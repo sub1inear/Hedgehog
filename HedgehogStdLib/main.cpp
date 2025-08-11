@@ -1,6 +1,6 @@
 #include "hstdlib.h"
 
 int main() {
-    auto [result, err] = println("Hello, world");
-    print("%d", result);
+    h_i32 i;
+    auto [result, err] = scan("%d", &i);
 }
