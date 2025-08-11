@@ -578,3 +578,26 @@ bool h_file::error() {
 bool h_file::eof() {
     return feof(file);
 }
+
+h_random::h_random() {
+    std::random_device rd;
+    seed = rd();
+}
+
+constexpr h_random::h_random(h_u32 seed) : seed(seed) { }
+
+h_u32 h_random::random() {
+    return seed = seed * 69069 + 1;
+}
+
+h_u32 h_random::random(h_u32 max) {
+    return random() % max;
+}
+
+h_u32 h_random::random(h_u32 min, h_u32 max) {
+    return random() % (max - min) + min;
+}
+
+h_i32 h_random::random(h_i32 min, h_i32 max) {
+    return random() % (max - min) + min;
+}

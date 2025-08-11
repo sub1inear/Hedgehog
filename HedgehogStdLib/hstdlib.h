@@ -8,6 +8,7 @@
 #include <new>
 #include <tuple>
 #include <initializer_list>
+#include <random>
 
 #define H_TO_STR_HELPER(x) #x
 #define H_TO_STR(x) H_TO_STR_HELPER(x)
@@ -296,10 +297,16 @@ public:
 };
 
 class h_random {
-    h_i32 seed;
-    h_random(h_i32 seed);
+public:
+    h_u32 seed;
+    
     h_random();
-    h_i32 random();
+    constexpr h_random(h_u32 seed);
+
+    h_u32 random();
+    h_u32 random(h_u32 max);
+    h_u32 random(h_u32 min, h_u32 max);
+    h_i32 random(h_i32 min, h_i32 max);
 };
 
 inline h_tuple<h_i32, bool> print(h_char c) {
