@@ -74,6 +74,11 @@ T h_sref<T, S>::operator [](h_i64 i) {
 }
 
 template <typename T, h_i64 S>
+T *h_sref<T, S>::ptr() {
+    return _data;
+}
+
+template <typename T, h_i64 S>
 constexpr h_i64 h_sref<T, S>::size() {
     return S;
 }
@@ -94,6 +99,11 @@ h_uref<T>::h_uref(T *data, h_i64 size) {
 template <typename T>
 T h_uref<T>::operator [](h_i64 i) {
     return _data[i];
+}
+
+template <typename T>
+T *h_uref<T>::ptr() {
+    return _data;
 }
 
 template <typename T>
@@ -529,13 +539,13 @@ h_file::h_file(const char *filename, const char *mode) {
 }
 
 h_file::h_file(h_uref<h_char> filename, const char *mode)
-    : h_file((char *)filename._data, mode) {}
+    : h_file((char *)filename.ptr(), mode) {}
 
 h_file::h_file(const char *filename, h_uref<h_char> mode)
-    : h_file(filename, (char *)mode._data) {}
+    : h_file(filename, (char *)mode.ptr()) {}
 
 h_file::h_file(h_uref<h_char> filename, h_uref<h_char> mode)
-    : h_file((char *)filename._data, (char *)mode._data) {}
+    : h_file((char *)filename.ptr(), (char *)mode.ptr()) {}
 
 h_file::~h_file() {
     fclose(file);

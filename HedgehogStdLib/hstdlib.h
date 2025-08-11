@@ -143,6 +143,7 @@ public:
     h_sref(T (&data)[S]);
     h_sref(T *data);
     T operator [](h_i64 i);
+    T *ptr();
     constexpr h_i64 size();
 };
 
@@ -156,6 +157,7 @@ public:
     h_uref(T (&data)[S]);
     h_uref(T *data, h_i64 size);
     T operator [](h_i64 i);
+    T *ptr();
     h_i64 size();
 };
 
@@ -311,12 +313,12 @@ inline h_i32 print(const char *fmt, A... args) {
 }
 
 inline h_i32 print(h_uref<h_char> str) {
-    return print((char *)str._data);
+    return print((char *)str.ptr());
 }
 
 template <typename ...A>
 inline h_i32 print(h_uref<h_char> fmt, A... args) {
-    return print((char *)fmt._data, args...);
+    return print((char *)fmt.ptr(), args...);
 }
 
 inline h_i32 println(h_char c) {
@@ -346,12 +348,12 @@ inline h_i32 println(const char *fmt, A... args) {
 }
 
 inline h_i32 println(h_uref<h_char> str) {
-    return println((char *)str._data);
+    return println((char *)str.ptr());
 }
 
 template <typename ...A>
 inline h_i32 println(h_uref<h_char> fmt, A... args) {
-    println((char *)fmt._data, args...);
+    println((char *)fmt.ptr(), args...);
 }
 
 void read(h_uref<h_char> ref);
