@@ -303,7 +303,13 @@ inline h_i32 print(h_char c) {
 }
 
 inline h_i32 print(const char *str) {
-    return fputs((char *)str, stdout);
+    h_i32 count;
+    for (count = 0; *str != '\0'; count++)  {
+        if (putchar(*str++) == EOF) {
+            return EOF;
+        }
+    }
+    return count;
 }
 
 template <typename ...A>
@@ -328,8 +334,16 @@ inline h_i32 println(h_char c) {
 }
 
 inline h_i32 println(const char *str) {
-    h_i32 result = puts(str);
-    return result == EOF ? EOF : result;
+    h_i32 count;
+    for (count = 0; *str != '\0'; count++)  {
+        if (putchar(*str++) == EOF) {
+            return EOF;
+        }
+    }
+    if (putchar('\n') == EOF) {
+        return EOF;
+    }
+    return count + 1;
 }
 
 template <typename ...A>
