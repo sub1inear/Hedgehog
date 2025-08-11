@@ -1,5 +1,6 @@
 #include "hstdlib.h"
 
 int main() {
-    print("%d", println("Hello, world"));
+    auto [result, err] = println("Hello, world");
+    print("%d", result);
 }
