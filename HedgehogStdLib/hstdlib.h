@@ -160,13 +160,41 @@ public:
 };
 
 template <typename T>
+class h_list;
+
+template <typename T, h_i64 S>
+class h_array {
+public:
+    T _data[S];
+    
+    template <h_i64 S2>
+    h_array(const h_array<T, S2> &array);
+    template <h_i64 S2>
+    h_array(h_array<T, S2> &&array);
+
+    template <h_i64 S2>
+    h_array &operator=(const h_array<T, S2> &list);
+    template <h_i64 S2>
+    h_array &operator=(h_array<T, S2> &&list);
+
+    operator h_sref<T, S>();
+    operator h_uref<T>();
+
+    T operator[](h_i64 i);
+
+    h_i64 find(T item);
+    h_i64 find_reverse(T item);
+    h_list<h_i64> find_all(T item);
+
+    constexpr h_i64 size();
+};
+
+template <typename T>
 class h_list {
 public:
     T *_data;
     h_i64 _size;
     h_i64 _capacity;
-
-    void reserve(h_i64 capacity);
 
     h_list();
     h_list(std::initializer_list<T> list);
@@ -192,29 +220,14 @@ public:
     void remove_reverse(T item);
     void remove_all(T item);
 
+    void reserve(h_i64 capacity);
+
     h_uref<T> data();
     h_i64 size();
     h_i64 capacity();
 protected:
     void malloc_data();
     void reserve_internal(h_i64 capacity);
-};
-
-template <typename T, h_i64 S>
-class h_array {
-public:
-    T _data[S];
-
-    operator h_sref<T, S>();
-    operator h_uref<T>();
-
-    T operator[](h_i64 i);
-
-    h_i64 find(T item);
-    h_i64 find_reverse(T item);
-    h_list<h_i64> find_all(T item);
-
-    constexpr h_i64 size();
 };
 
 class h_str : public h_list<h_char>  {

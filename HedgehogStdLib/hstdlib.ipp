@@ -101,6 +101,83 @@ h_i64 h_uref<T>::size() {
     return _size;
 }
 
+template <typename T, h_i64 S>
+template <h_i64 S2>
+h_array<T, S>::h_array(const h_array<T, S2> &array) {
+    memcpy(_data, array._data, h_math::min(S, S2));
+}
+
+template <typename T, h_i64 S>
+template <h_i64 S2>
+h_array<T, S>::h_array(h_array<T, S2> &&array) {
+    memcpy(_data, array._data, h_math::min(S, S2));
+}
+
+template <typename T, h_i64 S>
+template <h_i64 S2>
+h_array<T, S> &h_array<T, S>::operator=(const h_array<T, S2> &array) {
+    memcpy(_data, array._data, h_math::min(S, S2));
+    return *this;
+}
+
+template <typename T, h_i64 S>
+template <h_i64 S2>
+h_array<T, S> &h_array<T, S>::operator=(h_array<T, S2> &&array) {
+    memcpy(_data, array._data, h_math::min(S, S2));
+    return *this;
+}
+
+template <typename T, h_i64 S>
+h_array<T, S>::operator h_sref<T, S>() {
+    return { _data };
+}
+
+template <typename T, h_i64 S>
+h_array<T, S>::operator h_uref<T>() {
+    return { _data, S };
+}
+
+template <typename T, h_i64 S>
+T h_array<T, S>::operator[](h_i64 i) {
+    return _data[i];
+}
+
+template <typename T, h_i64 S>
+h_i64 h_array<T, S>::find(T item) {
+    for (h_i64 i = 0; i < S; i++) {
+        if (_data[i] == item) {
+            return i;    
+        }
+    }
+    return -1;
+}
+
+template <typename T, h_i64 S>
+h_i64 h_array<T, S>::find_reverse(T item) {
+    for (h_i64 i = S - 1; i >= 0; i--) {
+        if (_data[i] == item) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+template <typename T, h_i64 S>
+h_list<h_i64> h_array<T, S>::find_all(T item) {
+    h_list<h_i64> result;
+    for (h_i64 i = 0; i < S; i++) {
+        if (_data[i] == item) {
+            result.append(i);
+        }
+    }
+    return result;
+}
+
+template <typename T, h_i64 S>
+constexpr h_i64 h_array<T, S>::size() {
+    return S;
+}
+
 template <typename T>
 void h_list<T>::reserve(h_i64 capacity) {
     if (capacity <= _capacity) {
@@ -297,57 +374,6 @@ h_i64 h_list<T>::size() {
 template <typename T>
 h_i64 h_list<T>::capacity() {
     return _capacity;
-}
-
-template <typename T, h_i64 S>
-h_array<T, S>::operator h_sref<T, S>() {
-    return { _data };
-}
-
-template <typename T, h_i64 S>
-h_array<T, S>::operator h_uref<T>() {
-    return { _data, S };
-}
-
-template <typename T, h_i64 S>
-T h_array<T, S>::operator[](h_i64 i) {
-    return _data[i];
-}
-
-template <typename T, h_i64 S>
-h_i64 h_array<T, S>::find(T item) {
-    for (h_i64 i = 0; i < S; i++) {
-        if (_data[i] == item) {
-            return i;    
-        }
-    }
-    return -1;
-}
-
-template <typename T, h_i64 S>
-h_i64 h_array<T, S>::find_reverse(T item) {
-    for (h_i64 i = S - 1; i >= 0; i--) {
-        if (_data[i] == item) {
-            return i;
-        }
-    }
-    return -1;
-}
-
-template <typename T, h_i64 S>
-h_list<h_i64> h_array<T, S>::find_all(T item) {
-    h_list<h_i64> result;
-    for (h_i64 i = 0; i < S; i++) {
-        if (_data[i] == item) {
-            result.append(i);
-        }
-    }
-    return result;
-}
-
-template <typename T, h_i64 S>
-constexpr h_i64 h_array<T, S>::size() {
-    return S;
 }
 
 template <h_i64 S>
