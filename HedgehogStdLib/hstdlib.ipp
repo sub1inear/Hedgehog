@@ -203,6 +203,12 @@ h_list<T>::h_list() {
 }
 
 template <typename T>
+h_list<T>::h_list(h_i64 size) {
+    _size = _capacity = size;
+    malloc_data();
+}
+
+template <typename T>
 h_list<T>::h_list(std::initializer_list<T> list) {
     _size = _capacity = list.size();
 
@@ -374,6 +380,11 @@ void h_list<T>::reserve_internal(h_i64 capacity) {
 template <typename T>
 h_uref<T> h_list<T>::data() {
     return { _data, _size };
+}
+
+template <typname T>
+T *h_list<T>::ptr() {
+    return _data;
 }
 
 template <typename T>

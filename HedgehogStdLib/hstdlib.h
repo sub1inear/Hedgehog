@@ -193,6 +193,7 @@ public:
     h_i64 find_reverse(T item);
     h_list<h_i64> find_all(T item);
 
+    T *ptr();
     constexpr h_i64 size();
 };
 
@@ -204,6 +205,7 @@ public:
     h_i64 _capacity;
 
     h_list();
+    h_list(h_i64 size);
     h_list(std::initializer_list<T> list);
     h_list(const h_list &list);
     h_list(h_list &&list);
@@ -230,6 +232,7 @@ public:
     void reserve(h_i64 capacity);
 
     h_uref<T> data();
+    T *ptr();
     h_i64 size();
     h_i64 capacity();
 protected:
@@ -309,90 +312,97 @@ public:
     h_i32 random(h_i32 min, h_i32 max);
 };
 
-inline h_tuple<h_i32, bool> print(h_char c) {
-    h_i32 result = putchar(c);
-    return  { result, result == EOF };
+inline h_i32 print(h_char c) {
+    return putchar(c) == EOF ? EOF : 1;
 }
 
-inline h_tuple<h_i32, bool> print(const char *str) {
+inline h_i32 print(const char *str) {
     h_i32 count;
     for (count = 0; *str != '\0'; count++)  {
         if (putchar(*str++) == EOF) {
-            return { EOF, true };
+            return EOF;
         }
     }
-    return { count, false };
+    return count;
 }
 
 template <typename ...A>
-inline h_tuple<h_i32, bool> print(const char *fmt, A... args) {
+inline h_i32 print(const char *fmt, A... args) {
     h_i32 result = printf(fmt, args...);
-    return { result, result == EOF };
+    return result < 0 ? EOF : result;
 }
 
-inline h_tuple<h_i32, bool> print(h_uref<h_char> str) {
+inline h_i32 print(h_uref<h_char> str) {
     return print((char *)str.ptr());
 }
 
 template <typename ...A>
-inline h_tuple<h_i32, bool> print(h_uref<h_char> fmt, A... args) {
+inline h_i32 print(h_uref<h_char> fmt, A... args) {
     return print((char *)fmt.ptr(), args...);
 }
 
-inline h_tuple<h_i32, bool> println(h_char c) {
+inline h_i32 println(h_char c) {
     h_i32 result_c = putchar(c);
     h_i32 result_ln = putchar('\n');
-    return { 2, result_c == EOF || result_ln == EOF };
+    return result_c == EOF || result_ln == EOF ? EOF : 2;
 }
 
-inline h_tuple<h_i32, bool> println(const char *str) {
+inline h_i32 println(const char *str) {
     h_i32 count;
     for (count = 0; *str != '\0'; count++)  {
         if (putchar(*str++) == EOF) {
-            return { EOF, true };
+            return EOF;
         }
     }
     if (putchar('\n') == EOF) {
-        return { EOF, true };
+        return EOF;
     }
-    return { count, false };
+    return count + 1;
 }
 
 template <typename ...A>
-inline h_tuple<h_i32, bool> println(const char *fmt, A... args) {
+inline h_i32 println(const char *fmt, A... args) {
     h_i32 result_f = printf(fmt, args...);
     h_i32 result_l = putchar('\n');
 
-    return { result_f + 1, result_f == EOF || result_l == EOF };
+    h_i32 result = EOF;
+    if (result_f >= 0) {
+        result = result_f;
+        if (result_l != EOF) {
+            result++;
+        }
+    }
+    return result;
 }
 
-inline h_tuple<h_i32, bool> println(h_uref<h_char> str) {
+inline h_i32 println(h_uref<h_char> str) {
     return println((char *)str.ptr());
 }
 
 template <typename ...A>
-inline h_tuple<h_i32, bool> println(h_uref<h_char> fmt, A... args) {
+inline h_i32 println(h_uref<h_char> fmt, A... args) {
     println((char *)fmt.ptr(), args...);
 }
 
-inline h_tuple<h_char, bool> read_char() {
+inline h_tuple<h_char, h_bool> read() {
     h_i32 result = getchar();
     return { result, result == EOF };
 }
 
-inline bool read_line(h_uref<h_char> ref) {
-    return fgets((char *)ref.ptr(), (h_i32)ref.size(), stdout) == nullptr;
+// [[hhg::vla_return]]
+// converted into h_char[size], bool read(h_i32 size)
+inline bool read(h_char *out, h_i32 size) {
+    return fgets(out, size, stdout) == nullptr;
 }
 
 template <typename ...A>
-inline h_tuple<h_i32, bool> scan(const char *fmt, A... args) {
-    h_i32 result = scanf(fmt, args...);
-    return { result, result == EOF };
+inline h_i32 scan(const char *fmt, A... args) {
+    return scanf(fmt, args...);
 }
 
 
 template <typename ...A>
-inline h_tuple<h_i32, bool> scan(h_uref<h_char> fmt, A... args) {
+inline h_i32 scan(h_uref<h_char> fmt, A... args) {
     return scan((char *)fmt.ptr());
 }
 
