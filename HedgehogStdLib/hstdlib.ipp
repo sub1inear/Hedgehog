@@ -1,5 +1,6 @@
 #include "hstdlib.h"
 
+constexpr h_char::h_char() {}
 constexpr h_char::h_char(unsigned char c) : c(c) {}
 
 h_char::operator unsigned char() {
@@ -58,6 +59,15 @@ void h_char::to_lower() {
     c = tolower(c);
 }
 
+namespace h_math {
+
+template <typename T>
+T min(T a, T b) {
+    return a < b ? a : b;
+}
+
+};
+
 template <typename T, h_i64 S>
 h_sref<T, S>::h_sref(T (&data)[S]) {
     _data = &data;
@@ -112,29 +122,20 @@ h_i64 h_uref<T>::size() {
 }
 
 template <typename T, h_i64 S>
+h_array<T, S>::h_array() {}
+
+template <typename T, h_i64 S>
+h_array<T, S>::h_array(std::initializer_list<T> array)  {
+    h_i64 length = h_math::min(S, (h_i64)array.size());
+    for (h_i64 i = 0; i < length; i++) {
+        new (&_data[i]) T(array.begin()[i]);
+    }
+}
+
+template <typename T, h_i64 S>
 template <h_i64 S2>
 h_array<T, S>::h_array(const h_array<T, S2> &array) {
     memcpy(_data, array._data, h_math::min(S, S2));
-}
-
-template <typename T, h_i64 S>
-template <h_i64 S2>
-h_array<T, S>::h_array(h_array<T, S2> &&array) {
-    memcpy(_data, array._data, h_math::min(S, S2));
-}
-
-template <typename T, h_i64 S>
-template <h_i64 S2>
-h_array<T, S> &h_array<T, S>::operator=(const h_array<T, S2> &array) {
-    memcpy(_data, array._data, h_math::min(S, S2));
-    return *this;
-}
-
-template <typename T, h_i64 S>
-template <h_i64 S2>
-h_array<T, S> &h_array<T, S>::operator=(h_array<T, S2> &&array) {
-    memcpy(_data, array._data, h_math::min(S, S2));
-    return *this;
 }
 
 template <typename T, h_i64 S>
@@ -382,7 +383,7 @@ h_uref<T> h_list<T>::data() {
     return { _data, _size };
 }
 
-template <typname T>
+template <typename T>
 T *h_list<T>::ptr() {
     return _data;
 }
@@ -578,15 +579,125 @@ h_i32 h_file::tell() {
     return ftell(file);
 }
 
-bool h_file::flush() {
+h_tuple<h_char, bool> h_file::read() {
+    h_i32 result = fgetc(file);
+    return { result, result == EOF };
+}
+
+template <typename T>
+h_u64 h_file::read(h_uref<T> out) {
+    return fread(out.ptr(), sizeof(T), (h_i32)out.size(), file);
+}
+
+h_bool h_file::read(h_uref<h_char> out) {
+    return fgets((char *)out.ptr(), (h_i32)out.size(), file) == nullptr;
+}
+
+template <typename T>
+h_u64 h_file::read(h_uref<T> out, h_i32 count) {
+    return fread(out.ptr(), sizeof(T), h_math::min(count, (h_i32)out.size()), file);
+}
+
+h_bool h_file::read(h_uref<h_char> out, h_i32 count) {
+    return fgets((char *)out.ptr(), h_math::min(count, (h_i32)out.size()), file) == nullptr;
+}
+
+template <typename ...A>
+h_i32 h_file::scan(const char *fmt, A... args) {
+    return fscanf(file, fmt, args...);
+}
+
+template <typename ...A>
+h_i32 h_file::scan(h_uref<h_char> fmt, A... args) {
+    return scan((char *)fmt.ptr(), args);
+}
+
+template <typename T>
+h_u64 h_file::write(const h_uref<T> in) {
+    return fwrite(in.ptr(), sizeof(T), in.size(), file);
+}
+
+h_i32 h_file::print(h_char c) {
+    return fputc(c, file) == EOF ? EOF : 1;
+}
+
+h_i32 h_file::print(const char *str) {
+    h_i32 count;
+    for (count = 0; *str != '\0'; count++)  {
+        if (fputc(*str++, file) == EOF) {
+            return EOF;
+        }
+    }
+    return count;
+}
+
+template <typename ...A>
+h_i32 h_file::print(const char *fmt, A... args) {
+    h_i32 result = fprintf(file, fmt, args...);
+    return result < 0 ? EOF : result;
+}
+
+h_i32 h_file::print(h_uref<h_char> str) {
+    return print((char *)str.ptr());
+}
+
+template <typename ...A>
+h_i32 h_file::print(h_uref<h_char> fmt, A... args) {
+    return print((char *)fmt.ptr(), args...);
+}
+
+h_i32 h_file::println(h_char c) {
+    h_i32 result_c = fputc(c, file);
+    h_i32 result_ln = fputc('\n', file);
+    return result_c == EOF || result_ln == EOF ? EOF : 2;
+}
+
+h_i32 h_file::println(const char *str) {
+    h_i32 count;
+    for (count = 0; *str != '\0'; count++)  {
+        if (fputc(*str++, file) == EOF) {
+            return EOF;
+        }
+    }
+    if (fputc('\n', file) == EOF) {
+        return EOF;
+    }
+    return count + 1;
+}
+
+template <typename ...A>
+h_i32 h_file::println(const char *fmt, A... args) {
+    h_i32 result_f = fprintf(file, fmt, args...);
+    h_i32 result_l = fputc('\n', file);
+
+    h_i32 result = EOF;
+    if (result_f >= 0) {
+        result = result_f;
+        if (result_l != EOF) {
+            result++;
+        }
+    }
+    return result;
+}
+
+h_i32 h_file::println(h_uref<h_char> str) {
+    return println((char *)str.ptr());
+}
+
+template <typename ...A>
+h_i32 h_file::println(h_uref<h_char> fmt, A... args) {
+    return println((char *)fmt.ptr(), args...);
+}
+
+h_bool h_file::flush() {
     return fflush(file) == 0 ? false : true;
 }
 
-bool h_file::error() {
+h_bool h_file::error() {
     return ferror(file);
 }
 
-bool h_file::eof() {
+h_bool h_file::eof() {
     return feof(file);
 }
 

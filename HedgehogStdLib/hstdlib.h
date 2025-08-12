@@ -14,6 +14,7 @@
 #define H_TO_STR(x) H_TO_STR_HELPER(x)
 #define H_RUNTIME_ERROR(error, desc) do { puts(error ": " desc "\nFile: " __FILE__ "\nLine: " H_TO_STR(__LINE__)); exit(1); } while (0)
 #define H_RUNTIME_ERROR_F(error, fmt, ...) do { printf(error ": " fmt "\nFile: " __FILE__ "\nLine: " H_TO_STR(__LINE__) "\n", __VA_ARGS__ ); exit(1); } while (0)
+#define H_VLA_RETURN
 
 using h_i8 = int8_t;
 using h_u8 = uint8_t;
@@ -120,7 +121,8 @@ T max(T a, T b);
 class h_char {
 public:
     unsigned char c;
-
+    
+    constexpr h_char();
     constexpr h_char(unsigned char c);
     operator unsigned char();
 
@@ -173,16 +175,12 @@ template <typename T, h_i64 S>
 class h_array {
 public:
     T _data[S];
-    
-    template <h_i64 S2>
-    h_array(const h_array<T, S2> &array);
-    template <h_i64 S2>
-    h_array(h_array<T, S2> &&array);
+
+    h_array();
+    h_array(std::initializer_list<T> array);
 
     template <h_i64 S2>
-    h_array &operator=(const h_array<T, S2> &list);
-    template <h_i64 S2>
-    h_array &operator=(h_array<T, S2> &&list);
+    h_array(const h_array<T, S2> &array);
 
     operator h_sref<T, S>();
     operator h_uref<T>();
@@ -275,28 +273,50 @@ public:
     h_i32 seek_end(h_i32 offset);
     h_i32 tell();
 
+    h_tuple<h_char, h_bool> read();
+
+    H_VLA_RETURN
     template <typename T>
-    h_u64 read(h_uref<T> arr);
+    h_u64 read(h_uref<T> out);
+
+    H_VLA_RETURN
+    h_bool read(h_uref<h_char> out);
+
+    H_VLA_RETURN
+    template <typename T>
+    h_u64 read(h_uref<T> out, h_i32 count);
+
+    H_VLA_RETURN
+    h_bool read(h_uref<h_char> out, h_i32 count);
 
     template <typename ...A>
-    void scan(h_uref<h_char> fmt, A... args);
+    h_i32 scan(const char *fmt, A... args);
+
+    template <typename ...A>
+    h_i32 scan(h_uref<h_char> fmt, A... args);
 
     template <typename T>
-    h_u64 write(h_uref<T> arr);
+    h_u64 write(const h_uref<T> in );
 
-    void print(h_char c);
-    void print(h_uref<h_char> str);
+    h_i32 print(h_char c);
+    h_i32 print(const char *str);
+    h_i32 print(h_uref<h_char> str);
+    template <typename ...A>
+    h_i32 print(const char *fmt, A... args);
     template <typename ...A>
     h_i32 print(h_uref<h_char> fmt, A... args);
 
-    void println(h_char c);
-    void println(h_uref<h_char> str);
+    h_i32 println(h_char c);
+    h_i32 println(const char *str);
+    h_i32 println(h_uref<h_char> str);
+    template <typename ...A>
+    h_i32 println(const char *fmt, A... args);
     template <typename ...A>
     h_i32 println(h_uref<h_char> fmt, A... args);
 
-    bool flush();
-    bool error();
-    bool eof();
+    h_bool flush();
+    h_bool error();
+    h_bool eof();
 };
 
 class h_random {
@@ -381,7 +401,7 @@ inline h_i32 println(h_uref<h_char> str) {
 
 template <typename ...A>
 inline h_i32 println(h_uref<h_char> fmt, A... args) {
-    println((char *)fmt.ptr(), args...);
+    return println((char *)fmt.ptr(), args...);
 }
 
 inline h_tuple<h_char, h_bool> read() {
@@ -389,10 +409,9 @@ inline h_tuple<h_char, h_bool> read() {
     return { result, result == EOF };
 }
 
-// [[hhg::vla_return]]
-// converted into h_char[size], bool read(h_i32 size)
-inline bool read(h_char *out, h_i32 size) {
-    return fgets(out, size, stdout) == nullptr;
+H_VLA_RETURN
+inline h_bool read(h_uref<h_char> out) {
+    return fgets((char *)out.ptr(), (h_i32)out.size(), stdout) == nullptr;
 }
 
 template <typename ...A>
