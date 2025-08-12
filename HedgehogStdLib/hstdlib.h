@@ -261,6 +261,8 @@ public:
 class h_file {
     FILE *file;
 public:
+    h_file();
+
     h_file(const char *filename, const char *mode);
     h_file(h_uref<h_char> filename, const char *mode);
     h_file(const char *filename, h_uref<h_char> mode);
@@ -314,9 +316,38 @@ public:
     template <typename ...A>
     h_i32 println(h_uref<h_char> fmt, A... args);
 
+    h_i32 unget(h_char c);
+
     h_bool flush();
     h_bool error();
     h_bool eof();
+
+    void clear_flags();
+    void rewind();
+    
+    static h_bool rename(const char *old_filename, const char *new_filename) {
+        return ::rename(old_filename, new_filename);
+    }
+    
+    static h_bool rename(h_uref<h_char> old_filename, const char *new_filename) {
+        return rename((char *)old_filename.ptr(), new_filename);
+    }
+    
+    static h_bool rename(const char *old_filename, h_uref<h_char> new_filename) {
+        return rename(old_filename, (char *)new_filename.ptr());
+    }
+
+    static h_bool rename(h_uref<h_char> old_filename, h_uref<h_char> new_filename) {
+        return rename((char *)old_filename.ptr(), (char *)new_filename.ptr());
+    }
+
+    static h_bool remove(const char *filename) {
+        return ::remove(filename);
+    }
+
+    static h_bool remove(h_uref<h_char> filename) {
+        return remove((char *)filename.ptr());
+    }
 };
 
 class h_random {

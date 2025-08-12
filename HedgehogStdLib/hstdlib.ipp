@@ -609,7 +609,7 @@ h_i32 h_file::scan(const char *fmt, A... args) {
 
 template <typename ...A>
 h_i32 h_file::scan(h_uref<h_char> fmt, A... args) {
-    return scan((char *)fmt.ptr(), args);
+    return scan((char *)fmt.ptr(), args...);
 }
 
 template <typename T>
@@ -689,6 +689,10 @@ h_i32 h_file::println(h_uref<h_char> fmt, A... args) {
     return println((char *)fmt.ptr(), args...);
 }
 
+h_i32 h_file::unget(h_char c) {
+    return ungetc(c, file) == EOF ? EOF : 1;
+}
+
 h_bool h_file::flush() {
     return fflush(file) == 0 ? false : true;
 }
@@ -699,6 +703,14 @@ h_bool h_file::error() {
 
 h_bool h_file::eof() {
     return feof(file);
+}
+
+void h_file::clear_flags() {
+    clearerr(file);
+}
+
+void h_file::rewind() {
+    ::rewind(file);
 }
 
 h_random::h_random() {
