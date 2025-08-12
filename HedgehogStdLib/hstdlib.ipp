@@ -559,9 +559,12 @@ h_file::h_file(const char *filename, h_uref<h_char> mode)
 h_file::h_file(h_uref<h_char> filename, h_uref<h_char> mode)
     : h_file((char *)filename.ptr(), (char *)mode.ptr()) {}
 
+constexpr h_file::h_file(FILE *file) : file(file) {}
+
 h_file::~h_file() {
     fclose(file);
 }
+
 
 h_i32 h_file::seek_set(h_i32 offset) {
     return fseek(file, offset, SEEK_SET) == 0 ? false : true;

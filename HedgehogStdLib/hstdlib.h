@@ -268,6 +268,8 @@ public:
     h_file(const char *filename, h_uref<h_char> mode);
     h_file(h_uref<h_char> filename, h_uref<h_char> mode);
 
+    constexpr h_file(FILE *file);
+
     ~h_file();
 
     h_i32 seek_set(h_i32 offset);
@@ -349,6 +351,10 @@ public:
         return remove((char *)filename.ptr());
     }
 };
+
+#define h_stdout ((h_file)stdout)
+#define h_stderr ((h_file)stdout)
+#define h_stdin ((h_file)stdout)
 
 class h_random {
 public:
