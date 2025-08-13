@@ -738,3 +738,51 @@ h_u32 h_random::random(h_u32 min, h_u32 max) {
 h_i32 h_random::random(h_i32 min, h_i32 max) {
     return random() % (max - min) + min;
 }
+
+h_time::h_time() : h_time(time()) { }
+
+h_time::h_time(h_i64 time) {
+    struct tm *new_time_data = localtime(&time);
+    memcpy(&time_data, new_time_data, sizeof(time_data));
+}
+    
+h_i32 h_time::second() {
+    return time_data.tm_sec;
+}
+h_i32 h_time::minute() {
+    return time_data.tm_min;
+}
+h_i32 h_time::hour() {
+    return time_data.tm_hour;
+}
+h_i32 h_time::day() {
+    return time_data.tm_mday;
+}
+h_i32 h_time::month() {
+    return time_data.tm_mon;
+}
+h_i32 h_time::year() {
+    return time_data.tm_year;
+}
+h_i32 h_time::week_day() {
+    return time_data.tm_wday;
+}
+h_i32 h_time::year_day() {
+    return time_data.tm_yday;
+}
+bool h_time::is_daylight_savings() {
+    return time_data.tm_isdst;
+}
+    
+h_i32 h_time::format(h_uref<h_char> out, const char *fmt) {
+    h_i32 result = (h_i32)strftime((char *)out.ptr(), out.size(), fmt, &time_data);
+    return result == 0 ? EOF : result;
+}
+
+h_i32 h_time::format(h_uref<h_char> out, h_uref<h_char> fmt) {
+    return format(out, (char *)fmt.ptr());
+}
+
+h_i64 h_time::time() {
+    return ::time(nullptr);
+}

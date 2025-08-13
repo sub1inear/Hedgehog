@@ -1,5 +1,5 @@
 #include "hstdlib.h"
 
 int main() {
-    h_stdout.print("Hello, world");
+    h_i64 x = h_time::time();
 }

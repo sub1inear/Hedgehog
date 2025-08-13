@@ -5,6 +5,7 @@
 #include <cstring>
 #include <cstdio>
 #include <cctype>
+#include <ctime>
 #include <new>
 #include <tuple>
 #include <initializer_list>
@@ -34,6 +35,8 @@ using h_uint = h_u64;
 using h_float = double;
 
 using h_bool = bool;
+
+using h_time_t = time_t;
 
 // TODO: write own tuple class
 #define h_tuple std::tuple
@@ -369,6 +372,31 @@ public:
     h_i32 random(h_i32 min, h_i32 max);
 };
 
+class h_time {
+public:
+    struct tm time_data;
+    h_time();
+    h_time(h_i64 time);
+    
+    h_i32 second();
+    h_i32 minute();
+    h_i32 hour();
+    h_i32 day();
+    h_i32 month();
+    h_i32 year();
+    h_i32 week_day();
+    h_i32 year_day();
+    bool is_daylight_savings();
+    
+    H_VLA_RETURN
+    h_i32 format(h_uref<h_char> out, const char *fmts);
+
+    H_VLA_RETURN
+    h_i32 format(h_uref<h_char> out, h_uref<h_char> fmt);
+
+    static h_i64 time();
+};
+
 inline h_i32 print(h_char c) {
     return putchar(c) == EOF ? EOF : 1;
 }
@@ -455,7 +483,6 @@ template <typename ...A>
 inline h_i32 scan(const char *fmt, A... args) {
     return scanf(fmt, args...);
 }
-
 
 template <typename ...A>
 inline h_i32 scan(h_uref<h_char> fmt, A... args) {
