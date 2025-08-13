@@ -1,5 +1,9 @@
 #pragma once
+
 #define _CRT_SECURE_NO_WARNINGS
+
+#define H_VLA_RETURN
+
 #include <cstdlib>
 #include <cstdint>
 #include <cstring>
@@ -15,12 +19,6 @@
 #include <gmpxx.h>
 #pragma comment(lib, "lib/libgmp-13.lib")
 #pragma comment(lib, "lib/libgmpxx-9.lib")
-
-#define H_TO_STR_HELPER(x) #x
-#define H_TO_STR(x) H_TO_STR_HELPER(x)
-#define H_RUNTIME_ERROR(error, desc) do { puts(error ": " desc "\nFile: " __FILE__ "\nLine: " H_TO_STR(__LINE__)); exit(1); } while (0)
-#define H_RUNTIME_ERROR_F(error, fmt, ...) do { printf(error ": " fmt "\nFile: " __FILE__ "\nLine: " H_TO_STR(__LINE__) "\n", __VA_ARGS__ ); exit(1); } while (0)
-#define H_VLA_RETURN
 
 using h_i8 = int8_t;
 using h_u8 = uint8_t;
@@ -46,6 +44,13 @@ using h_time_t = time_t;
 
 // TODO: write own tuple class
 #define h_tuple std::tuple
+
+#define H_EOF (-1)
+
+#define H_TO_STR_HELPER(x) #x
+#define H_TO_STR(x) H_TO_STR_HELPER(x)
+#define H_RUNTIME_ERROR(error, desc) do { puts(error ": " desc "\nFile: " __FILE__ "\nLine: " H_TO_STR(__LINE__)); exit(1); } while (0)
+#define H_RUNTIME_ERROR_F(error, fmt, ...) do { printf(error ": " fmt "\nFile: " __FILE__ "\nLine: " H_TO_STR(__LINE__) "\n", __VA_ARGS__ ); exit(1); } while (0)
 
 namespace h_math {
 inline h_f32 sin(h_f32 x) {
@@ -463,9 +468,9 @@ public:
     }
 };
 
-#define h_stdout ((h_file)stdout)
-#define h_stderr ((h_file)stdout)
-#define h_stdin ((h_file)stdout)
+#define H_STDOUT ((h_file)stdout)
+#define H_STDERR ((h_file)stderr)
+#define H_STDIN ((h_file)stdin)
 
 class h_random {
 public:
@@ -506,14 +511,14 @@ public:
 };
 
 inline h_i32 print(h_char c) {
-    return putchar(c) == EOF ? EOF : 1;
+    return putchar(c) == EOF ? H_EOF : 1;
 }
 
 inline h_i32 print(const char *str) {
     h_i32 count;
     for (count = 0; *str != '\0'; count++)  {
         if (putchar(*str++) == EOF) {
-            return EOF;
+            return H_EOF;
         }
     }
     return count;
@@ -522,7 +527,7 @@ inline h_i32 print(const char *str) {
 template <typename ...A>
 inline h_i32 print(const char *fmt, A... args) {
     h_i32 result = gmp_printf(fmt, args...);
-    return result < 0 ? EOF : result;
+    return result < 0 ? H_EOF : result;
 }
 
 inline h_i32 print(h_uref<h_char> str) {
@@ -537,18 +542,18 @@ inline h_i32 print(h_uref<h_char> fmt, A... args) {
 inline h_i32 println(h_char c) {
     h_i32 result_c = putchar(c);
     h_i32 result_ln = putchar('\n');
-    return result_c == EOF || result_ln == EOF ? EOF : 2;
+    return result_c == EOF || result_ln == EOF ? H_EOF : 2;
 }
 
 inline h_i32 println(const char *str) {
     h_i32 count;
     for (count = 0; *str != '\0'; count++)  {
         if (putchar(*str++) == EOF) {
-            return EOF;
+            return H_EOF;
         }
     }
     if (putchar('\n') == EOF) {
-        return EOF;
+        return H_EOF;
     }
     return count + 1;
 }
@@ -558,7 +563,7 @@ inline h_i32 println(const char *fmt, A... args) {
     h_i32 result_f = gmp_printf(fmt, args...);
     h_i32 result_l = putchar('\n');
 
-    h_i32 result = EOF;
+    h_i32 result = H_EOF;
     if (result_f >= 0) {
         result = result_f;
         if (result_l != EOF) {
