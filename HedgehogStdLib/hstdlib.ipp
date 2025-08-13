@@ -59,46 +59,46 @@ void h_char::to_lower() {
     c = tolower(c);
 }
 
-template <typename T, h_i64 S>
+template <typename T, h_ssize_t S>
 h_sref<T, S>::h_sref(T (&data)[S]) {
     _data = &data;
 }
 
-template <typename T, h_i64 S>
+template <typename T, h_ssize_t S>
 h_sref<T, S>::h_sref(T *data) {
     _data = data;
 }
 
-template <typename T, h_i64 S>
-T h_sref<T, S>::operator [](h_i64 i) {
+template <typename T, h_ssize_t S>
+T h_sref<T, S>::operator [](h_ssize_t i) {
     return _data[i];
 }
 
-template <typename T, h_i64 S>
+template <typename T, h_ssize_t S>
 T *h_sref<T, S>::ptr() {
     return _data;
 }
 
-template <typename T, h_i64 S>
-constexpr h_i64 h_sref<T, S>::size() {
+template <typename T, h_ssize_t S>
+constexpr h_ssize_t h_sref<T, S>::size() {
     return S;
 }
 
 template <typename T>
-template <h_i64 S>
+template <h_ssize_t S>
 h_uref<T>::h_uref(T (&data)[S]) {
     _data = &data;
     _size = S;
 }
 
 template <typename T>
-h_uref<T>::h_uref(T *data, h_i64 size) {
+h_uref<T>::h_uref(T *data, h_ssize_t size) {
     _data = data;
     _size = size;
 }
 
 template <typename T>
-T h_uref<T>::operator [](h_i64 i) {
+T h_uref<T>::operator [](h_ssize_t i) {
     return _data[i];
 }
 
@@ -108,45 +108,45 @@ T *h_uref<T>::ptr() {
 }
 
 template <typename T>
-h_i64 h_uref<T>::size() {
+h_ssize_t h_uref<T>::size() {
     return _size;
 }
 
-template <typename T, h_i64 S>
+template <typename T, h_ssize_t S>
 h_array<T, S>::h_array() {}
 
-template <typename T, h_i64 S>
+template <typename T, h_ssize_t S>
 h_array<T, S>::h_array(std::initializer_list<T> array)  {
-    h_i64 length = h_math::min(S, (h_i64)array.size());
-    for (h_i64 i = 0; i < length; i++) {
+    h_ssize_t length = h_math::min(S, (h_ssize_t)array.size());
+    for (h_ssize_t i = 0; i < length; i++) {
         new (&_data[i]) T(array.begin()[i]);
     }
 }
 
-template <typename T, h_i64 S>
-template <h_i64 S2>
+template <typename T, h_ssize_t S>
+template <h_ssize_t S2>
 h_array<T, S>::h_array(const h_array<T, S2> &array) {
     memcpy(_data, array._data, h_math::min(S, S2));
 }
 
-template <typename T, h_i64 S>
+template <typename T, h_ssize_t S>
 h_array<T, S>::operator h_sref<T, S>() {
     return { _data };
 }
 
-template <typename T, h_i64 S>
+template <typename T, h_ssize_t S>
 h_array<T, S>::operator h_uref<T>() {
     return { _data, S };
 }
 
-template <typename T, h_i64 S>
-T h_array<T, S>::operator[](h_i64 i) {
+template <typename T, h_ssize_t S>
+T h_array<T, S>::operator[](h_ssize_t i) {
     return _data[i];
 }
 
-template <typename T, h_i64 S>
-h_i64 h_array<T, S>::find(T item) {
-    for (h_i64 i = 0; i < S; i++) {
+template <typename T, h_ssize_t S>
+h_ssize_t h_array<T, S>::find(T item) {
+    for (h_ssize_t i = 0; i < S; i++) {
         if (_data[i] == item) {
             return i;    
         }
@@ -154,9 +154,9 @@ h_i64 h_array<T, S>::find(T item) {
     return -1;
 }
 
-template <typename T, h_i64 S>
-h_i64 h_array<T, S>::find_reverse(T item) {
-    for (h_i64 i = S - 1; i >= 0; i--) {
+template <typename T, h_ssize_t S>
+h_ssize_t h_array<T, S>::find_reverse(T item) {
+    for (h_ssize_t i = S - 1; i >= 0; i--) {
         if (_data[i] == item) {
             return i;
         }
@@ -164,10 +164,10 @@ h_i64 h_array<T, S>::find_reverse(T item) {
     return -1;
 }
 
-template <typename T, h_i64 S>
-h_list<h_i64> h_array<T, S>::find_all(T item) {
-    h_list<h_i64> result;
-    for (h_i64 i = 0; i < S; i++) {
+template <typename T, h_ssize_t S>
+h_list<h_ssize_t> h_array<T, S>::find_all(T item) {
+    h_list<h_ssize_t> result;
+    for (h_ssize_t i = 0; i < S; i++) {
         if (_data[i] == item) {
             result.append(i);
         }
@@ -175,13 +175,13 @@ h_list<h_i64> h_array<T, S>::find_all(T item) {
     return result;
 }
 
-template <typename T, h_i64 S>
-constexpr h_i64 h_array<T, S>::size() {
+template <typename T, h_ssize_t S>
+constexpr h_ssize_t h_array<T, S>::size() {
     return S;
 }
 
 template <typename T>
-void h_list<T>::reserve(h_i64 capacity) {
+void h_list<T>::reserve(h_ssize_t capacity) {
     if (capacity <= _capacity) {
         return;
     }
@@ -195,7 +195,7 @@ h_list<T>::h_list() {
 }
 
 template <typename T>
-h_list<T>::h_list(h_i64 size) {
+h_list<T>::h_list(h_ssize_t size) {
     _size = _capacity = size;
     malloc_data();
 }
@@ -205,7 +205,7 @@ h_list<T>::h_list(std::initializer_list<T> list) {
     _size = _capacity = list.size();
 
     malloc_data();
-    for (h_i64 i = 0; i < _size; i++) {
+    for (h_ssize_t i = 0; i < _size; i++) {
         new (&_data[i]) T(list.begin()[i]);
     }
 }
@@ -228,7 +228,7 @@ h_list<T>::h_list(h_list &&list) {
 
 template <typename T>
 h_list<T>::~h_list() {
-    for (h_i64 i = 0; i < _size; i++) {
+    for (h_ssize_t i = 0; i < _size; i++) {
         _data[i].~T();
     }
     free(_data);
@@ -265,7 +265,7 @@ h_list<T>::operator h_uref<T>() {
 }
 
 template <typename T>
-T h_list<T>::operator[](h_i64 i) {
+T h_list<T>::operator[](h_ssize_t i) {
     return _data[i];
 }
 
@@ -290,8 +290,8 @@ void h_list<T>::append(h_list<T> list) {
 }
 
 template <typename T>
-h_i64 h_list<T>::find(T item) {
-    for (h_i64 i = 0; i < _size; i++) {
+h_ssize_t h_list<T>::find(T item) {
+    for (h_ssize_t i = 0; i < _size; i++) {
         if (_data[i] == item) {
             return i;    
         }
@@ -300,8 +300,8 @@ h_i64 h_list<T>::find(T item) {
 }
 
 template <typename T>
-h_i64 h_list<T>::find_reverse(T item) {
-    for (h_i64 i = _size - 1; i >= 0; i--) {
+h_ssize_t h_list<T>::find_reverse(T item) {
+    for (h_ssize_t i = _size - 1; i >= 0; i--) {
         if (_data[i] == item) {
             return i;
         }
@@ -310,9 +310,9 @@ h_i64 h_list<T>::find_reverse(T item) {
 }
 
 template <typename T>
-h_list<h_i64> h_list<T>::find_all(T item) {
-    h_list<h_i64> result;
-    for (h_i64 i = 0; i < _size; i++) {
+h_list<h_ssize_t> h_list<T>::find_all(T item) {
+    h_list<h_ssize_t> result;
+    for (h_ssize_t i = 0; i < _size; i++) {
         if (_data[i] == item) {
             result.append(i);
         }
@@ -322,7 +322,7 @@ h_list<h_i64> h_list<T>::find_all(T item) {
 
 template <typename T>
 void h_list<T>::remove(T item) {
-    for (h_i64 i = 0; i < _size; i++) {
+    for (h_ssize_t i = 0; i < _size; i++) {
         if (_data[i] == item) {
             _size--;
             memmove(&_data[i + 1], &_data[i], _size - 1);
@@ -333,7 +333,7 @@ void h_list<T>::remove(T item) {
 
 template <typename T>
 void h_list<T>::remove_reverse(T item) {
-    for (h_i64 i = _size - 1; i >= 0; i--) {
+    for (h_ssize_t i = _size - 1; i >= 0; i--) {
         if (_data[i] == item) {
             _size--;
             memmove(&_data[i + 1], &_data[i], _size - 1);
@@ -344,7 +344,7 @@ void h_list<T>::remove_reverse(T item) {
 
 template <typename T>
 void h_list<T>::remove_all(T item) {
-    for (h_i64 i = 0; i < _size; i++) {
+    for (h_ssize_t i = 0; i < _size; i++) {
         if (_data[i] == item) {
             _size--;
             memmove(&_data[i + 1], &_data[i], _size - 1);
@@ -361,7 +361,7 @@ void h_list<T>::malloc_data() {
 }
 
 template <typename T>
-void h_list<T>::reserve_internal(h_i64 capacity) {
+void h_list<T>::reserve_internal(h_ssize_t capacity) {
     _capacity = capacity;
     _data = (T *)realloc(_data, _capacity);
     if (_data == nullptr) {
@@ -380,16 +380,16 @@ T *h_list<T>::ptr() {
 }
 
 template <typename T>
-h_i64 h_list<T>::size() {
+h_ssize_t h_list<T>::size() {
     return _size;
 }
 
 template <typename T>
-h_i64 h_list<T>::capacity() {
+h_ssize_t h_list<T>::capacity() {
     return _capacity;
 }
 
-template <h_i64 S>
+template <h_ssize_t S>
 h_str::h_str(const char (&str)[S]) {
     _size = _capacity = S;
     _data = (h_char *)malloc(_capacity * sizeof(h_char));
@@ -399,11 +399,11 @@ h_str::h_str(const char (&str)[S]) {
     memcpy(_data, &str, _capacity);
 }
 
-h_i64 h_str::find(h_str str) {
-    for (h_i64 i = 0; i <= _size - str._size; i++) {
-        h_i64 j;
-        h_i64 k;
-        h_i64 len = str._size - 1;
+h_ssize_t h_str::find(h_str str) {
+    for (h_ssize_t i = 0; i <= _size - str._size; i++) {
+        h_ssize_t j;
+        h_ssize_t k;
+        h_ssize_t len = str._size - 1;
         for (j = 0, k = i; 
              j < len && _data[k] == str[j];
              j++, k++) {}
@@ -414,11 +414,11 @@ h_i64 h_str::find(h_str str) {
     return -1;
 }
 
-h_i64 h_str::find_reverse(h_str str) {
-    for (h_i64 i = _size - str._size; i >= 0; i--) {
-        h_i64 j;
-        h_i64 k;
-        h_i64 len = str._size - 1;
+h_ssize_t h_str::find_reverse(h_str str) {
+    for (h_ssize_t i = _size - str._size; i >= 0; i--) {
+        h_ssize_t j;
+        h_ssize_t k;
+        h_ssize_t len = str._size - 1;
         for (j = 0, k = i; 
              j < len && _data[k] == str[j];
              j++, k++) {}
@@ -429,12 +429,12 @@ h_i64 h_str::find_reverse(h_str str) {
     return -1;
 }
 
-h_list<h_i64> h_str::find_all(h_str str) {
-    h_list<h_i64> result;
-    for (h_i64 i = 0; i <= _size - str._size; i++) {
-        h_i64 j;
-        h_i64 k;
-        h_i64 len = str._size - 1;
+h_list<h_ssize_t> h_str::find_all(h_str str) {
+    h_list<h_ssize_t> result;
+    for (h_ssize_t i = 0; i <= _size - str._size; i++) {
+        h_ssize_t j;
+        h_ssize_t k;
+        h_ssize_t len = str._size - 1;
         for (j = 0, k = i; 
              j < len && _data[k] == str[j];
              j++, k++) {}
@@ -446,11 +446,11 @@ h_list<h_i64> h_str::find_all(h_str str) {
 }
 
 void h_str::replace(h_str str1, h_str str2) {
-    h_i64 str1_len = str1._size - 1;
-    h_i64 str2_len = str2._size - 1;
-    for (h_i64 i = 0; i <= _size - str1._size; i++) {
-        h_i64 j;
-        h_i64 k;
+    h_ssize_t str1_len = str1._size - 1;
+    h_ssize_t str2_len = str2._size - 1;
+    for (h_ssize_t i = 0; i <= _size - str1._size; i++) {
+        h_ssize_t j;
+        h_ssize_t k;
         for (j = 0, k = i; 
              j < str1_len && _data[k] == str1[j];
              j++, k++) {}
@@ -472,11 +472,11 @@ void h_str::replace(h_str str1, h_str str2) {
 }
 
 void h_str::replace_reverse(h_str str1, h_str str2) {
-    h_i64 str1_len = str1._size - 1;
-    h_i64 str2_len = str2._size - 1;
-   for (h_i64 i = _size - str1._size; i >= 0; i--) {
-        h_i64 j;
-        h_i64 k;
+    h_ssize_t str1_len = str1._size - 1;
+    h_ssize_t str2_len = str2._size - 1;
+   for (h_ssize_t i = _size - str1._size; i >= 0; i--) {
+        h_ssize_t j;
+        h_ssize_t k;
         for (j = 0, k = i; 
              j < str1_len && _data[k] == str1[j];
              j++, k++) {}
@@ -498,11 +498,11 @@ void h_str::replace_reverse(h_str str1, h_str str2) {
 }
 
 void h_str::replace_all(h_str str1, h_str str2) {
-    h_i64 str1_len = str1._size - 1;
-    h_i64 str2_len = str2._size - 1;
-    for (h_i64 i = 0; i <= _size - str1._size; i++) {
-        h_i64 j;
-        h_i64 k;
+    h_ssize_t str1_len = str1._size - 1;
+    h_ssize_t str2_len = str2._size - 1;
+    for (h_ssize_t i = 0; i <= _size - str1._size; i++) {
+        h_ssize_t j;
+        h_ssize_t k;
         for (j = 0, k = i; 
              j < str1_len && _data[k] == str1[j];
              j++, k++) {}
@@ -523,13 +523,13 @@ void h_str::replace_all(h_str str1, h_str str2) {
 }
 
 void h_str::to_upper() {
-    for (h_i64 i = 0; i < _size; i++) {
+    for (h_ssize_t i = 0; i < _size; i++) {
         _data[i].to_upper();
     }
 }
 
 void h_str::to_lower() {
-    for (h_i64 i = 0; i < _size; i++) {
+    for (h_ssize_t i = 0; i < _size; i++) {
         _data[i].to_lower();
     }
 }
@@ -732,7 +732,7 @@ h_i32 h_random::random(h_i32 min, h_i32 max) {
 
 h_time::h_time() : h_time(time()) { }
 
-h_time::h_time(h_i64 time) {
+h_time::h_time(h_time_t time) {
     struct tm *new_time_data = localtime(&time);
     memcpy(&time_data, new_time_data, sizeof(time_data));
 }
@@ -774,6 +774,6 @@ h_i32 h_time::format(h_uref<h_char> out, h_uref<h_char> fmt) {
     return format(out, (char *)fmt.ptr());
 }
 
-h_i64 h_time::time() {
+h_time_t h_time::time() {
     return ::time(nullptr);
 }

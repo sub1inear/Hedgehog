@@ -39,6 +39,9 @@ using h_float = mpf_class;
 
 using h_bool = bool;
 
+using h_size_t = size_t;
+using h_ssize_t = ptrdiff_t;
+
 using h_time_t = time_t;
 
 // TODO: write own tuple class
@@ -250,36 +253,36 @@ public:
     void to_lower();
 };
 
-template <typename T, h_i64 S>
+template <typename T, h_ssize_t S>
 class h_sref {
 public:
     T *_data;
 
     h_sref(T (&data)[S]);
     h_sref(T *data);
-    T operator [](h_i64 i);
+    T operator [](h_ssize_t i);
     T *ptr();
-    constexpr h_i64 size();
+    constexpr h_ssize_t size();
 };
 
 template <typename T>
 class h_uref {
 public:
     T *_data;
-    h_i64 _size;
+    h_ssize_t _size;
 
-    template <h_i64 S>
+    template <h_ssize_t S>
     h_uref(T (&data)[S]);
-    h_uref(T *data, h_i64 size);
-    T operator [](h_i64 i);
+    h_uref(T *data, h_ssize_t size);
+    T operator [](h_ssize_t i);
     T *ptr();
-    h_i64 size();
+    h_ssize_t size();
 };
 
 template <typename T>
 class h_list;
 
-template <typename T, h_i64 S>
+template <typename T, h_ssize_t S>
 class h_array {
 public:
     T _data[S];
@@ -287,31 +290,31 @@ public:
     h_array();
     h_array(std::initializer_list<T> array);
 
-    template <h_i64 S2>
+    template <h_ssize_t S2>
     h_array(const h_array<T, S2> &array);
 
     operator h_sref<T, S>();
     operator h_uref<T>();
 
-    T operator[](h_i64 i);
+    T operator[](h_ssize_t i);
 
-    h_i64 find(T item);
-    h_i64 find_reverse(T item);
-    h_list<h_i64> find_all(T item);
+    h_ssize_t find(T item);
+    h_ssize_t find_reverse(T item);
+    h_list<h_ssize_t> find_all(T item);
 
     T *ptr();
-    constexpr h_i64 size();
+    constexpr h_ssize_t size();
 };
 
 template <typename T>
 class h_list {
 public:
     T *_data;
-    h_i64 _size;
-    h_i64 _capacity;
+    h_ssize_t _size;
+    h_ssize_t _capacity;
 
     h_list();
-    h_list(h_i64 size);
+    h_list(h_ssize_t size);
     h_list(std::initializer_list<T> list);
     h_list(const h_list &list);
     h_list(h_list &&list);
@@ -322,28 +325,28 @@ public:
     h_list &operator=(h_list &&list);
 
     operator h_uref<T>();
-    T operator[](h_i64 i);
+    T operator[](h_ssize_t i);
 
     void append(T item);
     void append(h_list<T> list);
 
-    h_i64 find(T item);
-    h_i64 find_reverse(T item);
-    h_list<h_i64> find_all(T item);
+    h_ssize_t find(T item);
+    h_ssize_t find_reverse(T item);
+    h_list<h_ssize_t> find_all(T item);
 
     void remove(T item);
     void remove_reverse(T item);
     void remove_all(T item);
 
-    void reserve(h_i64 capacity);
+    void reserve(h_ssize_t capacity);
 
     h_uref<T> data();
     T *ptr();
-    h_i64 size();
-    h_i64 capacity();
+    h_ssize_t size();
+    h_ssize_t capacity();
 protected:
     void malloc_data();
-    void reserve_internal(h_i64 capacity);
+    void reserve_internal(h_ssize_t capacity);
 };
 
 class h_str : public h_list<h_char>  {
@@ -351,12 +354,12 @@ public:
     using base = h_list<h_char>;
     using base::base;
 
-    template <h_i64 S>
+    template <h_ssize_t S>
     h_str(const char (&str)[S]);
 
-    h_i64 find(h_str str);
-    h_i64 find_reverse(h_str str);
-    h_list<h_i64> find_all(h_str str);
+    h_ssize_t find(h_str str);
+    h_ssize_t find_reverse(h_str str);
+    h_list<h_ssize_t> find_all(h_str str);
 
     void replace(h_str str1, h_str str2);
     void replace_reverse(h_str str1, h_str str2);
@@ -481,7 +484,7 @@ class h_time {
 public:
     struct tm time_data;
     h_time();
-    h_time(h_i64 time);
+    h_time(h_time_t time);
     
     h_i32 second();
     h_i32 minute();
@@ -499,7 +502,7 @@ public:
     H_VLA_RETURN
     h_i32 format(h_uref<h_char> out, h_uref<h_char> fmt);
 
-    static h_i64 time();
+    static h_time_t time();
 };
 
 inline h_i32 print(h_char c) {
