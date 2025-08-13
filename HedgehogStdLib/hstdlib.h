@@ -6,10 +6,15 @@
 #include <cstdio>
 #include <cctype>
 #include <ctime>
+#include <cmath>
 #include <new>
 #include <tuple>
 #include <initializer_list>
 #include <random>
+
+#include <gmpxx.h>
+#pragma comment(lib, "lib/libgmp-13.lib")
+#pragma comment(lib, "lib/libgmpxx-9.lib")
 
 #define H_TO_STR_HELPER(x) #x
 #define H_TO_STR(x) H_TO_STR_HELPER(x)
@@ -29,10 +34,8 @@ using h_u64 = uint64_t;
 using h_f32 = float;
 using h_f64 = double;
 
-// TODO: replace with big num
-using h_int = h_i64;
-using h_uint = h_u64;
-using h_float = double;
+using h_int = mpz_class;
+using h_float = mpf_class;
 
 using h_bool = bool;
 
@@ -42,82 +45,184 @@ using h_time_t = time_t;
 #define h_tuple std::tuple
 
 namespace h_math {
-h_f32 sin(h_f32 x);
-h_f64 sin(h_f64 x);
-h_float sin(h_float x);
+inline h_f32 sin(h_f32 x) {
+    return sinf(x);
+}
 
-h_f32 cos(h_f32 x);
-h_f64 cos(h_f64 x);
-h_float cos(h_float x);
+inline h_f64 sin(h_f64 x) {
+    return ::sin(x);
+}
 
-h_f32 tan(h_f32 x);
-h_f64 tan(h_f64 x);
-h_float tan(h_float x);
+inline h_f32 cos(h_f32 x) {
+    return cosf(x);
+}
 
-h_f32 asin(h_f32 x);
-h_f64 asin(h_f64 x);
-h_float asin(h_float x);
+inline h_f64 cos(h_f64 x) {
+    return ::cos(x);
+}
 
-h_f32 acos(h_f32 x);
-h_f64 acos(h_f64 x);
-h_float acos(h_float x);
+inline h_f32 tan(h_f32 x) {
+    return tanf(x);
+}
+inline h_f64 tan(h_f64 x) {
+    return ::tan(x);
+}
 
-h_f32 atan(h_f32 x);
-h_f64 atan(h_f64 x);
-h_float atan(h_float x);
+inline h_f32 asin(h_f32 x) {
+    return asinf(x);
+}
+inline h_f64 asin(h_f64 x) {
+    return ::asin(x);
+}
 
-h_f32 atan2(h_f32 y, h_f32 x);
-h_f64 atan2(h_f64 y, h_f64 x);
-h_float atan2(h_float y, h_float x);
+inline h_f32 acos(h_f32 x) {
+    return acosf(x);
+}
 
-h_f32 sqrt(h_f32 x);
-h_f64 sqrt(h_f64 x);
-h_float sqrt(h_float x);
+inline h_f64 acos(h_f64 x) {
+    return ::acos(x);
+}
 
-h_f32 hypot(h_f32 x, h_f32 y);
-h_f64 hypot(h_f64 x, h_f64 y);
-h_float hypot(h_float x, h_float y);
+inline h_f32 atan(h_f32 x) {
+    return atanf(x);
+}
 
-h_f32 sinh(h_f32 x);
-h_f64 sinh(h_f64 x);
-h_float sinh(h_float x);
+inline h_f64 atan(h_f64 x) {
+    return ::atan(x);
+}
 
-h_f32 cosh(h_f32 x);
-h_f64 cosh(h_f64 x);
-h_float cosh(h_float x);
+inline h_f32 atan2(h_f32 y, h_f32 x) {
+    return atan2f(y, x);
+}
 
-h_f32 tanh(h_f32 x);
-h_f64 tanh(h_f64 x);
-h_float tanh(h_float x);
+inline h_f64 atan2(h_f64 y, h_f64 x) {
+    return ::atan2(y, x);
+}
 
-h_f32 log(h_f32 x);
-h_f64 log(h_f64 x);
-h_float log(h_float x);
+inline h_f32 sqrt(h_f32 x) {
+    return sqrtf(x);
+}
 
-h_f32 log10(h_f32 x);
-h_f64 log10(h_f64 x);
-h_float log10(h_float x);
+inline h_f64 sqrt(h_f64 x) {
+    return ::sqrt(x);
+}
 
-h_f32 log2(h_f32 x);
-h_f64 log2(h_f64 x);
-h_float log2(h_float x);
+inline h_float sqrt(h_float x) {
+    return ::sqrt(x);
+}
 
-h_f32 floor(h_f32 x);
-h_f64 floor(h_f64 x);
-h_float floor(h_float x);
+inline h_f32 hypot(h_f32 x, h_f32 y) {
+    return hypotf(x, y);
+}
 
-h_f32 ceil(h_f32 x);
-h_f64 ceil(h_f64 x);
-h_float ceil(h_float x);
+inline h_f64 hypot(h_f64 x, h_f64 y) {
+    return ::hypot(x, y);
+}
+
+inline h_float hypot(h_float x, h_float y) {
+    return ::hypot(x, y);
+}
+
+inline h_f32 sinh(h_f32 x) {
+    return sinhf(x);
+}
+
+inline h_f64 sinh(h_f64 x) {
+    return ::sinh(x);
+}
+
+inline h_f32 cosh(h_f32 x) {
+    return coshf(x);
+}
+
+inline h_f64 cosh(h_f64 x) {
+    return ::cosh(x);
+}
+
+inline h_f32 tanh(h_f32 x) {
+    return tanhf(x);
+}
+inline h_f64 tanh(h_f64 x) {
+    return ::tanh(x);
+}
+
+inline h_f32 log(h_f32 x) {
+    return logf(x);
+}
+
+inline h_f64 log(h_f64 x) {
+    return ::log(x);
+}
+
+inline h_f32 log10(h_f32 x) {
+    return log10f(x);
+}
+
+inline h_f64 log10(h_f64 x) {
+    return ::log10(x);
+}
+
+inline h_f32 log2(h_f32 x) {
+    return log2f(x);
+}
+
+inline h_f64 log2(h_f64 x) {
+    return ::log2(x);
+}
+
+inline h_f32 floor(h_f32 x) {
+    return floorf(x);
+}
+
+inline h_f64 floor(h_f64 x) {
+    return ::floor(x);
+}
+
+h_float floor(h_float x) {
+    return ::floor(x);
+}
+
+h_f32 ceil(h_f32 x) {
+    return ceilf(x);
+}
+
+h_f64 ceil(h_f64 x) {
+    return ::ceil(x);
+}
+
+h_float ceil(h_float x) {
+    return ::ceil(x);
+}
 
 template <typename T>
-T abs(T x);
+T abs(T x) {
+    return x < 0 ? -x : x;
+}
+
+template <>
+h_f32 abs(h_f32 x) {
+    return ::fabsf(x);
+}
+
+template <>
+h_f64 abs(h_f64 x) {
+    return ::fabs(x);
+}
+
+template <>
+h_int abs(h_int x) {
+    return ::abs(x);
+}
 
 template <typename T>
-T min(T a, T b);
+T min(T a, T b) {
+    return a < b ? a : b;
+}
 
 template <typename T>
-T max(T a, T b);
+T max(T a, T b) {
+    return a > b ? a : b;
+}
 
 }
 
@@ -413,7 +518,7 @@ inline h_i32 print(const char *str) {
 
 template <typename ...A>
 inline h_i32 print(const char *fmt, A... args) {
-    h_i32 result = printf(fmt, args...);
+    h_i32 result = gmp_printf(fmt, args...);
     return result < 0 ? EOF : result;
 }
 
@@ -447,7 +552,7 @@ inline h_i32 println(const char *str) {
 
 template <typename ...A>
 inline h_i32 println(const char *fmt, A... args) {
-    h_i32 result_f = printf(fmt, args...);
+    h_i32 result_f = gmp_printf(fmt, args...);
     h_i32 result_l = putchar('\n');
 
     h_i32 result = EOF;

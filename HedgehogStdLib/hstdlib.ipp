@@ -59,15 +59,6 @@ void h_char::to_lower() {
     c = tolower(c);
 }
 
-namespace h_math {
-
-template <typename T>
-T min(T a, T b) {
-    return a < b ? a : b;
-}
-
-};
-
 template <typename T, h_i64 S>
 h_sref<T, S>::h_sref(T (&data)[S]) {
     _data = &data;
