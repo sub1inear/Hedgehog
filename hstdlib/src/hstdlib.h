@@ -237,7 +237,7 @@ T max(T a, T b) {
 class h_char {
 public:
     unsigned char c;
-    
+
     constexpr h_char();
     constexpr h_char(unsigned char c);
     operator unsigned char();
@@ -442,15 +442,15 @@ public:
 
     void clear_flags();
     void rewind();
-    
+
     static h_bool rename(const char *old_filename, const char *new_filename) {
         return ::rename(old_filename, new_filename);
     }
-    
+
     static h_bool rename(h_uref<h_char> old_filename, const char *new_filename) {
         return rename((char *)old_filename.ptr(), new_filename);
     }
-    
+
     static h_bool rename(const char *old_filename, h_uref<h_char> new_filename) {
         return rename(old_filename, (char *)new_filename.ptr());
     }
@@ -475,7 +475,7 @@ public:
 class h_random {
 public:
     h_u32 seed;
-    
+
     h_random();
     constexpr h_random(h_u32 seed);
 
@@ -490,17 +490,17 @@ public:
     struct tm time_data;
     h_time();
     h_time(h_time_t time);
-    
+
     h_i32 second();
     h_i32 minute();
     h_i32 hour();
-    h_i32 day();
+    h_i32 month_day();
     h_i32 month();
     h_i32 year();
     h_i32 week_day();
     h_i32 year_day();
-    bool is_daylight_savings();
-    
+    h_bool is_daylight_savings();
+
     H_VLA_RETURN
     h_i32 format(h_uref<h_char> out, const char *fmts);
 

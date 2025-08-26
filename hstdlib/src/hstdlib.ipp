@@ -148,7 +148,7 @@ template <typename T, h_ssize_t S>
 h_ssize_t h_array<T, S>::find(T item) {
     for (h_ssize_t i = 0; i < S; i++) {
         if (_data[i] == item) {
-            return i;    
+            return i;
         }
     }
     return -1;
@@ -214,7 +214,7 @@ template <typename T>
 h_list<T>::h_list(const h_list &list) {
     _size = list._size;
     _capacity = list._capacity;
-     
+
     malloc_data();
     memcpy(_data, list._data, _capacity);
 }
@@ -245,7 +245,7 @@ h_list<T> &h_list<T>::operator=(const h_list &list) {
 template <typename T>
 h_list<T> &h_list<T>::operator=(const std::initializer_list<T> &list) {
     _size = _capacity = list.size();
-    
+
     free(_data);
     malloc_data();
     return *this;
@@ -285,7 +285,7 @@ void h_list<T>::append(h_list<T> list) {
     if (_size > _capacity) {
         reserve_internal((_capacity + list._size) * 2);
     }
-    
+
     memcpy(end, list._data, list._size);
 }
 
@@ -293,7 +293,7 @@ template <typename T>
 h_ssize_t h_list<T>::find(T item) {
     for (h_ssize_t i = 0; i < _size; i++) {
         if (_data[i] == item) {
-            return i;    
+            return i;
         }
     }
     return -1;
@@ -404,7 +404,7 @@ h_ssize_t h_str::find(h_str str) {
         h_ssize_t j;
         h_ssize_t k;
         h_ssize_t len = str._size - 1;
-        for (j = 0, k = i; 
+        for (j = 0, k = i;
              j < len && _data[k] == str[j];
              j++, k++) {}
         if (j == len) {
@@ -419,7 +419,7 @@ h_ssize_t h_str::find_reverse(h_str str) {
         h_ssize_t j;
         h_ssize_t k;
         h_ssize_t len = str._size - 1;
-        for (j = 0, k = i; 
+        for (j = 0, k = i;
              j < len && _data[k] == str[j];
              j++, k++) {}
         if (j == len) {
@@ -435,7 +435,7 @@ h_list<h_ssize_t> h_str::find_all(h_str str) {
         h_ssize_t j;
         h_ssize_t k;
         h_ssize_t len = str._size - 1;
-        for (j = 0, k = i; 
+        for (j = 0, k = i;
              j < len && _data[k] == str[j];
              j++, k++) {}
         if (j == len) {
@@ -451,7 +451,7 @@ void h_str::replace(h_str str1, h_str str2) {
     for (h_ssize_t i = 0; i <= _size - str1._size; i++) {
         h_ssize_t j;
         h_ssize_t k;
-        for (j = 0, k = i; 
+        for (j = 0, k = i;
              j < str1_len && _data[k] == str1[j];
              j++, k++) {}
         if (j == str1_len) {
@@ -462,7 +462,7 @@ void h_str::replace(h_str str1, h_str str2) {
                 memmove(&_data[i + str2_len], &_data[i + str1_len], _size - str2_len);
                 _size += str2_len - str1_len;
             } else if (str1_len > str2_len) {
-                memmove(&_data[i + str2_len], &_data[i + str1_len], _size - str1_len);  
+                memmove(&_data[i + str2_len], &_data[i + str1_len], _size - str1_len);
                 _size -= str1_len - str2_len;
             }
             memcpy(&_data[i], str2._data, str2_len);
@@ -477,7 +477,7 @@ void h_str::replace_reverse(h_str str1, h_str str2) {
    for (h_ssize_t i = _size - str1._size; i >= 0; i--) {
         h_ssize_t j;
         h_ssize_t k;
-        for (j = 0, k = i; 
+        for (j = 0, k = i;
              j < str1_len && _data[k] == str1[j];
              j++, k++) {}
         if (j == str1_len) {
@@ -485,7 +485,7 @@ void h_str::replace_reverse(h_str str1, h_str str2) {
                 if (_capacity < _size + (str2._size - str1._size)) {
                     reserve_internal((_capacity + (str2._size - str1._size)) * 2);
                 }
-                memmove(&_data[i + str2_len], &_data[i + str1_len], _size - str2_len);     
+                memmove(&_data[i + str2_len], &_data[i + str1_len], _size - str2_len);
                 _size += str2_len - str1_len;
             } else if (str1_len > str2_len) {
                 memmove(&_data[i + str2_len], &_data[i + str1_len], _size - str1_len);
@@ -503,7 +503,7 @@ void h_str::replace_all(h_str str1, h_str str2) {
     for (h_ssize_t i = 0; i <= _size - str1._size; i++) {
         h_ssize_t j;
         h_ssize_t k;
-        for (j = 0, k = i; 
+        for (j = 0, k = i;
              j < str1_len && _data[k] == str1[j];
              j++, k++) {}
         if (j == str1_len) {
@@ -736,7 +736,7 @@ h_time::h_time(h_time_t time) {
     struct tm *new_time_data = localtime(&time);
     memcpy(&time_data, new_time_data, sizeof(time_data));
 }
-    
+
 h_i32 h_time::second() {
     return time_data.tm_sec;
 }
@@ -746,7 +746,7 @@ h_i32 h_time::minute() {
 h_i32 h_time::hour() {
     return time_data.tm_hour;
 }
-h_i32 h_time::day() {
+h_i32 h_time::month_day() {
     return time_data.tm_mday;
 }
 h_i32 h_time::month() {
@@ -764,7 +764,7 @@ h_i32 h_time::year_day() {
 bool h_time::is_daylight_savings() {
     return time_data.tm_isdst;
 }
-    
+
 h_i32 h_time::format(h_uref<h_char> out, const char *fmt) {
     h_i32 result = (h_i32)strftime((char *)out.ptr(), out.size(), fmt, &time_data);
     return result == 0 ? EOF : result;
