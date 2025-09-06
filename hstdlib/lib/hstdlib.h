@@ -16,9 +16,9 @@
 #include <initializer_list>
 #include <random>
 
-#include <gmpxx.h>
-#pragma comment(lib, "lib/libgmp-13.lib")
-#pragma comment(lib, "lib/libgmpxx-9.lib")
+// #include <gmpxx.h>
+// #pragma comment(lib, "lib/libgmp-13.lib")
+// #pragma comment(lib, "lib/libgmpxx-9.lib")
 
 using h_i8 = int8_t;
 using h_u8 = uint8_t;
@@ -32,8 +32,11 @@ using h_u64 = uint64_t;
 using h_f32 = float;
 using h_f64 = double;
 
-using h_int = mpz_class;
-using h_float = mpf_class;
+// using h_int = mpz_class;
+// using h_float = mpf_class;
+
+using h_int = h_i64;
+using h_float = h_f64;
 
 using h_bool = bool;
 
@@ -115,9 +118,9 @@ inline h_f64 sqrt(h_f64 x) {
     return ::sqrt(x);
 }
 
-inline h_float sqrt(h_float x) {
-    return ::sqrt(x);
-}
+// inline h_float sqrt(h_float x) {
+//     return ::sqrt(x);
+// }
 
 inline h_f32 hypot(h_f32 x, h_f32 y) {
     return hypotf(x, y);
@@ -127,9 +130,9 @@ inline h_f64 hypot(h_f64 x, h_f64 y) {
     return ::hypot(x, y);
 }
 
-inline h_float hypot(h_float x, h_float y) {
-    return ::hypot(x, y);
-}
+// inline h_float hypot(h_float x, h_float y) {
+//     return ::hypot(x, y);
+// }
 
 inline h_f32 sinh(h_f32 x) {
     return sinhf(x);
@@ -186,9 +189,9 @@ inline h_f64 floor(h_f64 x) {
     return ::floor(x);
 }
 
-h_float floor(h_float x) {
-    return ::floor(x);
-}
+// h_float floor(h_float x) {
+//     return ::floor(x);
+// }
 
 h_f32 ceil(h_f32 x) {
     return ceilf(x);
@@ -198,9 +201,9 @@ h_f64 ceil(h_f64 x) {
     return ::ceil(x);
 }
 
-h_float ceil(h_float x) {
-    return ::ceil(x);
-}
+// h_float ceil(h_float x) {
+//     return ::ceil(x);
+// }
 
 template <typename T>
 T abs(T x) {
