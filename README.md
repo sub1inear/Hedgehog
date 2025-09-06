@@ -12,6 +12,10 @@ No drastic syntax changes from C++ or Python; Hedgehog should look familiar and 
 ### III: There Should Be One, and Only One, Way to Do It
 Duplicates or slight reinventions should be avoided.
 
+## Quick Starts
+
+If you already know Python and want a quick introduction, read the [Python Quick Start Guide](#appendix-b-python-quick-start-guide). If you already know C++ and want a quick introduction, read the [C++ Quick Start Guide](#appendix-c-c-quick-start-guide). These only cover the differences between the languages.
+
 ## Hello, World
 
 The `print` function takes a string and sends it to the console.
@@ -65,8 +69,6 @@ x = 3
 x = "Hello, World"
 ```
 
-You must declare a variable before you use it. Declarations without a value are not permitted, like Python but unlike C++.
-
 ## Types
 
 Variables types are automatically inferred by default. However, if you want to explicitly set a type, it is appended before the variable name.
@@ -100,7 +102,7 @@ Numbers are inferred to be the smallest type possible, starting at `i32` for int
 
 Limited-precision integers will wrap around in their ranges if they exceed them. Floating-point numbers will clamp at ∞ and -∞.
 
-`const` can be used to tell the compiler this variable is read-only (after the initial setting).
+`constexpr` can be used to tell the compiler a variable's value can be computed at compile-time. 
 
 ## Arithmatic
 
@@ -233,11 +235,6 @@ def array(u32 b[4]) {
 }
 ```
 
-Unlike variables, arrays can be declared without a value. Because the type of the array can not be inferred, it must be explicitly declared.
-```c++
-u64 c[100]
-```
-
 ## For Loops
 
 The `for` loop is declared similarly to C++.
@@ -256,6 +253,18 @@ The `for` `in` loop can also be used with `range(stop)` or `range(start, stop)` 
 ```python
 for i in range(10)
     print(i)
+```
+
+`else` can be used after a `for` loop to only run a statement if `break` is not called.
+
+```c++
+for x in items
+    if x == y {
+        print("Found.")
+        break
+    }
+else
+    print("Not found.")
 ```
 
 ## Runtime
@@ -309,33 +318,41 @@ y = f32(x)
 b = u8(x)
 ```
 
-## Allocations
 
-The compiler manages all allocations for you. There are three main places to allocate variables: the stack, the heap, and the data segment. Global variables will be allocated in the data segment. In a function, smaller variables will be allocated on the stack and larger variables will be allocated on the heap. There is one exception to this: if there are no functions present, the entire program will use function memory semantics (with smaller variables being allocated on the stack and larger variables being allocated on the heap).
+## Dictionaries/Hash Maps
+
+To create a dictionary, use curly braces and `key:value` syntax. Manually declaring the type is done by adding `[key type:value type]` to the end.
 
 ```python
-data_segment = 0
-def func() {
-    stack = 3.0
-    u32 heap[1024]
+d = { "Hello" : 0, ", " : 1, "World" : 2}
+```
+
+Accesses are the same as arrays/lists.
+
+```python
+d["!\n"] = 4
+```
+
+Nested dictionaries can occur only with value. Dictionaries are unordered.
+
+## Declaration
+
+Variables and arrays can be declared without being defined, causing their contents to be undefined. However, this can only occur in the case that Hedgehog can prove that the variable is not accessed uninitialized.
+For example, this is acceptable:
+```
+u32 &r
+x = 0
+r = &x
+```
+but this will cause an error:
+```
+def danger() {
+    u32 x
+    return x
 }
 ```
 
-The heap has the special property of being able to dynamically allocate memory that does not disappear after a block ends. The keyword `dynamic` ensures a variable is allocated on the heap. References to `dynamic` variables follow the same semantics as `std::unique_ptr` in C++, where only one variable is allowed to "own" at a `dynamic` variable at a time. If multiple owners are required, use the `shared` keyword. This uses reference counting and follows the same semantics as `std::shared_ptr`, so regular `dynamic` variables should be preferred. To break reference cycles with `shared` variable references, use the `weak` keyword, which uses the same semantics as `std::weak_ptr`.
-
-```python
-def factory() {
-    dynamic u32 x[10]
-    return &x
-}
-```
-
-The `del` keyword prematurely deletes a `dynamic` variable.
-
-```python
-x = factory()
-del x
-```
+Lists and dictionaries are not allowed to be declared without being defined.
 
 ## Semicolons
 
@@ -411,22 +428,6 @@ for i = 0; i < 10; { i++; value++ }
     print(f"i: {i}\nvalue: {value}")
 ```
 
-## Dictionaries/Hash Maps
-
-To create a dictionary, use curly braces and `key:value` syntax. Manually declaring the type is done by adding `[key type:value type]` to the end.
-
-```python
-d = { "Hello" : 0, ", " : 1, "World" : 2}
-```
-
-Accesses are the same as arrays/lists.
-
-```python
-d["!\n"] = 4
-```
-
-Nested dictionaries can occur only with value. Dictionaries are unordered.
-
 ## Classes
 
 Classes are declared with the keyword `class`. All members of a class are public.  All variables in a class must be typed.
@@ -477,6 +478,20 @@ To unpack a tuple, use a comma separated list on the left-hand side.
 x, y, z = func()
 ```
 
+## Enums
+
+`enum`s are declared similarly to C++. To type an enum, use `:`. Enums use the same rules as integer literal type deduction for default types.
+
+```c++
+enum Color : i32 {
+    Red,
+    White,
+    Blue,
+}
+```
+
+
+
 ## Compile-Time Statements
 
 `#if`, `#else if`, and `#else` are similar to normal `if`-statements, except they are evaluated at compile-time and only the taken branch is compiled, similar to `if constexpr` in C++.
@@ -498,6 +513,93 @@ x = 1
 #run x = 2
 ```
 
+`#inline` forces a function to be inlined without question:
+```
+#inline
+def swap(i32 &a, i32 &b) {
+    tmp = a
+    a = b
+    b = tmp
+}
+```
+
+`#assert(expr, message)` asserts that `expr` is true. `expr` may or may not be evaluated and can be evaluated at run-time or compile-time. It also optimizes based on that assumption, even if asserts are disabled.
+
+```c++
+x = 0
+#assert(x == 0, "x != 0, help!")
+```
+
+`#sizeof(expr)` gets the size in bytes of `expr`.
+
+```c++
+print(#sizeof(u32))
+```
+
+`#typeof(expr)` gets the type of `expr`. Types can be compared to others.
+
+```c++
+#if #typeof(x) == u32
+    print("x is a u32.") 
+```
+
+`#unroll(times)` provides a hint to the compiler to unroll a loop `times` many iterations.
+```c++
+#unroll(10)
+for i in range(10)
+    print(i)
+```
+
+`#parallel` makes a loop parallel, when possible.
+```c++
+#parallel
+for i in range(10)
+    print(i)
+```
+
+`#asm` allows for a programmer to directly use GCC-style inline assembly. Support is guarenteed for backend compilers supporting it.
+
+`#noreturn` marks a function as not returning.
+
+`#used` prevents a function from being optimized away.
+
+`#pack` ensures a `class` is packed.
+
+`#align(alignment)` ensures a variable is aligned at `alignment`.
+
+`#error(message)` prints `message` when encountered and fails to compile.
+
+`#warning(message)` prints `message` when encountered as a warning.
+
+`#help(expr)` prints the documentation on the class, function, or type given as `expr`. This is intented to be used in a REPL.
+
+`#compiler` can be used to determine the compiler.
+
+* `"Standard"`
+* ...
+
+`#os` can be used to determine the operating system that the program is compiled for.
+
+* `"Windows"`
+* `"Linux"`
+* `"Unix"`
+* `"MacOS"`
+* `"None"`
+* ...
+
+`#platform` can be used to determine the machine instruction set that the program is compiled for.
+
+* `"x86"`
+* `"x64"`
+* `"ARM"`
+* `"AVR"`
+* `"RISC-V"`
+* ...
+
+`#version` can be used to determine the Hedgehog version, in SemVer.
+
+`#c` marks a section of code to be exported to the C programming language, similar to `extern "C"` in C++. Advanced features not supported in C, like classes or templates, within a `#c` block will cause an error. 
+
 ## Import
 
 Importing a another Hedgehog file is done with the `import` keyword, similar to Python. The `.hhg` is omitted. To access the contents, use the import name and the `.` operator.
@@ -512,13 +614,78 @@ module.variable = 3
 c = module.Class()
 ```
 
+## Templates
+
+Templates have a similar syntax as C++. `class` is always used instead `typename`.
+
+```c++
+template <class T>
+def add(T a, T b)
+    return a + b
+```
+
+Unlike C++, templates cannot recursively instantiate themselves. This is intended to prevent template metaprogramming that is generally less understandable and can be replaced with `#run`.
+
+To establish constraints on templates, use `requires`.
+
+```c++
+template <class T>
+requires <T == u32 || T == u64>
+def add(T a, T b)
+    return a + b;
+```
+
+## Allocations
+
+Hedgehog does not have a traditional concept of memory allocation. Without using a `new`/`delete`, smart pointers, or a garbage collection system, all references are guarenteed to point at valid memory and memory is guarenteed not be leaked, double freed.
+
+> ***Note***: If you are not familiar with a manual memory management based language or do not know what the preceding term means, skip to the next section. This is the most complex part of Hedgehog and is only relevent for optimization.
+
+To enforce this, the compiler uses escape detection to determine when a reference to a variable can escape the lifetime of a variable.
+
+If the variable escapes, the compiler uses three rules used to dermine where and how it is stored:
+
+### I. Stack Extention:
+
+If a reference to a variable escapes into an outer scope of a function, it is lifetime extended, meaning the memory for the variable is allocated on the stack at the same scope as the reference.
+
+### II. Unique/Shared Heap Allocation:
+
+If a reference to a variable escapes outside a function, it becomes a heap reference, with the variable being allocated on the heap. If only one owner can hold it at a given time, it is identical to a normal reference to a variable or an array. This is called a unique reference.
+
+However, if more than one owner can access it at a given time, it becomes a shared reference. Every shared reference has a reference count; this tracks the number of owners. When the number of owners goes to zero, it is deleted.
+
+### III. Heap Promotion:
+
+Refering to data on the heap, or by extension shared data, on the heap, is viral.
+
+If a reference points to something on the stack/a global variable, but in one instance is data from the heap, everything assigned to that reference becomes allocated on the heap.The same goes for shared references; if a reference is assigned to unique references, but in one instance is assigned to a shared reference, everything is converted into a shared reference. This applies anywhere, from variables to function arguments to classes.
+
+Perhaps the simplest example of Hedgehog's allocation system lies in a Hedgehog implementation of the C `malloc` function:
+
+```python
+template <class T>
+def malloc(usize size) {
+    T data[size]
+    return &data
+}
+```
+
+Here, a reference to `data` escapes, forcing the Hedgehog compiler to allocate it on the heap.
+
+Hedgehog is designed to be at minimum faster than compiled garbage-collected languages like Go and to be able to compete with C++ as optimizations for allocations improve. Fast non-allocating code in Hedgehog should equal the performance of fast non-allocating code in C++.
+
 ## Linking to C/C++
 
-To connect Hedgehog with C/C++, simply import the `.h` files and access the functions similarly as if it was a Hedgehog file. C header files must be surrounded with an `extern "C"`. For streamlined compatibility, use `#include "hstdlib.h"` to be able to access (sized and unsized) references, arrays, lists, tuples, and dictionaries.
+To use Hedgehog with C/C++, simply `import` the `.h` files and access the variables/functions/classes similarly as if it was a Hedgehog file. C header files must be surrounded with an `extern "C"`.
+
+To use C/C++ with Hedgehog, simply `#include` the `.h` files generated for each Hedgehog file and access the functions similarly as if it were C/C++. Functions in Hedgehog meant to export to C must be surrounded by an `#C` block, as described above.
+
+For streamlined compatibility, use `#include "hstdlib.h"` in C/C++ to be able to access (sized and unsized) references, arrays, lists, tuples, and dictionaries.
 
 ## Platforms and Requirements
 
-Hedgehog requires a C++11 compiler and the C standard libraries.
+Hedgehog requires a C++11 compiler and the C standard libraries to run on a machine.
 
 ## Appendix A: Hedgehog Standard Library Reference
 
@@ -544,7 +711,7 @@ File for errors.
 
 `i32 print(#attr(fmt) const char (&fmt)[])`
 
-`template <typename T> i32 print(T obj)`
+`template <class T> i32 print(T obj)`
 
 Prints a string, format string, or object to the console. Returns number of characters printed on success or `EOF` on error.
 
@@ -552,7 +719,7 @@ Prints a string, format string, or object to the console. Returns number of char
 
 `i32 println(#attr(fmt) const char (&fmt)[])`
 
-`template <typename T> i32 println(T obj)`
+`template <class T> i32 println(T obj)`
 
 Prints a string, format string, or object to the console along with a newline. Returns number of characters printed on success or `EOF` on error.
 
@@ -646,25 +813,19 @@ Scans `stdin` with a scan string. Returns number of variables written to or `EOF
 
 `class File`
 
+&emsp; `enum SeekType { Set, Current, End }`
+
 &emsp; `def __init__(const char (&filename)[], const char (&mode)[])`
 
 &emsp; Opens a file with the specified `filename` in the specified `mode`.
 
 &emsp; `def __del__()`
 
-&emsp; Closes a file.
+&emsp; Closes the file.
 
-&emsp; `bool seek_set(i32 offset)`
+&emsp; `bool seek(i32 offset, SeekType seek_type)`
 
-&emsp; Seeks to `offset` from the start of the file. Returns `false` on success and `true` on error.
-
-&emsp; `bool seek_cur(i32 offset)`
-
-&emsp; Seeks to `offset` from the current position in the file. Returns `false` on success and `true` on error.
-
-&emsp; `bool seek_end(i32 offset)`
-
-&emsp; Seeks to `offset` from the end of the file. Returns `false` on success and `true` on error.
+&emsp; Seeks to `offset` in the file. If `seek_type == SeekType.Set`, seeks from the beginning of the file. If `seek_type == SeekType.Current`, seeks from the current position of the file. If `seek_type == SeekType.End`, seeks from the end of the file.
 
 &emsp; `i32 tell()`
 
@@ -734,7 +895,7 @@ Scans `stdin` with a scan string. Returns number of variables written to or `EOF
 
 ### Builtin Types
 
-## Appendix B: Quick Start for Python Programmers
+## Appendix B: Python Quick Start Guide
 
 ### Printing
 
@@ -855,4 +1016,17 @@ class Player {
 }
 ```
 
-## Appendix C: Quick Start for C++ Programmers
+## Appendix C: C++ Quick Start Guide
+
+
+## Appendix D: Inspiration
+
+The following languages influenced the design of Hedgehog:
+ * Python
+ * C++
+ * Rust
+ * Go
+ * Odin
+ * C#
+
+To all of the inventors and visionaries, thank you for your incredible languages!
