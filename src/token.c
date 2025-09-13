@@ -91,9 +91,8 @@ static const char *const token_type_to_str[] = {
 
     "newline",
 
-    // end (not used as token)
-    "end",
 };
+
 
 void hhg_token_type_print(hhg_token_type_t type)
 {

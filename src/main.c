@@ -5,7 +5,7 @@
 int main()
 {
     hhg_lexer_t lexer;
-    hhg_lexer_init(&lexer, "../../test/testcases/print.hhg");
+    hhg_lexer_init(&lexer, "../../test/testcases/variable.hhg");
     
     while (true) {
         hhg_lexer_next(&lexer);
