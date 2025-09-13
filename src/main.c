@@ -4,7 +4,7 @@
 
 int main()
 {
-    /*hhg_lexer_t lexer;
+    hhg_lexer_t lexer;
     hhg_lexer_init(&lexer, "../../test/testcases/print.hhg");
     
     while (true) {
@@ -16,14 +16,7 @@ int main()
         putchar('\n');
     } 
 
-    hhg_lexer_del(&lexer);*/
-
-    hhg_error("This is an error");
-    hhg_warning("This is a warning");
-    hhg_info("This is an info");
-
-    hhg_msgs_print();
-    hhg_msgs_del();
+    hhg_lexer_del(&lexer);
 
     return 0;
 }

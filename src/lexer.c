@@ -135,7 +135,7 @@ void hhg_lexer_match(hhg_lexer_t *lexer, hhg_token_type_t type)
         return;
     }
 
-    hhg_fatal_error("unexpected token");
+    hhg_error("unexpected token");
 }
 
 void hhg_lexer_match_va(hhg_lexer_t *lexer, int32_t count, ...)
@@ -153,7 +153,7 @@ void hhg_lexer_match_va(hhg_lexer_t *lexer, int32_t count, ...)
     }
 
     if (i == count) {
-        hhg_fatal_error("unexpected token");
+        hhg_error("unexpected token");
         return;
     }
 
@@ -235,9 +235,10 @@ static void hhg_lexer_lex_str_literal(hhg_lexer_t *lexer, char c)
     while (true) {
         c = fgetc(lexer->file);
         // not using switch to break out of loop
-        if (c == EOF)
-            hhg_fatal_error("unexpected EOF in string literal");
-        else if (c == '\\') {
+        if (c == EOF) {
+            hhg_error("unexpected EOF in string literal");
+            break;
+        } else if (c == '\\') {
             hhg_str_append_char(&lexer->token.str, c);
             c = fgetc(lexer->file);
         } else if (c == '"') {
@@ -266,7 +267,7 @@ static void hhg_lexer_lex_char_literal(hhg_lexer_t *lexer, char c)
     if (c == '\\')
         hhg_str_append_char(&lexer->token.str, c);
     else
-        hhg_fatal_error("character constant is too long");
+        hhg_error("character constant is too long");
 }
 
 static bool hhg_lexer_lex_default(hhg_lexer_t *lexer, char c)
@@ -286,8 +287,10 @@ static bool hhg_lexer_lex_default(hhg_lexer_t *lexer, char c)
             do {
                 c2 = c;
                 c = fgetc(lexer->file);
-                if (c == EOF)
-                    hhg_fatal_error("unexpected EOF in multi-line comment");
+                if (c == EOF) {
+                    hhg_error("unexpected EOF in multi-line comment");
+                    break;
+                }
             } while (c2 != '*' && c != '/');
 
             ungetc(c, lexer->file);

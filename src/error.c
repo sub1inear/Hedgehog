@@ -18,13 +18,13 @@ static void hhg_msg_print(hhg_msg_t *msg)
 {
     switch (msg->type) {
     case ERROR:
-        fputs("\x1b[1;31m" "Error: ", stderr);
+        fputs("\x1b[1;31m" "error: ", stderr);
         break;
     case WARNING:
-        fputs("\x1b[1;33m" "Warning: ", stderr);
+        fputs("\x1b[1;33m" "warning: ", stderr);
         break;
     case INFO:
-        fputs("Info: ", stderr);
+        fputs("info: ", stderr);
         break;
     }
 
@@ -65,6 +65,9 @@ void hhg_fatal_error(const char *fmt, ...) {
     va_list va;
     va_start(va, fmt);
     
+    hhg_msgs_print();
+    hhg_msgs_del();
+
     fputs("fatal error: ", stderr);
     vfprintf(stderr, fmt, va);
     putchar('\n');
