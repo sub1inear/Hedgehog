@@ -1,7 +1,6 @@
-#pragma once
+#ifndef HHG_ERROR_H
+#define HHG_ERROR_H
 
-namespace hedgehog {
+void hhg_fatal_error(const char *str, ...);
 
-void fatal_error(const char *str, ...);
-
-};
+#endif

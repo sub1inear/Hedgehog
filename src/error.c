@@ -1,11 +1,10 @@
+#include <stdlib.h>
+#include <stdio.h>
+#include <stdarg.h>
+
 #include "error.h"
-#include <cstdlib>
-#include <cstdio>
-#include <cstdarg>
 
-namespace hedgehog {
-
-void fatal_error(const char *str, ...) {
+void hhg_fatal_error(const char *str, ...) {
     va_list va;
     va_start(va, str);
     
@@ -15,6 +14,4 @@ void fatal_error(const char *str, ...) {
 
     va_end(va);
     exit(1);
-}
-
 }

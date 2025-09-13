@@ -1,8 +1,8 @@
+#include <stdio.h>
+
 #include "token.h"
 
-namespace hedgehog {
-
-const char *const Token::type_to_string[] = {
+static const char *const token_type_to_str[] = {
     "none",
     "id",
 
@@ -95,34 +95,50 @@ const char *const Token::type_to_string[] = {
     "end",
 };
 
-Token::Token() : type(Type::NONE), prec(prec_none) {}
-Token::~Token() {}
-
-void Token::clear_non_type() {
-    str.clear();
-    prec = prec_none;
+void hhg_token_type_print(hhg_token_type_t type)
+{
+    if (type < HHG_TYPE_START)
+        putchar(type);
+    else
+        fputs(token_type_to_str[type - HHG_TYPE_START], stdout);
 }
 
-void Token::print() {
+void hhg_token_init(hhg_token_t *token)
+{
+    hhg_str_init(&token->str);
+}
+
+void hhg_token_reset_aux(hhg_token_t *token)
+{
+    hhg_str_reset(&token->str);
+    token->prec = HHG_PREC_NONE;
+}
+
+void hhg_token_print(hhg_token_t *token)
+{
     fputs("{ type = ", stdout);
-    if (type < type_start) {
-        putchar(type);
-    } else {
-        fputs(type_to_string[type - type_start], stdout);
-    }
+
+    hhg_token_type_print(token->type);
+
     fputs(", value = ", stdout);
-    switch (type) {
-    case Type::INT_LITERAL:
-    case Type::FLOAT_LITERAL:
-    case Type::CHAR_LITERAL:
-    case Type::STRING_LITERAL:
-        fputs(str.c_str(), stdout); 
+
+    switch (token->type) {
+    case INT_LITERAL:
+    case FLOAT_LITERAL:
+    case CHAR_LITERAL:
+    case STRING_LITERAL:
+    case ID:
+        fputs(token->str.str, stdout); 
         break;
     default:
         fputs("null", stdout);
         break;
     }
+
     fputs(" }", stdout);
 }
 
+void hhg_token_del(hhg_token_t *token)
+{
+    hhg_str_del(&token->str);
 }

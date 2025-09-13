@@ -1,117 +1,120 @@
-#pragma once
-#include <cinttypes>
-#include <string>
-#include <climits>
+#ifndef HHG_TOKEN_H
+#define HHG_TOKEN_H
 
-namespace hedgehog {
-class Token {
-public:
-    static const char *const type_to_string[];
-    static constexpr int32_t type_start = UCHAR_MAX;
-    enum Type : int32_t {
-        NONE = type_start,
-        ID,
-        // literals
-        INT_LITERAL,
-        FLOAT_LITERAL,
+#include <stdint.h>
+#include <limits.h>
 
-        CHAR_LITERAL,
-        STRING_LITERAL,
+#include "str.h"
 
-        // keywords
-        IF,
-        WHILE,
-        FOR,
+#define HHG_TYPE_START UCHAR_MAX
+#define HHG_PREC_NONE (-1)
 
-        BREAK,
-        CONTINUE,
+typedef enum _hhg_token_type_t {
+    NONE = HHG_TYPE_START,
+    ID,
+    // literals
+    INT_LITERAL,
+    FLOAT_LITERAL,
 
-        AND,
-        OR,
-        NOT,
+    CHAR_LITERAL,
+    STRING_LITERAL,
 
-        TRUE,
-        FALSE,
+    // keywords
+    IF,
+    WHILE,
+    FOR,
 
-        IN,
-        RANGE,
+    BREAK,
+    CONTINUE,
 
-        ENUM,
+    AND,
+    OR,
+    NOT,
 
-        DEF,
+    TRUE,
+    FALSE,
 
-        // types
-        I8,
-        U8,
+    IN,
+    RANGE,
 
-        I16,
-        U16,
+    ENUM,
+
+    DEF,
+
+    // types
+    I8,
+    U8,
+
+    I16,
+    U16,
     
-        I32,
-        U32,
+    I32,
+    U32,
 
-        I64,
-        U64,
+    I64,
+    U64,
 
-        INT,
+    INT,
 
-        F32,
-        F64,
+    F32,
+    F64,
 
-        FLOAT,
+    FLOAT,
 
-        BOOL,
+    BOOL,
 
-        CHAR,
+    CHAR,
 
-        ISIZE,
-        USIZE,
+    ISIZE,
+    USIZE,
 
-        TIME_T,
+    TIME_T,
 
-        // composite operators
-        LSHIFT,
-        RSHIFT,
+    // composite operators
+    LSHIFT,
+    RSHIFT,
 
-        EQ,
-        NOT_EQ,
-        LT_EQ,
-        GT_EQ,
+    EQ,
+    NOT_EQ,
+    LT_EQ,
+    GT_EQ,
 
-        PLUS_EQ,
-        SUB_EQ,
-        MUL_EQ,
-        DIV_EQ,
-        MOD_EQ,
+    PLUS_EQ,
+    SUB_EQ,
+    MUL_EQ,
+    DIV_EQ,
+    MOD_EQ,
     
-        AND_EQ,
-        OR_EQ,
-        XOR_EQ,
+    AND_EQ,
+    OR_EQ,
+    XOR_EQ,
 
-        LSHIFT_EQ,
-        RSHIFT_EQ,    
+    LSHIFT_EQ,
+    RSHIFT_EQ,    
 
-        INC,
-        DEC,
+    INC,
+    DEC,
 
-        NEWLINE,
+    NEWLINE,
 
-        // end (not used as token)
-        END,
-    };
-    
-    Type type;
-    std::string str;
-    
-    static constexpr int32_t prec_none = -1;
+    // end (not used as token)
+    END,
+} hhg_token_type_t;
+
+void hhg_token_type_print(hhg_token_type_t type);
+
+typedef struct _hhg_token_t {
+    hhg_token_type_t type;
+    hhg_str_t str;
     int32_t prec;
+} hhg_token_t;
 
+void hhg_token_init(hhg_token_t *token);
 
-    Token();
-    ~Token();
+void hhg_token_reset_aux(hhg_token_t *token);
 
-    void clear_non_type();
-    void print();
-};
+void hhg_token_print(hhg_token_t *token);
 
-}
+void hhg_token_del(hhg_token_t *token);
+
+#endif

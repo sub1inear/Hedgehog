@@ -1,134 +1,37 @@
-#pragma once
-#include <cstdint>
-#include <cstdio>
-#include <cctype>
-#include <string_view>
-#include <unordered_map>
+#ifndef HHG_LEXER_H
+#define HHG_LEXER_H
+
+#include <stdio.h>
+#include <stdbool.h>
+
 #include "token.h"
 
-namespace hedgehog {
-class Lexer {
-public:
+typedef struct _hhg_lexer_t {
     FILE *file;
-
-    Token token;
+    hhg_token_t token;
     bool peeked;
+} hhg_lexer_t;
 
-    struct OperatorData {
-        const char str[3];
-        Token::Type type;
-        int32_t prec;
-    };
+typedef struct _hhg_op_data_t {
+    char str[3];
+    hhg_token_type_t type;
+    int32_t prec;
+} hhg_op_data_t;
 
-    struct KeywordData {
-        const char *str;
-        Token::Type type;
-    };
+typedef struct _hhg_keyword_data_t {
+    char *str;
+    hhg_token_type_t type;
+} hhg_keyword_data_t;
 
-    static constexpr OperatorData operator_data[] = {
-        { { '+' , '+' , '\0' }, Token::Type::INC,       13 },
-        { { '-' , '-' , '\0' }, Token::Type::DEC,       13 },
-                                               
-        { { '*' , '\0', '\0' }, (Token::Type)'*',       12 },
-        { { '/' , '\0', '\0' }, (Token::Type)'/',       12 },
-        { { '%' , '\0', '\0' }, (Token::Type)'%',       12 },
-                                               
-        { { '+' , '\0', '\0' }, (Token::Type)'+',       11 },
-        { { '-' , '\0', '\0' }, (Token::Type)'-',       11 },
+void hhg_lexer_init(hhg_lexer_t *lexer, const char *filename);
+void hhg_lexer_del(hhg_lexer_t *lexer);
 
-        { { '<' , '<' , '\0' }, Token::Type::LSHIFT,    10 },
-        { { '>' , '>' , '\0' }, Token::Type::RSHIFT,    10 },
+void hhg_lexer_next(hhg_lexer_t *lexer);
+void hhg_lexer_peek(hhg_lexer_t *lexer);
 
-        { { '<' , '\0', '\0' }, (Token::Type)'<',       9  },
-        { { '>' , '\0', '\0' }, (Token::Type)'>',       9  },
-        { { '<' , '=' , '\0' }, Token::Type::LT_EQ,     9  },
-        { { '>' , '=' , '\0' }, Token::Type::GT_EQ,     9  },
+void hhg_lexer_match(hhg_lexer_t *lexer, hhg_token_type_t type);
+void hhg_lexer_match_va(hhg_lexer_t *lexer, ...);
+void hhg_lexer_match_type(hhg_lexer_t *lexer);
 
-        { { '=' , '=' , '\0' }, Token::Type::EQ,        8  },
-        { { '!' , '=' , '\0' }, Token::Type::NOT_EQ,    8  },
 
-        { { '&' , '\0', '\0' }, (Token::Type)'&',       7  },
-        { { '^' , '\0', '\0' }, (Token::Type)'^',       6  },
-        { { '|' , '\0', '\0' }, (Token::Type)'|',       5  },
-
-        { { '+' , '=' , '\0' }, Token::Type::PLUS_EQ,   1  },
-        { { '-' , '=' , '\0' }, Token::Type::SUB_EQ,    1  },
-        { { '*' , '=' , '\0' }, Token::Type::MUL_EQ,    1  },
-        { { '/' , '=' , '\0' }, Token::Type::DIV_EQ,    1  },
-        { { '%' , '=' , '\0' }, Token::Type::MOD_EQ,    1  },
-        { { '&' , '=' , '\0' }, Token::Type::AND_EQ,    1  },
-        { { '|' , '=' , '\0' }, Token::Type::OR_EQ,     1  },
-        { { '^' , '=' , '\0' }, Token::Type::XOR_EQ,    1  },
-        { { '<' , '<' , '=' },  Token::Type::LSHIFT_EQ,  1  },
-        { { '>' , '>' , '=' },  Token::Type::RSHIFT_EQ,  1  },
-    };
-
-    static constexpr KeywordData keyword_data[] = {
-        { "if",       Token::Type::IF       },
-        { "while",    Token::Type::WHILE    },
-        { "for",      Token::Type::FOR      },
-      
-        { "break",    Token::Type::BREAK    },
-        { "continue", Token::Type::CONTINUE },
-      
-        { "and",      Token::Type::AND      },
-        { "or",       Token::Type::OR       },
-        { "not",      Token::Type::NOT      },
-      
-        { "true",     Token::Type::TRUE     },
-        { "false",    Token::Type::FALSE    },
-      
-        { "in",       Token::Type::IN       },
-        { "range",    Token::Type::RANGE    },
-      
-        { "enum",     Token::Type::ENUM     },
-      
-        { "def",      Token::Type::DEF      },
-    
-        // ------------------------------- //
-
-        { "i8",       Token::Type::I8       },
-        { "u8",       Token::Type::U8       },
-
-        { "i16",      Token::Type::I16      },
-        { "u16",      Token::Type::U16      },
-                                        
-        { "i32",      Token::Type::I32      },
-        { "u32",      Token::Type::U32      },
-                                        
-        { "i64",      Token::Type::I64      },
-        { "u64",      Token::Type::U64      },
-                                        
-        { "int",      Token::Type::INT      },
-                                        
-        { "f32",      Token::Type::F32      },
-        { "f64",      Token::Type::F64      },
-      
-        { "float",    Token::Type::FLOAT    },
-      
-        { "bool",     Token::Type::BOOL     },
-        { "char",     Token::Type::CHAR     },
-      
-        { "isize",    Token::Type::ISIZE    },
-        { "usize",    Token::Type::USIZE    },
-      
-        { "time_t",   Token::Type::TIME_T   },
-    };
-
-    static constexpr size_t keyword_type_start = 13;
-
-    Lexer(const char *filename);
-    ~Lexer();
-
-    void next();
-    void peek();
-    
-    void match(Token::Type expected);
-    void match(Token::Type expected_1, Token::Type expected_2);
-    void match_type();
-private:
-    void lex();
-    void lex_core();
-};
-
-}
+#endif
