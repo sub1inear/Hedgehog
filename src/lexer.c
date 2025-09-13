@@ -297,7 +297,7 @@ static bool hhg_lexer_lex_default(hhg_lexer_t *lexer, char c)
 
     char c3 = fgetc(lexer->file);
 
-    for (int32_t i = 0; i < ARR_SIZE(op_data); i++) {
+    for (size_t i = 0; i < ARR_SIZE(op_data); i++) {
         const hhg_op_data_t *data = &op_data[i];
         if (data->str[0] == c && 
             (data->str[1] == c2 || data->str[1] == '\0') &&
