@@ -26,3 +26,10 @@ void hhg_free(void *ptr)
 {
     free(ptr);
 }
+
+char *hhg_strdup(const char *str)
+{
+    size_t len = strlen(str) + 1;
+    char *buf = hhg_malloc(len);
+    return strcpy(buf, str);
+}

@@ -1,39 +1,29 @@
-#include <stdint.h>
+#include <stdio.h>
 #include <stdbool.h>
 #include <stdarg.h>
+#include <inttypes.h>
 #include <string.h>
 #include <ctype.h>
+#include <errno.h>
 
 #include "lexer.h"
+#include "file_pos.h"
 #include "error.h"
 #include "utils.h"
 
-static const hhg_op_data_t op_data[] = {
-    { { '+' , '+' , '\0' },  INC,        13 },
-    { { '-' , '-' , '\0' },  DEC,        13 },
-                                                 
-    { { '*' , '\0', '\0' },  '*',        12 },
-    { { '/' , '\0', '\0' },  '/',        12 },
-    { { '%' , '\0', '\0' },  '%',        12 },
-                                                 
-    { { '+' , '\0', '\0' },  '+',        11 },
-    { { '-' , '\0', '\0' },  '-',        11 },
-                                         
-    { { '<' , '<' , '\0' },  LSHIFT,     10 },
-    { { '>' , '>' , '\0' },  RSHIFT,     10 },
-                                         
-    { { '<' , '\0', '\0' },  '<',        9  },
-    { { '>' , '\0', '\0' },  '>',        9  },
-    { { '<' , '=' , '\0' },  LT_EQ,      9  },
-    { { '>' , '=' , '\0' },  GT_EQ,      9  },
-                                         
-    { { '=' , '=' , '\0' },  EQ,         8  },
-    { { '!' , '=' , '\0' },  NOT_EQ,     8  },
-                                         
-    { { '&' , '\0', '\0' },  '&',        7  },
-    { { '^' , '\0', '\0' },  '^',        6  },
-    { { '|' , '\0', '\0' },  '|',        5  },
-                                         
+#define hhg_lexer_error(...) hhg_error(lexer->pos, lexer->filename, __VA_ARGS__)
+#define hhg_lexer_warning(...) hhg_warning(lexer->pos, lexer->filename, __VA_ARGS__)
+#define hhg_lexer_info(...) hhg_info(lexer->pos, lexer->filename, __VA_ARGS__)
+
+typedef struct _hhg_file_pos_save_t {
+    hhg_file_pos_t pos;
+    long fpos;
+} hhg_file_pos_save_t;
+
+static const hhg_op_data_t op_data[] = {                                         
+    { { '<' , '<' , '='  },  LSHIFT_EQ,  1  },
+    { { '>' , '>' , '='  },  RSHIFT_EQ,  1  },
+
     { { '+' , '=' , '\0' },  PLUS_EQ,    1  },
     { { '-' , '=' , '\0' },  SUB_EQ,     1  },
     { { '*' , '=' , '\0' },  MUL_EQ,     1  },
@@ -42,8 +32,32 @@ static const hhg_op_data_t op_data[] = {
     { { '&' , '=' , '\0' },  AND_EQ,     1  },
     { { '|' , '=' , '\0' },  OR_EQ,      1  },
     { { '^' , '=' , '\0' },  XOR_EQ,     1  },
-    { { '<' , '<' , '='  },  LSHIFT_EQ,  1  },
-    { { '>' , '>' , '='  },  RSHIFT_EQ,  1  },
+
+    { { '<' , '<' , '\0' },  LSHIFT,     10 },
+    { { '>' , '>' , '\0' },  RSHIFT,     10 },
+
+    { { '+' , '+' , '\0' },  INC,        13 },
+    { { '-' , '-' , '\0' },  DEC,        13 },
+    
+    { { '<' , '=' , '\0' },  LT_EQ,      9  },
+    { { '>' , '=' , '\0' },  GT_EQ,      9  },
+
+    { { '=' , '=' , '\0' },  EQ,         8  },
+    { { '!' , '=' , '\0' },  NOT_EQ,     8  },
+
+    { { '*' , '\0', '\0' },  '*',        12 },
+    { { '/' , '\0', '\0' },  '/',        12 },
+    { { '%' , '\0', '\0' },  '%',        12 },
+                                                 
+    { { '+' , '\0', '\0' },  '+',        11 },
+    { { '-' , '\0', '\0' },  '-',        11 },
+                                         
+    { { '<' , '\0', '\0' },  '<',        9  },
+    { { '>' , '\0', '\0' },  '>',        9  },
+                                         
+    { { '&' , '\0', '\0' },  '&',        7  },
+    { { '^' , '\0', '\0' },  '^',        6  },
+    { { '|' , '\0', '\0' },  '|',        5  },
 };
 
 static const hhg_keyword_data_t keyword_data[] = {
@@ -99,6 +113,10 @@ static const hhg_keyword_data_t keyword_data[] = {
 };
 
 static void hhg_lexer_lex(hhg_lexer_t *lexer);
+static void hhg_lexer_save_pos(hhg_lexer_t *lexer,
+                               hhg_file_pos_save_t *save);
+static void hhg_lexer_restore_pos(hhg_lexer_t *lexer,
+                                  hhg_file_pos_save_t *save);
 
 void hhg_lexer_init(hhg_lexer_t *lexer, const char *filename)
 {
@@ -106,6 +124,9 @@ void hhg_lexer_init(hhg_lexer_t *lexer, const char *filename)
     if (lexer->file == NULL)
         hhg_fatal_error("error opening file: %s", strerror(errno));
 
+    lexer->filename = filename;
+
+    hhg_file_pos_init(&lexer->pos);
     hhg_token_init(&lexer->token);
 }
 
@@ -113,17 +134,17 @@ void hhg_lexer_next(hhg_lexer_t *lexer)
 {
     hhg_lexer_lex(lexer);
 
-    if (lexer->token.type == NEWLINE) {
-        long pos;
+    if (lexer->token.type == '\n') {
+        hhg_file_pos_save_t save;
 
         do {
-            pos = ftell(lexer->file);
+            hhg_lexer_save_pos(lexer, &save);
             hhg_lexer_lex(lexer);
-        } while (lexer->token.type == NEWLINE);
+        } while (lexer->token.type == '\n');
         
-        fseek(lexer->file, pos, SEEK_SET);
+        hhg_lexer_restore_pos(lexer, &save);
 
-        lexer->token.type = NEWLINE;
+        lexer->token.type = '\n';
 
     }
 }
@@ -137,7 +158,7 @@ void hhg_lexer_skip(hhg_lexer_t *lexer, hhg_token_type_t type)
 void hhg_lexer_match(hhg_lexer_t *lexer, hhg_token_type_t type)
 {
     if (lexer->token.type != type)
-        hhg_error("unexpected token");
+        hhg_lexer_error("unexpected token");
 
     hhg_lexer_next(lexer);
 }
@@ -157,7 +178,7 @@ void hhg_lexer_match_va(hhg_lexer_t *lexer, int32_t count, ...)
     }
 
     if (i == count) {
-        hhg_error("unexpected token");
+        hhg_lexer_error("unexpected token");
         return;
     }
 
@@ -178,14 +199,57 @@ void hhg_lexer_del(hhg_lexer_t *lexer)
     fclose(lexer->file);
 }
 
-static void hhg_lexer_lex_id(hhg_lexer_t *lexer, char c)
+static void hhg_lexer_save_pos(hhg_lexer_t *lexer,
+                               hhg_file_pos_save_t *save)
+{
+    save->pos = lexer->pos;
+    save->fpos = ftell(lexer->file);
+}
+
+static void hhg_lexer_restore_pos(hhg_lexer_t *lexer,
+                                  hhg_file_pos_save_t *save)
+{
+    lexer->pos = save->pos;
+    fseek(lexer->file, save->fpos, SEEK_SET);
+}
+
+static int hhg_lexer_next_char(hhg_lexer_t *lexer)
+{
+    int c = fgetc(lexer->file);
+
+
+    lexer->last_col = lexer->pos.col;
+
+    if (c != EOF) {
+        if (c == '\n') {
+            lexer->pos.col = 1;
+            lexer->pos.line++;
+        } else
+            lexer->pos.col++;
+    }
+
+    return c;
+}
+
+static void hhg_lexer_unget_char(hhg_lexer_t *lexer, int c)
+{
+    ungetc(c, lexer->file);
+
+    if (lexer->pos.col == 1) {
+        lexer->pos.line--;
+        lexer->pos.col = lexer->last_col;
+    } else
+        lexer->pos.col--;
+}
+
+static void hhg_lexer_lex_id(hhg_lexer_t *lexer, int c)
 {
     do {
         hhg_str_append_char(&lexer->token.str, c);
-        c = fgetc(lexer->file);
+        c = hhg_lexer_next_char(lexer);
     } while (isalnum(c) || c == '_');
 
-    ungetc(c, lexer->file);
+    hhg_lexer_unget_char(lexer, c);
 
     lexer->token.type = ID;
 
@@ -196,14 +260,14 @@ static void hhg_lexer_lex_id(hhg_lexer_t *lexer, char c)
         }
 }
 
-static void hhg_lexer_lex_num(hhg_lexer_t *lexer, char c)
+static void hhg_lexer_lex_num(hhg_lexer_t *lexer, int c)
 {
     do {
         hhg_str_append_char(&lexer->token.str, c);
-        c = fgetc(lexer->file);
+        c = hhg_lexer_next_char(lexer);
     } while (isdigit(c));
 
-    ungetc(c, lexer->file);
+    hhg_lexer_unget_char(lexer, c);
 
     lexer->token.type = INT_LITERAL;
 
@@ -214,23 +278,23 @@ static void hhg_lexer_lex_num(hhg_lexer_t *lexer, char c)
     return;
 }
 
-static void hhg_lexer_lex_str_literal(hhg_lexer_t *lexer, char c)
+static void hhg_lexer_lex_str_literal(hhg_lexer_t *lexer, int c)
 {
     hhg_str_append_char(&lexer->token.str, c);
     while (true) {
-        c = fgetc(lexer->file);
+        c = hhg_lexer_next_char(lexer);
         // not using switch to break out of loop
         if (c == EOF) {
-            hhg_error("unexpected EOF in string literal");
+            hhg_lexer_error("unexpected EOF in string literal");
             break;
         } else if (c == '\\') {
             hhg_str_append_char(&lexer->token.str, c);
-            c = fgetc(lexer->file);
+            c = hhg_lexer_next_char(lexer);
         } else if (c == '"') {
             hhg_str_append_char(&lexer->token.str, c);
             break;
         } else if (c == '\n') {
-            hhg_str_append_str(&lexer->token.str, "\n", 2);
+            hhg_str_append_str(&lexer->token.str, "\\n", 2);
             continue;
         }
         hhg_str_append_char(&lexer->token.str, c);;
@@ -238,52 +302,57 @@ static void hhg_lexer_lex_str_literal(hhg_lexer_t *lexer, char c)
     lexer->token.type = STRING_LITERAL;
 }
 
-static void hhg_lexer_lex_char_literal(hhg_lexer_t *lexer, char c)
+static void hhg_lexer_lex_char_literal(hhg_lexer_t *lexer, int c)
 {
     hhg_str_append_char(&lexer->token.str, c);
-    c = fgetc(lexer->file);
+    c = hhg_lexer_next_char(lexer);
     hhg_str_append_char(&lexer->token.str, c);
 
     if (c == '\\') {
-        c = fgetc(lexer->file);
+        c = hhg_lexer_next_char(lexer);
         hhg_str_append_char(&lexer->token.str, c);
     }
 
     if (c == '\\')
         hhg_str_append_char(&lexer->token.str, c);
     else
-        hhg_error("character constant is too long");
+        hhg_lexer_error("character constant is too long");
+
+    lexer->token.type = CHAR_LITERAL;
 }
 
-static bool hhg_lexer_lex_default(hhg_lexer_t *lexer, char c)
+static bool hhg_lexer_lex_default(hhg_lexer_t *lexer, int c)
 {
-    long pos = ftell(lexer->file); // save position for double ungetc
-    char c2 = fgetc(lexer->file);
+    // save pos for double hhg_lexer_unget_char
+    hhg_file_pos_save_t save; 
+    hhg_lexer_save_pos(lexer, &save);
+
+    int c2 = hhg_lexer_next_char(lexer);
             
     if (c == '/') {
         if (c2 == '/') { // single-line comment
             do
-                c = fgetc(lexer->file);
+                c = hhg_lexer_next_char(lexer);
             while (c != '\n' && c != EOF);
-            ungetc(c, lexer->file);
+            hhg_lexer_unget_char(lexer, c);
 
             return false;
         } else if (c2 == '*') { // multi-line comment
             do {
                 c2 = c;
-                c = fgetc(lexer->file);
+                c = hhg_lexer_next_char(lexer);
                 if (c == EOF) {
-                    hhg_error("unexpected EOF in multi-line comment");
+                    hhg_lexer_error("unexpected EOF in multi-line comment");
                     break;
                 }
-            } while (c2 != '*' && c != '/');
+            } while (c2 != '*' || c != '/');
 
-            ungetc(c, lexer->file);
+            hhg_lexer_unget_char(lexer, c);
             return false;
         }
     }
 
-    char c3 = fgetc(lexer->file);
+    int c3 = hhg_lexer_next_char(lexer);
 
     for (size_t i = 0; i < ARR_SIZE(op_data); i++) {
         const hhg_op_data_t *data = &op_data[i];
@@ -296,7 +365,7 @@ static bool hhg_lexer_lex_default(hhg_lexer_t *lexer, char c)
             else if (data->str[1] == c2)
                 ungetc(c3, lexer->file); // consumed two chars, give back last
             else
-                fseek(lexer->file, pos, SEEK_SET); // consumed one char, give back two
+                hhg_lexer_restore_pos(lexer, &save); // consumed one char, give back two
 
             lexer->token.type = data->type;
             lexer->token.prec = data->prec;
@@ -306,7 +375,7 @@ static bool hhg_lexer_lex_default(hhg_lexer_t *lexer, char c)
     }
 
     lexer->token.type = c;
-    fseek(lexer->file, pos, SEEK_SET); // consumed one char, give back two
+    hhg_lexer_restore_pos(lexer, &save); // consumed one char, give back two
     
     return true;
 }
@@ -315,13 +384,10 @@ static void hhg_lexer_lex(hhg_lexer_t *lexer)
 {
     hhg_token_reset_aux(&lexer->token);
     while (true) {
-        char c = fgetc(lexer->file);
+        int c = hhg_lexer_next_char(lexer);
         if (c == ' ' || c == '\t')
             ;
-        else if (c == '\n') {
-            lexer->token.type = NEWLINE;
-            return;
-        } else if (isalpha(c) || c == '_') {
+        else if (isalpha(c) || c == '_') {
             hhg_lexer_lex_id(lexer, c);
             return;
         } else if (isdigit(c))  {

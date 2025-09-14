@@ -59,7 +59,7 @@ void hhg_str_copy(hhg_str_t *dest, hhg_str_t *src)
     strcpy(dest->str, src->str);
 }
 
-void hhg_str_append_char(hhg_str_t *str, char c)
+void hhg_str_append_char(hhg_str_t *str, int c)
 {
     str->len++;
     if (str->len > str->cap)

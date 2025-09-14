@@ -95,8 +95,6 @@ typedef enum _hhg_token_type_t {
     INC,
     DEC,
 
-    NEWLINE,
-
     // end (not used as a token)
     END,
 } hhg_token_type_t;

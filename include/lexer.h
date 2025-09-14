@@ -5,9 +5,13 @@
 #include <stdbool.h>
 
 #include "token.h"
+#include "file_pos.h"
 
 typedef struct _hhg_lexer_t {
     FILE *file;
+    const char *filename;
+    hhg_file_pos_t pos;
+    int32_t last_col;
     hhg_token_t token;
 } hhg_lexer_t;
 

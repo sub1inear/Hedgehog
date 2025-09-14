@@ -5,6 +5,10 @@
 #include "node.h"
 #include "error.h"
 
+#define hhg_parser_error(...) hhg_error(lexer->pos, lexer->filename, __VA_ARGS__)
+#define hhg_parser_warning(...) hhg_warning(lexer->pos, lexer->filename, __VA_ARGS__)
+#define hhg_parser_info(...) hhg_info(lexer->pos, lexer->filename, __VA_ARGS__)
+
 hhg_node_t *hhg_parse(hhg_lexer_t *lexer)
 {
     hhg_node_t *program = hhg_parse_expr(lexer, HHG_PREC_START);
@@ -58,15 +62,15 @@ hhg_node_t *hhg_parse_unary(hhg_lexer_t *lexer)
         hhg_node_t *block = hhg_node_new(BLOCK, HHG_STR_EMPTY);
 
         hhg_lexer_next(lexer);
-        hhg_lexer_skip(lexer, NEWLINE);
+        hhg_lexer_skip(lexer, '\n');
 
         while (lexer->token.type != '}') {
             if (lexer->token.type == EOF) {
-                hhg_error("unexpected EOF while parsing block");
+                hhg_parser_error("unexpected EOF while parsing block");
                 break;
             }
             arrput(block->children, hhg_parse_expr(lexer, HHG_PREC_START));
-            hhg_lexer_match(lexer, NEWLINE);
+            hhg_lexer_match(lexer, '\n');
         }
 
         hhg_lexer_next(lexer);

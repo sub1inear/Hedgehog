@@ -89,8 +89,6 @@ static const char *const token_type_to_str[] = {
     "++",
     "--",
 
-    "newline",
-
     // node types
     "block",
 };

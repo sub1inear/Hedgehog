@@ -19,7 +19,7 @@ void hhg_str_reset(hhg_str_t *str);
 
 void hhg_str_copy(hhg_str_t *dest, hhg_str_t *src);
 
-void hhg_str_append_char(hhg_str_t *str, char c);
+void hhg_str_append_char(hhg_str_t *str, int c);
 void hhg_str_append_str(hhg_str_t *str, const char *append, size_t len);
 
 void hhg_str_set_cap(hhg_str_t *str, size_t cap);
