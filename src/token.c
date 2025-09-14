@@ -88,7 +88,7 @@ static const char *const token_type_to_str[] = {
 
     "++",
     "--",
-
+    
     // node types
     "block",
 };
@@ -96,7 +96,11 @@ static const char *const token_type_to_str[] = {
 
 void hhg_token_type_print(hhg_token_type_t type)
 {
-    if (type < HHG_TYPE_START)
+    if (type == EOF) 
+        fputs("EOF", stdout);
+    else if (type == '\n')
+        fputs("\\n", stdout);
+    else if (type < HHG_TYPE_START)
         putchar(type);
     else
         fputs(token_type_to_str[type - HHG_TYPE_START], stdout);

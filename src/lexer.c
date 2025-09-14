@@ -127,6 +127,8 @@ void hhg_lexer_init(hhg_lexer_t *lexer, const char *filename)
     lexer->filename = filename;
 
     hhg_file_pos_init(&lexer->pos);
+    lexer->last_col = lexer->pos.col;
+
     hhg_token_init(&lexer->token);
 }
 
@@ -183,6 +185,8 @@ void hhg_lexer_match_va(hhg_lexer_t *lexer, int32_t count, ...)
     }
 
     hhg_lexer_next(lexer);
+
+    va_end(va);
 }
 
 void hhg_lexer_match_type(hhg_lexer_t *lexer)
@@ -262,10 +266,13 @@ static void hhg_lexer_lex_id(hhg_lexer_t *lexer, int c)
 
 static void hhg_lexer_lex_num(hhg_lexer_t *lexer, int c)
 {
+    bool seen_decimal = false;
     do {
+        if (c == '.')
+            seen_decimal = true;
         hhg_str_append_char(&lexer->token.str, c);
         c = hhg_lexer_next_char(lexer);
-    } while (isdigit(c));
+    } while (isdigit(c) || (c == '.' && !seen_decimal));
 
     hhg_lexer_unget_char(lexer, c);
 
@@ -297,7 +304,7 @@ static void hhg_lexer_lex_str_literal(hhg_lexer_t *lexer, int c)
             hhg_str_append_str(&lexer->token.str, "\\n", 2);
             continue;
         }
-        hhg_str_append_char(&lexer->token.str, c);;
+        hhg_str_append_char(&lexer->token.str, c);
     }
     lexer->token.type = STRING_LITERAL;
 }
@@ -313,7 +320,7 @@ static void hhg_lexer_lex_char_literal(hhg_lexer_t *lexer, int c)
         hhg_str_append_char(&lexer->token.str, c);
     }
 
-    if (c == '\\')
+    if (c == '\'')
         hhg_str_append_char(&lexer->token.str, c);
     else
         hhg_lexer_error("character constant is too long");
@@ -346,8 +353,6 @@ static bool hhg_lexer_lex_default(hhg_lexer_t *lexer, int c)
                     break;
                 }
             } while (c2 != '*' || c != '/');
-
-            hhg_lexer_unget_char(lexer, c);
             return false;
         }
     }
@@ -363,7 +368,7 @@ static bool hhg_lexer_lex_default(hhg_lexer_t *lexer, int c)
             if (data->str[2] == c3)
                 ; // consumed three chars, nothing to do
             else if (data->str[1] == c2)
-                ungetc(c3, lexer->file); // consumed two chars, give back last
+                hhg_lexer_unget_char(lexer, c3); // consumed two chars, give back last
             else
                 hhg_lexer_restore_pos(lexer, &save); // consumed one char, give back two
 
