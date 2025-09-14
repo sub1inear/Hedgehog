@@ -97,6 +97,8 @@ typedef enum _hhg_token_type_t {
 
     NEWLINE,
 
+    // end (not used as a token)
+    END,
 } hhg_token_type_t;
 
 void hhg_token_type_print(hhg_token_type_t type);

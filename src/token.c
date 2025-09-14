@@ -91,6 +91,8 @@ static const char *const token_type_to_str[] = {
 
     "newline",
 
+    // node types
+    "block",
 };
 
 
@@ -104,6 +106,7 @@ void hhg_token_type_print(hhg_token_type_t type)
 
 void hhg_token_init(hhg_token_t *token)
 {
+    token->type = NONE;
     hhg_str_init(&token->str);
 }
 

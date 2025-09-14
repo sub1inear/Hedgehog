@@ -5,17 +5,23 @@
 
 #include "token.h"
 
-typedef hhg_token_type_t hhg_node_type_t;
+#define HHG_NODE_INDENT_START 0
+
+typedef enum _hhg_node_type_t {
+    BLOCK = END,
+} hhg_node_type_t;
 
 typedef struct _hhg_node_t {
     hhg_node_type_t type;
     hhg_str_t str;
-    struct _hhg_node_t *children;
+    struct _hhg_node_t **children;
 } hhg_node_t;
 
-void hhg_node_init(hhg_node_t *node, hhg_str_t str);
+hhg_node_t *hhg_node_new(hhg_node_type_t type, hhg_str_t str);
 
-void hhg_node_print(hhg_node_t *node);
+hhg_node_t *hhg_node_new_va(hhg_node_type_t type, hhg_str_t str, int32_t children, ...);
+
+void hhg_node_print(hhg_node_t *node, int32_t indent);
 
 void hhg_node_del(hhg_node_t *node);
 

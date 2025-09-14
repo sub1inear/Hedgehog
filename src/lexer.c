@@ -99,7 +99,6 @@ static const hhg_keyword_data_t keyword_data[] = {
 };
 
 static void hhg_lexer_lex(hhg_lexer_t *lexer);
-static void hhg_lexer_lex_core(hhg_lexer_t *lexer);
 
 void hhg_lexer_init(hhg_lexer_t *lexer, const char *filename)
 {
@@ -112,30 +111,35 @@ void hhg_lexer_init(hhg_lexer_t *lexer, const char *filename)
 
 void hhg_lexer_next(hhg_lexer_t *lexer)
 {
-    lexer->peeked = false;
-    if (lexer->peeked)
-        return;
-
     hhg_lexer_lex(lexer);
+
+    if (lexer->token.type == NEWLINE) {
+        long pos;
+
+        do {
+            pos = ftell(lexer->file);
+            hhg_lexer_lex(lexer);
+        } while (lexer->token.type == NEWLINE);
+        
+        fseek(lexer->file, pos, SEEK_SET);
+
+        lexer->token.type = NEWLINE;
+
+    }
 }
 
-void hhg_lexer_peek(hhg_lexer_t *lexer)
+void hhg_lexer_skip(hhg_lexer_t *lexer, hhg_token_type_t type)
 {
-    if (lexer->peeked)
-        return;
-
-    lexer->peeked = true;
-    hhg_lexer_lex(lexer);
+    while (lexer->token.type == type)
+        hhg_lexer_next(lexer);
 }
 
 void hhg_lexer_match(hhg_lexer_t *lexer, hhg_token_type_t type)
 {
-    if (lexer->token.type == type) {
-        hhg_lexer_next(lexer);
-        return;
-    }
+    if (lexer->token.type != type)
+        hhg_error("unexpected token");
 
-    hhg_error("unexpected token");
+    hhg_lexer_next(lexer);
 }
 
 void hhg_lexer_match_va(hhg_lexer_t *lexer, int32_t count, ...)
@@ -147,7 +151,7 @@ void hhg_lexer_match_va(hhg_lexer_t *lexer, int32_t count, ...)
 
     for (i = 0; i < count; i++) {
         hhg_token_type_t type = va_arg(va, hhg_token_type_t);
-
+        
         if (lexer->token.type == type)
             break;
     }
@@ -172,25 +176,6 @@ void hhg_lexer_del(hhg_lexer_t *lexer)
 {
     hhg_token_del(&lexer->token);
     fclose(lexer->file);
-}
-
-static void hhg_lexer_lex(hhg_lexer_t *lexer)
-{
-    hhg_lexer_lex_core(lexer);
-
-    if (lexer->token.type == NEWLINE) {
-        long pos;
-
-        do {
-            pos = ftell(lexer->file);
-            hhg_lexer_lex_core(lexer);
-        } while (lexer->token.type == NEWLINE);
-        
-        fseek(lexer->file, pos, SEEK_SET);
-
-        lexer->token.type = NEWLINE;
-
-    }
 }
 
 static void hhg_lexer_lex_id(hhg_lexer_t *lexer, char c)
@@ -326,7 +311,7 @@ static bool hhg_lexer_lex_default(hhg_lexer_t *lexer, char c)
     return true;
 }
 
-static void hhg_lexer_lex_core(hhg_lexer_t *lexer)
+static void hhg_lexer_lex(hhg_lexer_t *lexer)
 {
     hhg_token_reset_aux(&lexer->token);
     while (true) {
@@ -348,9 +333,7 @@ static void hhg_lexer_lex_core(hhg_lexer_t *lexer)
         } else if (c == '\'') {
             hhg_lexer_lex_char_literal(lexer, c);
             return;
-        } else {
-            if (hhg_lexer_lex_default(lexer, c))
-                return;
-        }
+        } else if (hhg_lexer_lex_default(lexer, c))
+            return;
     }
 }

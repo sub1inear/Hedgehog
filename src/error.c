@@ -8,7 +8,7 @@
 #include "mem.h"
 
 typedef struct _hhg_msg_t {
-    const char *str;
+    char *str;
     hhg_msg_type_t type;
 } hhg_msg_t;
 
@@ -58,7 +58,7 @@ void hhg_msg(hhg_msg_type_t type, const char *fmt,  ...)
 
     // need temp var as compound literals do not work in macros
     hhg_msg_t msg = { buf, type };
-    arrpush(msgs, msg);
+    arrput(msgs, msg);
 }
 
 void hhg_fatal_error(const char *fmt, ...) {

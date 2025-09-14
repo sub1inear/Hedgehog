@@ -1,22 +1,15 @@
 #include "lexer.h"
-#include "token.h"
-#include "error.h"
+#include "parser.h"
 
 int main()
 {
     hhg_lexer_t lexer;
-    hhg_lexer_init(&lexer, "../../test/testcases/variable.hhg");
+    hhg_lexer_init(&lexer, "../../test/testcases/test.hhg");
+    hhg_lexer_next(&lexer);
     
-    while (true) {
-        hhg_lexer_next(&lexer);
-        if (lexer.token.type == EOF)
-            break;
+    hhg_node_t *program = hhg_parse(&lexer);
 
-        hhg_token_print(&lexer.token);
-        putchar('\n');
-    } 
-
-    hhg_lexer_del(&lexer);
+    hhg_node_print(program, HHG_NODE_INDENT_START);
 
     return 0;
 }

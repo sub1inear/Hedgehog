@@ -8,5 +8,4 @@ void *hhg_realloc(void *ptr, size_t size);
 
 void hhg_free(void *ptr);
 
-
 #endif

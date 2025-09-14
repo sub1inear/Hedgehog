@@ -37,10 +37,26 @@ void hhg_str_init_str(hhg_str_t *str, const char *init, size_t len)
     strcpy(str->str, init);
 }
 
+void hhg_str_init_copy(hhg_str_t *dest, hhg_str_t *src)
+{
+    dest->len = src->len;
+    dest->cap = src->cap;
+    dest->str = hhg_malloc(dest->cap * sizeof(*dest->str));
+    strcpy(dest->str, src->str);
+}
+
 void hhg_str_reset(hhg_str_t *str)
 {
     str->len = 1;
     str->str[0] = '\0';
+}
+
+void hhg_str_copy(hhg_str_t *dest, hhg_str_t *src)
+{
+    dest->len = src->len;
+    if (dest->cap < src->cap)
+        hhg_str_set_cap(dest, src->cap);
+    strcpy(dest->str, src->str);
 }
 
 void hhg_str_append_char(hhg_str_t *str, char c)
