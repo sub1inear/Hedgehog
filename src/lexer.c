@@ -160,7 +160,7 @@ void hhg_lexer_skip(hhg_lexer_t *lexer, hhg_token_type_t type)
 void hhg_lexer_match(hhg_lexer_t *lexer, hhg_token_type_t type)
 {
     if (lexer->token.type != type)
-        hhg_lexer_error("unexpected token");
+        hhg_lexer_error("unexpected token %d got %d", type, lexer->token.type);
 
     hhg_lexer_next(lexer);
 }

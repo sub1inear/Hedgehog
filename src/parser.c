@@ -1,3 +1,5 @@
+#include <stdbool.h>
+
 #include <stb_ds.h>
 
 #include "parser.h"
@@ -11,8 +13,23 @@
 
 hhg_node_t *hhg_parse(hhg_lexer_t *lexer)
 {
-    hhg_node_t *program = hhg_parse_expr(lexer, HHG_PREC_START);
-    hhg_lexer_match(lexer, EOF);
+    hhg_node_t *program = hhg_node_new(BLOCK, HHG_STR_EMPTY);
+
+    hhg_lexer_next(lexer);
+
+    while (lexer->token.type != EOF) {
+        hhg_lexer_skip(lexer, '\n');
+
+        arrput(program->children, hhg_parse_expr(lexer, HHG_PREC_START));
+
+        if (lexer->token.type == EOF)
+            break;
+
+        hhg_lexer_match(lexer, '\n');
+    }
+
+    hhg_lexer_next(lexer);
+
     return program;
 }
 
