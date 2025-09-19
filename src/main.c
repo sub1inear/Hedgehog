@@ -5,7 +5,7 @@
 int main(void)
 {
     hhg_lexer_t lexer;
-    hhg_lexer_init(&lexer, "../../test/testcases/int.hhg");
+    hhg_lexer_init(&lexer, "../../test/testcases/float.hhg");
     
     //while (lexer.token.type != EOF) {
     //    hhg_lexer_next(&lexer);

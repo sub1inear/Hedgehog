@@ -69,11 +69,15 @@ hhg_node_t *hhg_parse_unary(hhg_lexer_t *lexer)
             return hhg_node_new(ID, str);
         }
     }
-    case INT_LITERAL: {
+    case INT_LITERAL:
+    case FLOAT_LITERAL: {
+        hhg_token_type_t type = lexer->token.type;
+
         hhg_str_t str;
         hhg_str_init_copy(&str, &lexer->token.str);
         hhg_lexer_next(lexer);
-        return hhg_node_new(INT_LITERAL, str);
+
+        return hhg_node_new(type, str);
     }
     case '{': {
         hhg_node_t *block = hhg_node_new(BLOCK, HHG_STR_EMPTY);
