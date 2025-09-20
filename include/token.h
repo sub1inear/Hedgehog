@@ -6,11 +6,11 @@
 
 #include "str.h"
 
-#define HHG_TYPE_START UCHAR_MAX
+#define HHG_TOKEN_TYPE_START UCHAR_MAX
 #define HHG_PREC_NONE (-1)
 
 typedef enum _hhg_token_type_t {
-    NONE = HHG_TYPE_START,
+    NONE = HHG_TOKEN_TYPE_START,
     ID,
     // literals
     INT_LITERAL,
@@ -94,10 +94,11 @@ typedef enum _hhg_token_type_t {
 
     INC,
     DEC,
-
-    // end (not used as a token)
-    END,
 } hhg_token_type_t;
+
+#define HHG_TOKEN_TYPE_END (DEC + 1)
+
+const char *hhg_token_type_to_str(hhg_token_type_t type);
 
 void hhg_token_type_print(hhg_token_type_t type);
 

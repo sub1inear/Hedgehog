@@ -7,9 +7,13 @@
 
 #define HHG_NODE_INDENT_START 0
 
+#define HHG_NODE_TYPE_START HHG_TOKEN_TYPE_END
+
 typedef enum _hhg_node_type_t {
-    BLOCK = END,
+    BLOCK = HHG_TOKEN_TYPE_END,
 } hhg_node_type_t;
+
+#define HHG_NODE_TYPE_END (BLOCK + 1)
 
 typedef struct _hhg_node_t {
     hhg_node_type_t type;
