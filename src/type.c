@@ -6,6 +6,42 @@
 
 static hhg_token_type_t hhg_type_to_token_type(hhg_type_t type);
 
+static const char *const base_type_to_str[] = {
+    "none",
+
+    "i8",
+    "u8",
+
+    "i16",
+    "u16",
+
+    "i32",
+    "u32",
+
+    "i64",
+    "u64",
+
+    "int",
+
+    "f32",
+    "f64",
+
+    "float",
+
+    "bool",
+
+    "char",
+
+    "isize",
+    "usize",
+
+    "time_t",
+
+    "func",
+    "class",
+    "enum",
+};
+
 hhg_type_t hhg_token_type_to_type(hhg_token_type_t token_type)
 {
     switch (token_type) {
@@ -59,48 +95,5 @@ void hhg_type_print(hhg_type_t type)
     for (unsigned int i = 0; i < type.ref_count; i++)
         fputc('&', stdout);
 
-    hhg_token_type_print(hhg_type_to_token_type(type));
-
-}
-
-static hhg_token_type_t hhg_type_to_token_type(hhg_type_t type)
-{
-    switch (type.type) {
-    case TYPE_I8:
-        return I8;
-    case TYPE_U8:
-        return U8;
-    case TYPE_I16:
-        return I16;
-    case TYPE_U16:
-        return U16;
-    case TYPE_I32:
-        return I32;
-    case TYPE_U32:
-        return U32;
-    case TYPE_I64:
-        return I64;
-    case TYPE_U64:
-        return U64;
-    case TYPE_INT:
-        return INT;
-    case TYPE_F32:
-        return F32;
-    case TYPE_F64:
-        return F64;
-    case TYPE_FLOAT:
-        return FLOAT;
-    case TYPE_BOOL:
-        return BOOL;
-    case TYPE_CHAR:
-        return CHAR;
-    case TYPE_ISIZE:
-        return ISIZE;
-    case TYPE_USIZE:
-        return USIZE;
-    case TYPE_TIME_T:
-        return TIME_T;
-    default:
-        return NONE;
-    }
+    fputs(base_type_to_str[type.type], stdout);
 }

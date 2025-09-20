@@ -4,13 +4,11 @@
 #include <inttypes.h>
 #include <assert.h>
 
-#define STB_DS_IMPLEMENTATION
 #include <stb_ds.h>
 
 #include "error.h"
 #include "mem.h"
 #include "file_pos.h"
-
 
 typedef struct _hhg_msg_t {
     hhg_msg_type_t type;

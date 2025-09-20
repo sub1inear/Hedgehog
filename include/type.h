@@ -36,9 +36,13 @@ typedef enum _hhg_base_type_t {
     TYPE_USIZE,
 
     TYPE_TIME_T,
+
+    TYPE_FUNC,
+    TYPE_CLASS,
+    TYPE_ENUM,
 } hhg_base_type_t;
 
-#define HHG_TYPE_END TYPE_TIME_T
+#define HHG_TYPE_END TYPE_ENUM
 
 typedef struct _hhg_type_t {
     hhg_base_type_t type : 5;

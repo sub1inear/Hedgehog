@@ -98,8 +98,6 @@ typedef enum _hhg_token_type_t {
 
 #define HHG_TOKEN_TYPE_END (DEC + 1)
 
-const char *hhg_token_type_to_str(hhg_token_type_t type);
-
 void hhg_token_type_print(hhg_token_type_t type);
 
 typedef struct _hhg_token_t {
