@@ -1,3 +1,8 @@
+#include "mem.h"
+
+#define STB_DS_IMPLEMENTATION
+#define STBDS_REALLOC(context, ptr, size) hhg_realloc(ptr, size)
+#define STBDS_FREE(context, ptr) hhg_free(ptr)
 #include <stb_ds.h>
 
 #include "sym.h"
