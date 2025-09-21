@@ -1,7 +1,6 @@
 #ifndef HHG_ERROR_H
 #define HHG_ERROR_H
 
-#include <stdint.h>
 #include <stdbool.h>
 
 #include "file_pos.h"

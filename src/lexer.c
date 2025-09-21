@@ -257,7 +257,7 @@ static void hhg_lexer_lex_id(hhg_lexer_t *lexer, int c)
 
     lexer->token.type = ID;
 
-    for (int32_t i = 0; i < ARR_SIZE(keyword_data); i++)
+    for (size_t i = 0; i < ARR_SIZE(keyword_data); i++)
         if (!strcmp(keyword_data[i].str, lexer->token.str.str)) {
             lexer->token.type = keyword_data[i].type;
             return;

@@ -1,7 +1,6 @@
 #ifndef HHG_TYPE_H
 #define HHG_TYPE_H
 
-#include <stdint.h>
 #include <stdbool.h>
 
 #include "token.h"

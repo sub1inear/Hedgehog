@@ -1,8 +1,6 @@
 #ifndef HHG_NODE_H
 #define HHG_NODE_H
 
-#include <stdint.h>
-
 #include "token.h"
 
 #define HHG_NODE_INDENT_START 0
