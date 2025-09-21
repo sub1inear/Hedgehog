@@ -8,7 +8,7 @@
 
 #define HHG_TOKEN_TYPE_START UCHAR_MAX
 #define HHG_PREC_NONE (-1)
- enum _hhg_token_type_t {
+enum _hhg_token_type_t {
     NONE = HHG_TOKEN_TYPE_START,
     ID,
     // literals

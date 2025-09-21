@@ -5,11 +5,12 @@
 
 #include "file_pos.h"
 
-typedef enum _hhg_msg_type_t {
+enum _hhg_msg_type_t {
     ERROR,
     WARNING,
     INFO,
-} hhg_msg_type_t;
+};
+typedef int hhg_msg_type_t;
 
 void hhg_msg(hhg_msg_type_t type,
              hhg_file_pos_t pos,
