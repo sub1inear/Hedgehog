@@ -4,8 +4,6 @@
 #include "type.h"
 #include "token.h"
 
-static hhg_token_type_t hhg_type_to_token_type(hhg_type_t type);
-
 static const char *const base_type_to_str[] = {
     "none",
 
