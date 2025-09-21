@@ -1,13 +1,14 @@
 #ifndef HHG_TYPE_H
 #define HHG_TYPE_H
 
+#include <stdint.h>
 #include <stdbool.h>
 
 #include "token.h"
 
 #define HHG_TYPE_START 0
 
-typedef enum _hhg_base_type_t {
+enum {
     TYPE_NONE = HHG_TYPE_START,
     TYPE_I8,
     TYPE_U8,
@@ -40,7 +41,8 @@ typedef enum _hhg_base_type_t {
     TYPE_FUNC,
     TYPE_CLASS,
     TYPE_ENUM,
-} hhg_base_type_t;
+};
+typedef int hhg_base_type_t;
 
 #define HHG_TYPE_END TYPE_ENUM
 

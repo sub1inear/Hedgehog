@@ -9,7 +9,7 @@
 #define HHG_TOKEN_TYPE_START UCHAR_MAX
 #define HHG_PREC_NONE (-1)
 
-typedef enum _hhg_token_type_t {
+enum {
     NONE = HHG_TOKEN_TYPE_START,
     ID,
     // literals
@@ -94,7 +94,8 @@ typedef enum _hhg_token_type_t {
 
     INC,
     DEC,
-} hhg_token_type_t;
+};
+typedef int hhg_token_type_t;
 
 #define HHG_TOKEN_TYPE_END (DEC + 1)
 
