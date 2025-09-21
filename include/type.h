@@ -7,7 +7,7 @@
 
 #define HHG_TYPE_START 0
 
-enum {
+enum _hhg_base_type_t {
     TYPE_NONE = HHG_TYPE_START,
     TYPE_I8,
     TYPE_U8,
@@ -41,6 +41,7 @@ enum {
     TYPE_CLASS,
     TYPE_ENUM,
 };
+// guarantee being unsigned to not overflow bit-field
 typedef unsigned int hhg_base_type_t;
 
 #define HHG_TYPE_END TYPE_ENUM
