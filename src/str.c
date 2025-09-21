@@ -65,7 +65,7 @@ void hhg_str_append_char(hhg_str_t *str, int c)
     if (str->len > str->cap)
         hhg_str_set_cap(str, str->len * 2);
 
-    str->str[str->len - 2] = c;
+    str->str[str->len - 2] = (char)c;
     str->str[str->len - 1] = '\0';
 
 }

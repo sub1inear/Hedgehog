@@ -43,3 +43,17 @@ target_include_directories(${PROJECT_NAME}_lib PUBLIC ${CMAKE_SOURCE_DIR}/lib/st
 
 # set hedgehog project to be the startup project in Visual Studio
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${PROJECT_NAME})
+
+# enable warnings
+if (CMAKE_C_COMPILER_ID STREQUAL "GNU" OR
+    CMAKE_C_COMPILER_ID STREQUAL "Clang" OR
+    CMAKE_C_COMPILER_ID STREQUAL "AppleClang" OR
+    CMAKE_C_COMPILER_ID MATCHES "Intel" OR
+    CMAKE_C_COMPILER_ID STREQUAL "IntelLLVM")
+    target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic -Werror)
+elseif (CMAKE_C_COMPILER_ID STREQUAL "MSVC")
+    target_compile_options(${PROJECT_NAME} PRIVATE /W4 /permissive- /WX /wd4996 /wd4063)
+else()
+    # Unknown compiler - intentionally do nothing (default to no warnings)
+    message(STATUS "compiler '${CMAKE_C_COMPILER_ID}' not recognized — no warning flags added for target '${PROJECT_NAME}'")
+endif()
