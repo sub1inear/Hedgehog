@@ -9,7 +9,7 @@ typedef struct _hhg_sym_t {
     hhg_type_t value;
 } hhg_sym_t;
 
-void hhg_sym_init();
+void hhg_sym_init(void);
 
 void hhg_sym_insert(hhg_sym_t *sym);
 hhg_sym_t *hhg_sym_lookup(const char *key);
