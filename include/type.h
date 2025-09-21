@@ -41,7 +41,7 @@ enum {
     TYPE_CLASS,
     TYPE_ENUM,
 };
-typedef int hhg_base_type_t;
+typedef unsigned int hhg_base_type_t;
 
 #define HHG_TYPE_END TYPE_ENUM
 
