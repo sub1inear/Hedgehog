@@ -9,7 +9,7 @@
 
 static hhg_sym_t* sym_tab;
 
-void hhg_sym_init()
+void hhg_sym_init(void)
 {
     sh_new_arena(sym_tab);
 }
