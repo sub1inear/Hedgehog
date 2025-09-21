@@ -82,9 +82,9 @@ void hhg_fatal_error(const char *fmt, ...) {
     hhg_msgs_print();
     hhg_msgs_del();
 
-    fputs("fatal error: ", stderr);
+    fputs("\x1b[1;31m" "fatal error: ", stderr);
     vfprintf(stderr, fmt, va);
-    fputc('\n', stderr);
+    fputs("\n" "\x1b[0m", stderr);
 
     va_end(va);
     exit(1);

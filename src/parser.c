@@ -99,8 +99,7 @@ hhg_node_t *hhg_parse_unary(hhg_lexer_t *lexer)
         return block;
     }
     default:
-        hhg_token_print(&lexer->token);
-        hhg_fatal_error("unexpected token");
+        hhg_fatal_error("invalid syntax");
         return NULL;
     }
 }
