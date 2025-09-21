@@ -9,6 +9,6 @@ int main(int argc, char **argv)
         fprintf(stderr, "Usage: %s <test_program>\n", argv[0]);
         return 1;
     }
-    hhg_unit_assert(hhg_run(argv[1]));
+    hhg_unit_assert(!hhg_run(argv[1]));
     return 0;
 }
