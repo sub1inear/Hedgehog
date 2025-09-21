@@ -3,11 +3,13 @@ cmake_policy(SET CMP0110 NEW) # allow dynamic test names
 
 project(htest)
 
-add_executable(${PROJECT_NAME} test.c)
+file(GLOB TEST_SOURCES ${CMAKE_SOURCE_DIR}/test/src/*.c)
+
+add_executable(${PROJECT_NAME} ${TEST_SOURCES})
 
 target_link_libraries(${PROJECT_NAME} PRIVATE hedgehog_lib)
 
-file(GLOB TEST_FILES ${CMAKE_SOURCE_DIR}/test/testcases/*)
+file(GLOB TEST_FILES ${CMAKE_SOURCE_DIR}/test/testcases/*.hhg)
 foreach(TEST_PATH IN LISTS TEST_FILES)
   get_filename_component(TEST_NAME "${TEST_PATH}" NAME)
 
