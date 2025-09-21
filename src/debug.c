@@ -3,6 +3,7 @@
 #include "token.h"
 #include "parser.h"
 #include "node.h"
+#include "error.h"
 
 void hhg_debug_lexer(const char *filename)
 {
