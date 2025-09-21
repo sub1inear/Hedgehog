@@ -40,19 +40,7 @@ static void hhg_test_parser(const char *filename)
     hhg_lexer_del(&lexer);
 }
 
-static void hhg_test_sym_table(void)
-{
-    hhg_sym_init();
-
-    hhg_sym_insert(&(hhg_sym_t) { "test", { TYPE_I32, false, false, 0 } });
-
-    hhg_type_print(hhg_sym_lookup("test")->value);
-
-    hhg_sym_del();
-}
-
 int main(void)
 {
-    hhg_test_sym_table();
     return 0;
 }

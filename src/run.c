@@ -19,5 +19,5 @@ bool hhg_run(const char *filename)
 
     hhg_lexer_del(&lexer);
 
-    return !hhg_msgs_has_errors();
+    return hhg_msgs_has_errors();
 }
