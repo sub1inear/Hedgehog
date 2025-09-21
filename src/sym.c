@@ -21,7 +21,7 @@ void hhg_sym_insert(hhg_sym_t *sym)
 
 hhg_sym_t *hhg_sym_lookup(const char *key)
 {
-    return shgetp(sym_tab, key);
+    return shgetp_null(sym_tab, key);
 }
 
 void hhg_sym_del(void)

@@ -5,7 +5,7 @@
 
 #include "file_pos.h"
 
-typedef enum _hhg_error_type_t {
+typedef enum _hhg_msg_type_t {
     ERROR,
     WARNING,
     INFO,

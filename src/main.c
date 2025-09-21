@@ -2,8 +2,9 @@
 #include <stdbool.h>
 
 #include "debug.h"
+#include "run.h"
+
 int main(void)
 {
-    hhg_debug_parser("../test/testcases/float.hhg");
-    return 0;
+    return hhg_run("../test/testcases/format.hhg");
 }
