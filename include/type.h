@@ -8,38 +8,38 @@
 #define HHG_TYPE_START 0
 
 enum _hhg_base_type_t {
-    TYPE_NONE = HHG_TYPE_START,
-    TYPE_I8,
-    TYPE_U8,
+    HHG_TYPE_NONE = HHG_TYPE_START,
+    HHG_TYPE_I8,
+    HHG_TYPE_U8,
 
-    TYPE_I16,
-    TYPE_U16,
+    HHG_TYPE_I16,
+    HHG_TYPE_U16,
     
-    TYPE_I32,
-    TYPE_U32,
+    HHG_TYPE_I32,
+    HHG_TYPE_U32,
 
-    TYPE_I64,
-    TYPE_U64,
+    HHG_TYPE_I64,
+    HHG_TYPE_U64,
 
-    TYPE_INT,
+    HHG_TYPE_INT,
 
-    TYPE_F32,
-    TYPE_F64,
+    HHG_TYPE_F32,
+    HHG_TYPE_F64,
 
-    TYPE_FLOAT,
+    HHG_TYPE_FLOAT,
 
-    TYPE_BOOL,
+    HHG_TYPE_BOOL,
 
-    TYPE_CHAR,
+    HHG_TYPE_CHAR,
 
-    TYPE_ISIZE,
-    TYPE_USIZE,
+    HHG_TYPE_ISIZE,
+    HHG_TYPE_USIZE,
 
-    TYPE_TIME_T,
+    HHG_TYPE_TIME_T,
 
-    TYPE_FUNC,
-    TYPE_CLASS,
-    TYPE_ENUM,
+    HHG_TYPE_FUNC,
+    HHG_TYPE_CLASS,
+    HHG_TYPE_ENUM,
 };
 // guarantee being unsigned to not overflow bit-field
 typedef unsigned int hhg_base_type_t;

@@ -6,9 +6,9 @@
 #include "file_pos.h"
 
 enum _hhg_msg_type_t {
-    ERROR,
-    WARNING,
-    INFO,
+    HHG_MSG_TYPE_ERROR,
+    HHG_MSG_TYPE_WARNING,
+    HHG_MSG_TYPE_INFO,
 };
 typedef int hhg_msg_type_t;
 
@@ -18,9 +18,9 @@ void hhg_msg(hhg_msg_type_t type,
              const char *fmt,
              ...);
 
-#define hhg_error(...) hhg_msg(ERROR, __VA_ARGS__)
-#define hhg_warning(...) hhg_msg(WARNING, __VA_ARGS__)
-#define hhg_info(...) hhg_msg(INFO, __VA_ARGS__)
+#define hhg_error(...) hhg_msg(HHG_MSG_TYPE_ERROR, __VA_ARGS__)
+#define hhg_warning(...) hhg_msg(HHG_MSG_TYPE_WARNING, __VA_ARGS__)
+#define hhg_info(...) hhg_msg(HHG_MSG_TYPE_INFO, __VA_ARGS__)
 
 void hhg_fatal_error(const char *fmt, ...);
 

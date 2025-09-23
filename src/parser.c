@@ -13,7 +13,7 @@
 
 hhg_node_t *hhg_parse(hhg_lexer_t *lexer)
 {
-    hhg_node_t *program = hhg_node_new(BLOCK, HHG_STR_EMPTY);
+    hhg_node_t *program = hhg_node_new(HHG_NODE_TYPE_BLOCK, HHG_STR_EMPTY);
 
     hhg_lexer_next(lexer);
 
@@ -54,7 +54,7 @@ hhg_node_t *hhg_parse_expr(hhg_lexer_t *lexer, int32_t min_prec)
 hhg_node_t *hhg_parse_unary(hhg_lexer_t *lexer)
 {
     switch (lexer->token.type) {
-    case ID: {
+    case HHG_TOKEN_TYPE_ID: {
         hhg_str_t str;
         hhg_str_init_copy(&str, &lexer->token.str);
 
@@ -66,11 +66,11 @@ hhg_node_t *hhg_parse_unary(hhg_lexer_t *lexer)
             return hhg_node_new_va('=', str, 1, expr);
         } 
         default:
-            return hhg_node_new(ID, str);
+            return hhg_node_new(HHG_TOKEN_TYPE_ID, str);
         }
     }
-    case INT_LITERAL:
-    case FLOAT_LITERAL: {
+    case HHG_TOKEN_TYPE_INT_LITERAL:
+    case HHG_TOKEN_TYPE_FLOAT_LITERAL: {
         hhg_token_type_t type = lexer->token.type;
 
         hhg_str_t str;
@@ -80,7 +80,7 @@ hhg_node_t *hhg_parse_unary(hhg_lexer_t *lexer)
         return hhg_node_new(type, str);
     }
     case '{': {
-        hhg_node_t *block = hhg_node_new(BLOCK, HHG_STR_EMPTY);
+        hhg_node_t *block = hhg_node_new(HHG_NODE_TYPE_BLOCK, HHG_STR_EMPTY);
 
         hhg_lexer_next(lexer);
         hhg_lexer_skip(lexer, '\n');

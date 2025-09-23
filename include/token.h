@@ -9,95 +9,95 @@
 #define HHG_TOKEN_TYPE_START UCHAR_MAX
 #define HHG_PREC_NONE (-1)
 enum _hhg_token_type_t {
-    NONE = HHG_TOKEN_TYPE_START,
-    ID,
+    HHG_TOKEN_TYPE_NONE = HHG_TOKEN_TYPE_START,
+    HHG_TOKEN_TYPE_ID,
     // literals
-    INT_LITERAL,
-    FLOAT_LITERAL,
+    HHG_TOKEN_TYPE_INT_LITERAL,
+    HHG_TOKEN_TYPE_FLOAT_LITERAL,
 
-    CHAR_LITERAL,
-    STRING_LITERAL,
+    HHG_TOKEN_TYPE_CHAR_LITERAL,
+    HHG_TOKEN_TYPE_STRING_LITERAL,
 
     // keywords
-    IF,
-    WHILE,
-    FOR,
+    HHG_TOKEN_TYPE_IF,
+    HHG_TOKEN_TYPE_WHILE,
+    HHG_TOKEN_TYPE_FOR,
 
-    BREAK,
-    CONTINUE,
+    HHG_TOKEN_TYPE_BREAK,
+    HHG_TOKEN_TYPE_CONTINUE,
 
-    AND,
-    OR,
-    NOT,
+    HHG_TOKEN_TYPE_AND,
+    HHG_TOKEN_TYPE_OR,
+    HHG_TOKEN_TYPE_NOT,
 
-    TRUE,
-    FALSE,
+    HHG_TOKEN_TYPE_TRUE,
+    HHG_TOKEN_TYPE_FALSE,
 
-    IN,
-    RANGE,
+    HHG_TOKEN_TYPE_IN,
+    HHG_TOKEN_TYPE_RANGE,
 
-    ENUM,
+    HHG_TOKEN_TYPE_ENUM,
 
-    DEF,
+    HHG_TOKEN_TYPE_DEF,
 
     // types
-    I8,
-    U8,
+    HHG_TOKEN_TYPE_I8,
+    HHG_TOKEN_TYPE_U8,
 
-    I16,
-    U16,
+    HHG_TOKEN_TYPE_I16,
+    HHG_TOKEN_TYPE_U16,
     
-    I32,
-    U32,
+    HHG_TOKEN_TYPE_I32,
+    HHG_TOKEN_TYPE_U32,
 
-    I64,
-    U64,
+    HHG_TOKEN_TYPE_I64,
+    HHG_TOKEN_TYPE_U64,
 
-    INT,
+    HHG_TOKEN_TYPE_INT,
 
-    F32,
-    F64,
+    HHG_TOKEN_TYPE_F32,
+    HHG_TOKEN_TYPE_F64,
 
-    FLOAT,
+    HHG_TOKEN_TYPE_FLOAT,
 
-    BOOL,
+    HHG_TOKEN_TYPE_BOOL,
 
-    CHAR,
+    HHG_TOKEN_TYPE_CHAR,
 
-    ISIZE,
-    USIZE,
+    HHG_TOKEN_TYPE_ISIZE,
+    HHG_TOKEN_TYPE_USIZE,
 
-    TIME_T,
+    HHG_TOKEN_TYPE_TIME_T,
 
     // composite operators
-    LSHIFT,
-    RSHIFT,
+    HHG_TOKEN_TYPE_LSHIFT,
+    HHG_TOKEN_TYPE_RSHIFT,
 
-    EQ,
-    NOT_EQ,
-    LT_EQ,
-    GT_EQ,
+    HHG_TOKEN_TYPE_EQ,
+    HHG_TOKEN_TYPE_NOT_EQ,
+    HHG_TOKEN_TYPE_LT_EQ,
+    HHG_TOKEN_TYPE_GT_EQ,
 
-    PLUS_EQ,
-    SUB_EQ,
-    MUL_EQ,
-    DIV_EQ,
-    MOD_EQ,
-    
-    AND_EQ,
-    OR_EQ,
-    XOR_EQ,
+    HHG_TOKEN_TYPE_PLUS_EQ,
+    HHG_TOKEN_TYPE_SUB_EQ,
+    HHG_TOKEN_TYPE_MUL_EQ,
+    HHG_TOKEN_TYPE_DIV_EQ,
+    HHG_TOKEN_TYPE_MOD_EQ,
 
-    LSHIFT_EQ,
-    RSHIFT_EQ,    
+    HHG_TOKEN_TYPE_AND_EQ,
+    HHG_TOKEN_TYPE_OR_EQ,
+    HHG_TOKEN_TYPE_XOR_EQ,
 
-    INC,
-    DEC,
+    HHG_TOKEN_TYPE_LSHIFT_EQ,
+    HHG_TOKEN_TYPE_RSHIFT_EQ,    
+
+    HHG_TOKEN_TYPE_INC,
+    HHG_TOKEN_TYPE_DEC,
 };
 // guarentee being signed (for comparison with EOF)
 typedef int hhg_token_type_t;
 
-#define HHG_TOKEN_TYPE_END (DEC + 1)
+#define HHG_TOKEN_TYPE_END (HHG_TOKEN_TYPE_DEC + 1)
 
 void hhg_token_type_print(hhg_token_type_t type);
 

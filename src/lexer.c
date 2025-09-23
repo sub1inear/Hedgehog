@@ -21,29 +21,29 @@ typedef struct _hhg_file_pos_save_t {
 } hhg_file_pos_save_t;
 
 static const hhg_op_data_t op_data[] = {                                         
-    { { '<' , '<' , '='  },  LSHIFT_EQ,  1  },
-    { { '>' , '>' , '='  },  RSHIFT_EQ,  1  },
+    { { '<' , '<' , '='  },  HHG_TOKEN_TYPE_LSHIFT_EQ,  1  },
+    { { '>' , '>' , '='  },  HHG_TOKEN_TYPE_RSHIFT_EQ,  1  },
 
-    { { '+' , '=' , '\0' },  PLUS_EQ,    1  },
-    { { '-' , '=' , '\0' },  SUB_EQ,     1  },
-    { { '*' , '=' , '\0' },  MUL_EQ,     1  },
-    { { '/' , '=' , '\0' },  DIV_EQ,     1  },
-    { { '%' , '=' , '\0' },  MOD_EQ,     1  },
-    { { '&' , '=' , '\0' },  AND_EQ,     1  },
-    { { '|' , '=' , '\0' },  OR_EQ,      1  },
-    { { '^' , '=' , '\0' },  XOR_EQ,     1  },
+    { { '+' , '=' , '\0' },  HHG_TOKEN_TYPE_PLUS_EQ,    1  },
+    { { '-' , '=' , '\0' },  HHG_TOKEN_TYPE_SUB_EQ,     1  },
+    { { '*' , '=' , '\0' },  HHG_TOKEN_TYPE_MUL_EQ,     1  },
+    { { '/' , '=' , '\0' },  HHG_TOKEN_TYPE_DIV_EQ,     1  },
+    { { '%' , '=' , '\0' },  HHG_TOKEN_TYPE_MOD_EQ,     1  },
+    { { '&' , '=' , '\0' },  HHG_TOKEN_TYPE_AND_EQ,     1  },
+    { { '|' , '=' , '\0' },  HHG_TOKEN_TYPE_OR_EQ,      1  },
+    { { '^' , '=' , '\0' },  HHG_TOKEN_TYPE_XOR_EQ,     1  },
 
-    { { '<' , '<' , '\0' },  LSHIFT,     10 },
-    { { '>' , '>' , '\0' },  RSHIFT,     10 },
+    { { '<' , '<' , '\0' },  HHG_TOKEN_TYPE_LSHIFT,     10 },
+    { { '>' , '>' , '\0' },  HHG_TOKEN_TYPE_RSHIFT,     10 },
 
-    { { '+' , '+' , '\0' },  INC,        13 },
-    { { '-' , '-' , '\0' },  DEC,        13 },
+    { { '+' , '+' , '\0' },  HHG_TOKEN_TYPE_INC,        13 },
+    { { '-' , '-' , '\0' },  HHG_TOKEN_TYPE_DEC,        13 },
     
-    { { '<' , '=' , '\0' },  LT_EQ,      9  },
-    { { '>' , '=' , '\0' },  GT_EQ,      9  },
+    { { '<' , '=' , '\0' },  HHG_TOKEN_TYPE_LT_EQ,      9  },
+    { { '>' , '=' , '\0' },  HHG_TOKEN_TYPE_GT_EQ,      9  },
 
-    { { '=' , '=' , '\0' },  EQ,         8  },
-    { { '!' , '=' , '\0' },  NOT_EQ,     8  },
+    { { '=' , '=' , '\0' },  HHG_TOKEN_TYPE_EQ,         8  },
+    { { '!' , '=' , '\0' },  HHG_TOKEN_TYPE_NOT_EQ,     8  },
 
     { { '*' , '\0', '\0' },  '*',        12 },
     { { '/' , '\0', '\0' },  '/',        12 },
@@ -61,55 +61,55 @@ static const hhg_op_data_t op_data[] = {
 };
 
 static const hhg_keyword_data_t keyword_data[] = {
-    { "if",       IF       },
-    { "while",    WHILE    },
-    { "for",      FOR      },
+    { "if",       HHG_TOKEN_TYPE_IF       },
+    { "while",    HHG_TOKEN_TYPE_WHILE    },
+    { "for",      HHG_TOKEN_TYPE_FOR      },
       
-    { "break",    BREAK    },
-    { "continue", CONTINUE },
+    { "break",    HHG_TOKEN_TYPE_BREAK    },
+    { "continue", HHG_TOKEN_TYPE_CONTINUE },
       
-    { "and",      AND      },
-    { "or",       OR       },
-    { "not",      NOT      },
+    { "and",      HHG_TOKEN_TYPE_AND      },
+    { "or",       HHG_TOKEN_TYPE_OR       },
+    { "not",      HHG_TOKEN_TYPE_NOT      },
       
-    { "true",     TRUE     },
-    { "false",    FALSE    },
+    { "true",     HHG_TOKEN_TYPE_TRUE     },
+    { "false",    HHG_TOKEN_TYPE_FALSE    },
       
-    { "in",       IN       },
-    { "range",    RANGE    },
+    { "in",       HHG_TOKEN_TYPE_IN       },
+    { "range",    HHG_TOKEN_TYPE_RANGE    },
       
-    { "enum",     ENUM     },
+    { "enum",     HHG_TOKEN_TYPE_ENUM     },
       
-    { "def",      DEF      },
+    { "def",      HHG_TOKEN_TYPE_DEF      },
     
     // ------------------------------- //
 
-    { "i8",       I8       },
-    { "u8",       U8       },
+    { "i8",       HHG_TOKEN_TYPE_I8       },
+    { "u8",       HHG_TOKEN_TYPE_U8       },
 
-    { "i16",      I16      },
-    { "u16",      U16      },
+    { "i16",      HHG_TOKEN_TYPE_I16      },
+    { "u16",      HHG_TOKEN_TYPE_U16      },
                                         
-    { "i32",      I32      },
-    { "u32",      U32      },
+    { "i32",      HHG_TOKEN_TYPE_I32      },
+    { "u32",      HHG_TOKEN_TYPE_U32      },
                                         
-    { "i64",      I64      },
-    { "u64",      U64      },
+    { "i64",      HHG_TOKEN_TYPE_I64      },
+    { "u64",      HHG_TOKEN_TYPE_U64      },
                                         
-    { "int",      INT      },
+    { "int",      HHG_TOKEN_TYPE_INT      },
                                         
-    { "f32",      F32      },
-    { "f64",      F64      },
+    { "f32",      HHG_TOKEN_TYPE_F32      },
+    { "f64",      HHG_TOKEN_TYPE_F64      },
       
-    { "float",    FLOAT    },
+    { "float",    HHG_TOKEN_TYPE_FLOAT    },
       
-    { "bool",     BOOL     },
-    { "char",     CHAR     },
+    { "bool",     HHG_TOKEN_TYPE_BOOL     },
+    { "char",     HHG_TOKEN_TYPE_CHAR     },
       
-    { "isize",    ISIZE    },
-    { "usize",    USIZE    },
+    { "isize",    HHG_TOKEN_TYPE_ISIZE    },
+    { "usize",    HHG_TOKEN_TYPE_USIZE    },
       
-    { "time_t",   TIME_T   },
+    { "time_t",   HHG_TOKEN_TYPE_TIME_T   },
 };
 
 static void hhg_lexer_lex(hhg_lexer_t *lexer);
@@ -192,9 +192,16 @@ void hhg_lexer_match_va(hhg_lexer_t *lexer, int32_t count, ...)
 void hhg_lexer_match_type(hhg_lexer_t *lexer)
 {
     hhg_lexer_match_va(lexer, 17,
-        I8, U8, I16, U16, I32,
-        U32, I64, U64, INT, F32, F64, FLOAT,
-        BOOL, CHAR, ISIZE, USIZE, TIME_T);
+        HHG_TOKEN_TYPE_I8, HHG_TOKEN_TYPE_U8,
+        HHG_TOKEN_TYPE_I16, HHG_TOKEN_TYPE_U16,
+        HHG_TOKEN_TYPE_I32, HHG_TOKEN_TYPE_U32,
+        HHG_TOKEN_TYPE_I64, HHG_TOKEN_TYPE_U64,
+        HHG_TOKEN_TYPE_INT,
+        HHG_TOKEN_TYPE_F32, HHG_TOKEN_TYPE_F64,
+        HHG_TOKEN_TYPE_FLOAT,
+        HHG_TOKEN_TYPE_BOOL, HHG_TOKEN_TYPE_CHAR,
+        HHG_TOKEN_TYPE_ISIZE, HHG_TOKEN_TYPE_USIZE,
+        HHG_TOKEN_TYPE_TIME_T);
 }
 
 void hhg_lexer_del(hhg_lexer_t *lexer)
@@ -255,7 +262,7 @@ static void hhg_lexer_lex_id(hhg_lexer_t *lexer, int c)
 
     hhg_lexer_unget_char(lexer, c);
 
-    lexer->token.type = ID;
+    lexer->token.type = HHG_TOKEN_TYPE_ID;
 
     for (size_t i = 0; i < ARR_SIZE(keyword_data); i++)
         if (!strcmp(keyword_data[i].str, lexer->token.str.str)) {
@@ -276,11 +283,11 @@ static void hhg_lexer_lex_num(hhg_lexer_t *lexer, int c)
 
     hhg_lexer_unget_char(lexer, c);
 
-    lexer->token.type = INT_LITERAL;
+    lexer->token.type = HHG_TOKEN_TYPE_INT_LITERAL;
 
     char *decimal_pos = strchr(lexer->token.str.str, '.');
     if (decimal_pos != NULL)
-        lexer->token.type = FLOAT_LITERAL;
+        lexer->token.type = HHG_TOKEN_TYPE_FLOAT_LITERAL;
 
     return;
 }
@@ -306,7 +313,7 @@ static void hhg_lexer_lex_str_literal(hhg_lexer_t *lexer, int c)
         }
         hhg_str_append_char(&lexer->token.str, c);
     }
-    lexer->token.type = STRING_LITERAL;
+    lexer->token.type = HHG_TOKEN_TYPE_STRING_LITERAL;
 }
 
 static void hhg_lexer_lex_char_literal(hhg_lexer_t *lexer, int c)
@@ -325,7 +332,7 @@ static void hhg_lexer_lex_char_literal(hhg_lexer_t *lexer, int c)
     else
         hhg_lexer_error("character constant is too long");
 
-    lexer->token.type = CHAR_LITERAL;
+    lexer->token.type = HHG_TOKEN_TYPE_CHAR_LITERAL;
 }
 
 static bool hhg_lexer_lex_default(hhg_lexer_t *lexer, int c)
