@@ -22,13 +22,13 @@ static hhg_msg_t *msgs = NULL;
 static void hhg_msg_print(hhg_msg_t *msg)
 {
     switch (msg->type) {
-    case HHG_MSG_TYPE_ERROR:
+    case HHG_MSG_ERROR:
         fputs("\x1b[1;31m" "error: ", stderr);
         break;
-    case HHG_MSG_TYPE_WARNING:
+    case HHG_MSG_WARNING:
         fputs("\x1b[1;33m" "warning: ", stderr);
         break;
-    case HHG_MSG_TYPE_INFO:
+    case HHG_MSG_INFO:
         fputs("info: ", stderr);
         break;
     }
@@ -94,7 +94,7 @@ bool hhg_msgs_has_errors(void)
 {
     size_t len = arrlenu(msgs);
     for (size_t i = 0; i < len; i++)
-        if (msgs[i].type == HHG_MSG_TYPE_ERROR)
+        if (msgs[i].type == HHG_MSG_ERROR)
             return true;
     return false;
 }

@@ -1,5 +1,5 @@
-#ifndef HHG_TYPE_H
-#define HHG_TYPE_H
+#ifndef HHG_H
+#define HHG_H
 
 #include <stdbool.h>
 

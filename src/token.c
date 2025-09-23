@@ -99,15 +99,15 @@ void hhg_token_type_print(hhg_token_type_t type)
         fputs("EOF", stdout);
     else if (type == '\n')
         fputs("\\n", stdout);
-    else if (type <= HHG_TOKEN_TYPE_START)
+    else if (type <= HHG_TOKEN_START)
         fputc(type, stdout);
     else
-        fputs(token_type_to_str[type - HHG_TOKEN_TYPE_START], stdout);
+        fputs(token_type_to_str[type - HHG_TOKEN_START], stdout);
 }
 
 void hhg_token_init(hhg_token_t *token)
 {
-    token->type = HHG_TOKEN_TYPE_NONE;
+    token->type = HHG_TOKEN_NONE;
     hhg_str_init(&token->str);
 }
 
@@ -126,11 +126,11 @@ void hhg_token_print(hhg_token_t *token)
     fputs(", value = ", stdout);
 
     switch (token->type) {
-    case HHG_TOKEN_TYPE_INT_LITERAL:
-    case HHG_TOKEN_TYPE_FLOAT_LITERAL:
-    case HHG_TOKEN_TYPE_CHAR_LITERAL:
-    case HHG_TOKEN_TYPE_STRING_LITERAL:
-    case HHG_TOKEN_TYPE_ID:
+    case HHG_TOKEN_INT_LITERAL:
+    case HHG_TOKEN_FLOAT_LITERAL:
+    case HHG_TOKEN_CHAR_LITERAL:
+    case HHG_TOKEN_STRING_LITERAL:
+    case HHG_TOKEN_ID:
         fputs(token->str.str, stdout); 
         break;
     default:
