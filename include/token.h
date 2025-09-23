@@ -8,8 +8,7 @@
 
 #define HHG_TOKEN_TYPE_START UCHAR_MAX
 #define HHG_PREC_NONE (-1)
-
-enum {
+enum _hhg_token_type_t {
     NONE = HHG_TOKEN_TYPE_START,
     ID,
     // literals
@@ -95,6 +94,7 @@ enum {
     INC,
     DEC,
 };
+// guarentee being signed (for comparison with EOF)
 typedef int hhg_token_type_t;
 
 #define HHG_TOKEN_TYPE_END (DEC + 1)

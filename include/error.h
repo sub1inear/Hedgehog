@@ -5,7 +5,7 @@
 
 #include "file_pos.h"
 
-enum {
+enum _hhg_msg_type_t {
     ERROR,
     WARNING,
     INFO,

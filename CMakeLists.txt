@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.16)
 
 project(hedgehog LANGUAGES C)
 
-set(CMAKE_C_STANDARD 99)
+set(CMAKE_C_STANDARD 11)
 
 # enable testing
 enable_testing()
@@ -55,5 +55,5 @@ elseif (CMAKE_C_COMPILER_ID STREQUAL "MSVC")
     target_compile_options(${PROJECT_NAME} PRIVATE /W4 /permissive- /WX /wd4996 /wd4063)
 else()
     # Unknown compiler - intentionally do nothing (default to no warnings)
-    message(STATUS "compiler '${CMAKE_C_COMPILER_ID}' not recognized — no warning flags added for target '${PROJECT_NAME}'")
+    message(STATUS "compiler '${CMAKE_C_COMPILER_ID}' not recognized   no warning flags added for target '${PROJECT_NAME}'")
 endif()
