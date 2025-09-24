@@ -94,5 +94,5 @@ void hhg_str_set_cap(hhg_str_t *str, size_t cap)
 
 void hhg_str_del(hhg_str_t *str)
 {
-    hhg_free(str->str);
+    hhg_free_s(str->str);
 }

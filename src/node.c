@@ -61,12 +61,12 @@ void hhg_node_print(hhg_node_t *node, int32_t indent)
         hhg_node_print(node->children[i], next_indent);
 }
 
-void hhg_node_del(hhg_node_t *node)
+void hhg_node_free(hhg_node_t *node)
 {
     if (node->children != NULL) {
         size_t len = arrlenu(node->children);
         for (size_t i = 0; i < len; i++)
-            hhg_node_del(node->children[i]);
+            hhg_node_free(node->children[i]);
         arrfree(node->children);
     }
     // freeing NULL is safe

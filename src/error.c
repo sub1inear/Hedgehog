@@ -43,7 +43,7 @@ static void hhg_msg_print(hhg_msg_t *msg)
 
 static void hhg_msg_del(hhg_msg_t *msg)
 {
-    hhg_free(msg->str);
+    hhg_free_s(msg->str);
 }
 
 void hhg_msg(hhg_msg_type_t type,

@@ -2,6 +2,7 @@
 #define HHG_NODE_H
 
 #include "token.h"
+#include "sym.h"
 
 #define HHG_NODE_INDENT_START 0
 
@@ -26,6 +27,6 @@ hhg_node_t *hhg_node_new_va(hhg_node_type_t type, hhg_str_t str, int32_t childre
 
 void hhg_node_print(hhg_node_t *node, int32_t indent);
 
-void hhg_node_del(hhg_node_t *node);
+void hhg_node_free(hhg_node_t *node);
 
 #endif
