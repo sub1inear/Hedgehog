@@ -24,13 +24,11 @@ void hhg_str_init_len(hhg_str_t *str, size_t len)
     str->str[0] = '\0';
 }
 
-void hhg_str_init_str(hhg_str_t *str, const char *init, size_t len)
+void hhg_str_init_str(hhg_str_t *str, const char *init)
 {
-    assert(len > 0);
     assert(init != NULL);
-    assert(len == strlen(init) + 1);
 
-    str->len = len + 1;
+    str->len = strlen(init) + 1;
     str->cap = str->len;
 
     str->str = hhg_malloc(str->cap * sizeof(*str->str));
@@ -70,19 +68,17 @@ void hhg_str_append_char(hhg_str_t *str, int c)
 
 }
 
-void hhg_str_append_str(hhg_str_t *str, const char *append, size_t len)
+void hhg_str_append_str(hhg_str_t *str, const char *append)
 {
-    assert(len > 0);
     assert(append != NULL);
-    assert(len == strlen(append) + 1);
 
-    char *start = str->str + str->len + 1;
+    size_t len = str->len - 1;
 
-    str->len += len;
+    str->len += strlen(append);
     if (str->len > str->cap)
         hhg_str_set_cap(str, str->len * 2);
 
-    strcpy(start, append);
+    strcpy(str->str + len, append);
 }
 
 void hhg_str_set_cap(hhg_str_t *str, size_t cap)

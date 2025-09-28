@@ -160,12 +160,16 @@ void hhg_lexer_skip(hhg_lexer_t *lexer, hhg_token_type_t type)
 void hhg_lexer_match(hhg_lexer_t *lexer, hhg_token_type_t type)
 {
     if (lexer->token.type != type)
-        hhg_lexer_error("unexpected token %d got %d", type, lexer->token.type);
+        hhg_lexer_error(
+            "expected \"%t\", got \"%t\"",
+            type,
+            lexer->token.type
+        );
 
     hhg_lexer_next(lexer);
 }
 
-void hhg_lexer_match_va(hhg_lexer_t *lexer, int32_t count, ...)
+void hhg_lexer_match_va(hhg_lexer_t *lexer, char *summary, int32_t count, ...)
 {
     va_list va;
     va_start(va, count);
@@ -180,7 +184,11 @@ void hhg_lexer_match_va(hhg_lexer_t *lexer, int32_t count, ...)
     }
 
     if (i == count) {
-        hhg_lexer_error("unexpected token");
+        hhg_lexer_error(
+            "expected %s, got token \"%t\"",
+            summary,
+            lexer->token.type
+        );
         return;
     }
 
@@ -191,7 +199,7 @@ void hhg_lexer_match_va(hhg_lexer_t *lexer, int32_t count, ...)
 
 void hhg_lexer_match_type(hhg_lexer_t *lexer)
 {
-    hhg_lexer_match_va(lexer, 17,
+    hhg_lexer_match_va(lexer, "type", 17,
         HHG_TOKEN_I8, HHG_TOKEN_U8,
         HHG_TOKEN_I16, HHG_TOKEN_U16,
         HHG_TOKEN_I32, HHG_TOKEN_U32,
@@ -308,7 +316,7 @@ static void hhg_lexer_lex_str_literal(hhg_lexer_t *lexer, int c)
             hhg_str_append_char(&lexer->token.str, c);
             break;
         } else if (c == '\n') {
-            hhg_str_append_str(&lexer->token.str, "\\n", 2);
+            hhg_str_append_str(&lexer->token.str, "\\n");
             continue;
         }
         hhg_str_append_char(&lexer->token.str, c);
