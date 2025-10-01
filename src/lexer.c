@@ -209,7 +209,8 @@ void hhg_lexer_match_type(hhg_lexer_t *lexer)
         HHG_TOKEN_FLOAT,
         HHG_TOKEN_BOOL, HHG_TOKEN_CHAR,
         HHG_TOKEN_ISIZE, HHG_TOKEN_USIZE,
-        HHG_TOKEN_TIME_T);
+        HHG_TOKEN_TIME_T
+    );
 }
 
 void hhg_lexer_del(hhg_lexer_t *lexer)
@@ -235,7 +236,6 @@ static void hhg_lexer_restore_pos(hhg_lexer_t *lexer,
 static int hhg_lexer_next_char(hhg_lexer_t *lexer)
 {
     int c = fgetc(lexer->file);
-
 
     lexer->last_col = lexer->pos.col;
 

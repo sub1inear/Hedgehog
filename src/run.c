@@ -1,4 +1,5 @@
 #include <stdbool.h>
+#include <time.h>
 
 #include "run.h"
 #include "lexer.h"
@@ -12,10 +13,8 @@ bool hhg_run(const char *filename)
 
     hhg_parse(&lexer);
 
-    if (hhg_msgs_has_errors()) {
-        hhg_msgs_print();
-        hhg_msgs_del();
-    }
+    hhg_msgs_print();
+    hhg_msgs_del();
 
     hhg_lexer_del(&lexer);
 

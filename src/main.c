@@ -8,5 +8,5 @@
 
 int main(void)
 {
-    return hhg_run("../test/testcases/format.hhg");
+
 }

@@ -1,4 +1,1 @@
-for i in range(10)
-    print(i)
-
-// Result: 0123456789
+for i in range(10) {}

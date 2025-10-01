@@ -64,7 +64,7 @@ hhg_node_t *hhg_parse_unary(hhg_lexer_t *lexer)
             hhg_lexer_next(lexer);
             hhg_node_t *expr = hhg_parse_expr(lexer, HHG_PREC_START);
             return hhg_node_new_va('=', str, 1, expr);
-        } 
+        }
         default:
             return hhg_node_new(HHG_TOKEN_ID, str);
         }
@@ -78,6 +78,15 @@ hhg_node_t *hhg_parse_unary(hhg_lexer_t *lexer)
         hhg_lexer_next(lexer);
 
         return hhg_node_new(type, str);
+    }
+    case HHG_TOKEN_IF:
+    case HHG_TOKEN_WHILE: {
+        hhg_token_type_t type = lexer->token.type;
+
+        hhg_lexer_next(lexer);
+        hhg_node_t *cond = hhg_parse_expr(lexer, HHG_PREC_START);
+        hhg_node_t *body = hhg_parse_expr(lexer, HHG_PREC_START);
+        return hhg_node_new_va(type, HHG_STR_EMPTY, 2, cond, body);
     }
     case '{': {
         hhg_node_t *block = hhg_node_new(HHG_NODE_BLOCK, HHG_STR_EMPTY);
