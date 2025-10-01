@@ -13,10 +13,7 @@ bool hhg_run(const char *filename)
 
     hhg_parse(&lexer);
 
-    hhg_msgs_print();
-    hhg_msgs_del();
-
     hhg_lexer_del(&lexer);
 
-    return hhg_msgs_has_errors();
+    return hhg_msgs_get_error_count();
 }

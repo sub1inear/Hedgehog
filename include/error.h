@@ -24,8 +24,6 @@ void hhg_msg(hhg_msg_type_t type,
 
 void hhg_fatal_error(const char *fmt, ...);
 
-bool hhg_msgs_has_errors(void);
-void hhg_msgs_print(void);
-void hhg_msgs_del(void);
+int32_t hhg_msgs_get_error_count();
 
 #endif

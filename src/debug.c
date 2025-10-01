@@ -26,12 +26,9 @@ void hhg_debug_parser(const char *filename)
 
     hhg_node_t *program = hhg_parse(&lexer);
 
-    if (hhg_msgs_has_errors()) {
-        hhg_msgs_print();
-        hhg_msgs_del();
-
+    if (hhg_msgs_get_error_count() > 0) {
         hhg_lexer_del(&lexer);
-        exit(1);
+        return;
     }
 
     hhg_node_print(program, HHG_NODE_INDENT_START);
