@@ -57,7 +57,7 @@ void hhg_fatal_error(const char *fmt, ...) {
     fputs("\n" "\x1b[0m", stderr);
 
     va_end(va);
-    exit(1);
+    exit(EXIT_FAILURE);
 }
 
 int32_t hhg_msgs_get_error_count()
