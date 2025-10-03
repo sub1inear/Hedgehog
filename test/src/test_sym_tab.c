@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
 
@@ -39,5 +40,5 @@ int main(void)
 
     hhg_sym_tab_del();
 
-    return 0;
+    return EXIT_SUCCESS;
 }

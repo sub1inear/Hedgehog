@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <stdio.h>
 
 #include "unit.h"
@@ -10,5 +11,5 @@ int main(int argc, char **argv)
         return 1;
     }
     hhg_unit_assert(!hhg_run(argv[1]));
-    return 0;
+    return EXIT_SUCCESS;
 }
