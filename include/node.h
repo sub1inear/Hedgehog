@@ -13,7 +13,7 @@ enum _hhg_node_type_t {
 };
 typedef int hhg_node_type_t;
 
-#define HHG_NODE_END (BLOCK + 1)
+#define HHG_NODE_END (HHG_NODE_BLOCK + 1)
 
 typedef struct _hhg_node_t {
     hhg_node_type_t type;

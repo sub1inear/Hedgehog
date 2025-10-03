@@ -1,14 +1,12 @@
-#ifndef HHG_H
-#define HHG_H
+#ifndef HHG_TYPE_H
+#define HHG_TYPE_H
 
 #include <stdbool.h>
 
 #include "token.h"
 
-#define HHG_TYPE_START 0
-
 enum _hhg_base_type_t {
-    HHG_TYPE_NONE = HHG_TYPE_START,
+    HHG_TYPE_NONE,
     HHG_TYPE_I8,
     HHG_TYPE_U8,
 
@@ -43,8 +41,6 @@ enum _hhg_base_type_t {
 };
 // guarantee being unsigned to not overflow bit-field
 typedef unsigned int hhg_base_type_t;
-
-#define HHG_TYPE_END TYPE_ENUM
 
 typedef struct _hhg_type_t {
     hhg_base_type_t type : 5;

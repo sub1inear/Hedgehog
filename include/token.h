@@ -7,7 +7,6 @@
 #include "str.h"
 
 #define HHG_TOKEN_START UCHAR_MAX
-#define HHG_PREC_NONE (-1)
 enum _hhg_token_type_t {
     HHG_TOKEN_NONE = HHG_TOKEN_START,
     HHG_TOKEN_ID,
@@ -98,6 +97,8 @@ enum _hhg_token_type_t {
 typedef int hhg_token_type_t;
 
 #define HHG_TOKEN_END (HHG_TOKEN_DEC + 1)
+
+#define HHG_PREC_NONE (-1)
 
 const char *hhg_token_type_to_str(hhg_token_type_t type);
 
