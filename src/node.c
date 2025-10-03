@@ -37,8 +37,7 @@ hhg_node_t *hhg_node_new_va(hhg_node_type_t type, hhg_str_t str, int32_t childre
 
 static void hhg_node_print_indent(int32_t indent)
 {
-    for (int32_t i = 0; i < indent; i++)
-    {
+    for (int32_t i = 0; i < indent; i++) {
         putchar(' ');
     }
 }
