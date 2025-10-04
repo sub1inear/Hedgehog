@@ -310,10 +310,10 @@ static void hhg_lexer_lex_str_literal(hhg_lexer_t *lexer, int c)
             hhg_lexer_error("unexpected EOF in string literal");
             break;
         } else if (c == '\\') {
-            hhg_str_append_char(&lexer->token.str, c);
+            hhg_str_append_char(&lexer->token.str, '\\');
             c = hhg_lexer_next_char(lexer);
         } else if (c == '"') {
-            hhg_str_append_char(&lexer->token.str, c);
+            hhg_str_append_char(&lexer->token.str, '"');
             break;
         } else if (c == '\n') {
             hhg_str_append_str(&lexer->token.str, "\\n");
