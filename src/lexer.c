@@ -122,7 +122,7 @@ void hhg_lexer_init(hhg_lexer_t *lexer, const char *filename)
 {
     lexer->file = fopen(filename, "r");
     if (lexer->file == NULL)
-        hhg_fatal_error("error opening file: %s", strerror(errno));
+        hhg_fatal_error("opening file: %s", strerror(errno));
 
     lexer->filename = filename;
 
