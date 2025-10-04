@@ -637,9 +637,9 @@ def add(T a, T b)
 
 ## Allocations
 
-Hedgehog does not have a traditional concept of memory allocation. Without using a `new`/`delete`, smart pointers, or a garbage collection system, all references are guarenteed to point at valid memory and memory is guarenteed not be leaked, double freed.
+Hedgehog does not have a traditional concept of memory allocation. Without using a `new`/`delete`, smart pointers, or a garbage collection system, all references are guarenteed to refer to valid memory and memory is guarenteed not be leaked or double freed.
 
-> ***Note***: If you are not familiar with a manual memory management based language or do not know what the preceding term means, skip to the next section. This is the most complex part of Hedgehog and is only relevent for optimization.
+> ***Note***: The following section documents the Hedgehog internals and is only relevant for optimization.
 
 To enforce this, the compiler uses escape detection to determine when a reference to a variable can escape the lifetime of a variable.
 
@@ -649,17 +649,135 @@ If the variable escapes, the compiler uses three rules used to dermine where and
 
 If a reference to a variable escapes into an outer scope of a function, it is lifetime extended, meaning the memory for the variable is allocated on the stack at the same scope as the reference.
 
+```c++
+def stack_ext() {
+    i32 &r
+    {
+        x = 0
+        r = &x
+    }
+}
+```
+
+becomes
+
+```c++
+def stack_ext() {
+    i32 x = 0
+    r = &x
+}
+```
+
+
 ### II. Unique/Shared Heap Allocation:
 
 If a reference to a variable escapes outside a function, it becomes a heap reference, with the variable being allocated on the heap. If only one owner can hold it at a given time, it is identical to a normal reference to a variable or an array. This is called a unique reference.
 
 However, if more than one owner can access it at a given time, it becomes a shared reference. Every shared reference has a reference count; this tracks the number of owners. When the number of owners goes to zero, it is deleted.
 
+In the following code, the attributes `#unique` and `#shared` are used to show variables that are unique and shared, respectively. They are used for demonstration only and are not part of the language.
+
+```c++
+i32 &r
+def unique_heap_alloc() {
+    i32 x = 0
+    r = &x
+}
+```
+
+becomes
+
+```c++
+#unique i32 &r
+def unique_heap_alloc() {
+    #unique i32 x = 0
+    r = &x
+}
+```
+
+```c++
+i32 &r
+i32 &r2
+def shared_heap_alloc() {
+    i32 x = 0
+    r = &x
+    r2 = &x
+}
+```
+
+becomes
+
+```c+++
+#shared i32 &r
+#shared i32 &r2
+def shared_heap_alloc() {
+    #shared i32 x = 0
+    r = &x
+    r2 = &x
+}
+```
+
 ### III. Heap Promotion:
 
 Refering to data on the heap, or by extension shared data, on the heap, is viral.
 
-If a reference points to something on the stack/a global variable, but in one instance is data from the heap, everything assigned to that reference becomes allocated on the heap.The same goes for shared references; if a reference is assigned to unique references, but in one instance is assigned to a shared reference, everything is converted into a shared reference. This applies anywhere, from variables to function arguments to classes.
+If a reference points to something on the stack/a global variable, but in one instance is data from the heap, everything assigned to that reference becomes allocated on the heap. The same goes for shared references; if a reference is assigned to unique references, but in one instance is assigned to a shared reference, everything is converted into a shared reference. This applies anywhere, from variables to functions to classes.
+
+Function arguments are one-way in this sense: a function can require its arguments to be allocated on the heap, but a caller cannot affect the location of a function argument.
+
+```python
+i32 &r
+def unique_heap_alloc() {
+    i32 x = 0
+    r = &x
+}
+i32 y = 0
+r = &y
+```
+
+becomes
+
+```python
+#unique i32 &r
+def unique_heap_alloc() {
+    #unique i32 x = 0
+    r = &x
+}
+
+#unique i32 y = 0
+r = &y
+```
+Note how `y` is becomes `#unique`, even though it is not necessary.
+
+```python
+i32 &r
+i32 &r2
+def shared_heap_alloc() {
+    i32 x = 0
+    r = &x
+    r2 = &x
+}
+i32 y = 0
+r = &y
+r2 = &y
+```
+
+becomes
+
+```python
+#shared i32 &r
+#shared i32 &r2
+def shared_heap_alloc() {
+    #shared i32 x = 0
+    r = &x
+    r2 = &x
+}
+#shared i32 y = 0
+r = &y
+r2 = &y
+```
+Again, note how `y` is becomes `#shared`, even though it is not necessary.
+
 
 Perhaps the simplest example of Hedgehog's allocation system lies in a Hedgehog implementation of the C `malloc` function:
 

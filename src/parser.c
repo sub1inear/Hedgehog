@@ -106,10 +106,22 @@ hhg_node_t *hhg_parse_unary(hhg_lexer_t *lexer)
         hhg_lexer_next(lexer);
         hhg_node_t *while_stmt = hhg_node_new(HHG_TOKEN_WHILE);
 
-        while_stmt->value.while_stmt.cond = hhg_parse_expr(lexer, HHG_PREC_START);
-        while_stmt->value.while_stmt.body = hhg_parse_expr(lexer, HHG_PREC_START);
+        while_stmt->value.while_stmt.cond =
+            hhg_parse_expr(lexer, HHG_PREC_START);
+        while_stmt->value.while_stmt.body =
+            hhg_parse_expr(lexer, HHG_PREC_START);
 
         return while_stmt;
+    }
+    case HHG_TOKEN_DEF: {
+        hhg_lexer_next(lexer);
+        hhg_node_t *func_decl = hhg_node_new(HHG_TOKEN_DEF);
+        
+        func_decl->value.func_decl.id = hhg_strdup(lexer->token.str);
+        
+
+        return func_decl;
+        
     }
     case '{': {
         hhg_node_t *block = hhg_node_new(HHG_NODE_BLOCK);
