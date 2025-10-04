@@ -101,12 +101,12 @@ static void hhg_vfprintf(FILE *stream, const char *fmt, va_list va)
                 break;
             }
             case 'c': {
-                char char_arg = va_arg(va, char);
+                char char_arg = (char)va_arg(va, int);
                 fputc(char_arg, stream);
                 break;
             }
             case 'b': {
-                bool bool_arg = va_arg(va, bool);
+                bool bool_arg = (bool)va_arg(va, int);
                 if (bool_arg)
                     fputs("true", stream);
                 else
