@@ -14,7 +14,7 @@ static hhg_cmd_args_t cmd_args;
 static const struct optparse_long longopts[] = {
     { "help",    'h', OPTPARSE_NONE     },
     { "version", 'v', OPTPARSE_NONE     },
-    { "warnings", 'W', OPTPARSE_NONE     },
+    { "warnings", 'W', OPTPARSE_NONE    },
     { "heap",    'H', OPTPARSE_NONE     },
     { "define",  'D', OPTPARSE_REQUIRED },
     { "run",     'r', OPTPARSE_REQUIRED },
