@@ -33,16 +33,19 @@ void hhg_cmd_args_parse(char **argv)
     while ((option = optparse_long(&options, longopts, NULL)) != -1) {
         switch (option) {
         case 'h':
-            printf("usage: %s [-hHv | -r cmd | -D var | -o dir] [file | -] ...\n"
-                   "-h --help    : print the help message\n"
-                   "-v --version : print version\n"                   
-                   "-H --heap    : print when object escapes to heap\n"
-                   "-D --define  : define constexpr bool 'var' to be true\n"
-                   "-r --run     : compile and run program with 'cmd'\n"
-                   "file         : file to compile\n"
-                   "-            : use stdin as file to compile\n"
-                   "...          : args to pass to --run\n",
-                   prog_name);
+            printf(
+                "usage: %s [-hHvW | -r cmd | -D var | -o dir] [file | -] ...\n"
+                "-h --help    : print the help message\n"
+                "-H --heap    : print when object escapes to heap\n"
+                "-v --version : print version\n"                   
+                "-W --warning : enable warnings\n"
+                "-D --define  : define constexpr bool 'var' to be true\n"
+                "-r --run     : compile and run program with 'cmd'\n"
+                "file         : file to compile\n"
+                "-            : use stdin as file to compile\n"
+                "...          : args to pass to --run\n",
+                prog_name
+            );
             exit(EXIT_SUCCESS);
             break;
         case 'v':
