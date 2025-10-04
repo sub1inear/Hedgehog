@@ -725,7 +725,7 @@ If a reference points to something on the stack/a global variable, but in one in
 
 Function arguments are one-way in this sense: a function can require its arguments to be allocated on the heap, but a caller cannot affect the location of a function argument.
 
-```python
+```c++
 i32 &r
 def unique_heap_alloc() {
     i32 x = 0
@@ -737,7 +737,7 @@ r = &y
 
 becomes
 
-```python
+```c++
 #unique i32 &r
 def unique_heap_alloc() {
     #unique i32 x = 0
@@ -749,7 +749,7 @@ r = &y
 ```
 Note how `y` is becomes `#unique`, even though it is not necessary.
 
-```python
+```c++
 i32 &r
 i32 &r2
 def shared_heap_alloc() {
@@ -764,7 +764,7 @@ r2 = &y
 
 becomes
 
-```python
+```c++
 #shared i32 &r
 #shared i32 &r2
 def shared_heap_alloc() {
