@@ -46,7 +46,7 @@ void hhg_sym_tab_exit_scope(void)
         size_t last = outer_len - 1;
         size_t inner_len = arrlenu(sym_key_arr[last]);
         for (size_t i = 0; i < inner_len; i++)
-            shdel(sym_tab, sym_key_arr[last][i]);
+            (void)shdel(sym_tab, sym_key_arr[last][i]);
         arrfree(sym_key_arr[last]);
         (void)arrpop(sym_key_arr);
     }
