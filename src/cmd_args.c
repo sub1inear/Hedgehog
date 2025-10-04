@@ -14,7 +14,7 @@ static hhg_cmd_args_t cmd_args;
 static const struct optparse_long longopts[] = {
     { "help",    'h', OPTPARSE_NONE     },
     { "version", 'v', OPTPARSE_NONE     },
-    { "warning", 'W', OPTPARSE_NONE     },
+    { "warnings", 'W', OPTPARSE_NONE     },
     { "heap",    'H', OPTPARSE_NONE     },
     { "define",  'D', OPTPARSE_REQUIRED },
     { "run",     'r', OPTPARSE_REQUIRED },
@@ -35,15 +35,15 @@ void hhg_cmd_args_parse(char **argv)
         case 'h':
             printf(
                 "usage: %s [-hHvW | -r cmd | -D var | -o dir] [file | -] ...\n"
-                "-h --help    : print the help message\n"
-                "-H --heap    : print when object escapes to heap\n"
-                "-v --version : print version\n"                   
-                "-W --warning : enable warnings\n"
-                "-D --define  : define constexpr bool 'var' to be true\n"
-                "-r --run     : compile and run program with 'cmd'\n"
-                "file         : file to compile\n"
-                "-            : use stdin as file to compile\n"
-                "...          : args to pass to --run\n",
+                "-h --help     : print the help message\n"
+                "-H --heap     : print when object escapes to heap\n"
+                "-v --version  : print version\n"                   
+                "-W --warnings : enable warnings\n"
+                "-D --define   : define constexpr bool 'var' to be true\n"
+                "-r --run      : compile and run program with 'cmd'\n"
+                "file          : file to compile\n"
+                "-             : use stdin as file to compile\n"
+                "...           : args to pass to --run\n",
                 prog_name
             );
             exit(EXIT_SUCCESS);
