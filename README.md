@@ -781,7 +781,7 @@ Again, note how `y` is becomes `#shared`, even though it is not necessary.
 
 Perhaps the simplest example of Hedgehog's allocation system lies in a Hedgehog implementation of the C `malloc` function:
 
-```python
+```c++
 template <class T>
 def malloc(usize size) {
     T data[size]
