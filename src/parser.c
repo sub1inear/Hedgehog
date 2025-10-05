@@ -113,16 +113,6 @@ hhg_node_t *hhg_parse_unary(hhg_lexer_t *lexer)
 
         return while_stmt;
     }
-    case HHG_TOKEN_DEF: {
-        hhg_lexer_next(lexer);
-        hhg_node_t *func_decl = hhg_node_new(HHG_TOKEN_DEF);
-        
-        func_decl->value.func_decl.id = hhg_strdup(lexer->token.str);
-        
-
-        return func_decl;
-        
-    }
     case '{': {
         hhg_node_t *block = hhg_node_new(HHG_NODE_BLOCK);
 

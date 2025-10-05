@@ -77,7 +77,7 @@ void hhg_cmd_args_parse(char **argv)
 
 }
 
-hhg_cmd_args_t *hhg_cmd_args_get()
+hhg_cmd_args_t *hhg_cmd_args_get(void)
 {
     return &cmd_args;
 }
