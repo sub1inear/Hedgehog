@@ -26,6 +26,8 @@ hhg_node_t *hhg_node_new(hhg_node_type_t type)
 
 void hhg_node_print(hhg_node_t *node, int32_t indent)
 {   
+    if (node == NULL)
+        return;
     hhg_node_print_indent(indent);
 
     hhg_token_type_print((hhg_token_type_t)node->type);

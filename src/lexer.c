@@ -5,6 +5,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <errno.h>
+#include <assert.h>
 
 #include "lexer.h"
 #include "file_pos.h"
@@ -171,6 +172,7 @@ void hhg_lexer_next(hhg_lexer_t *lexer)
 
 void hhg_lexer_skip(hhg_lexer_t *lexer, hhg_token_type_t type)
 {
+    assert(type != EOF);
     while (lexer->token.type == type)
         hhg_lexer_next(lexer);
 }

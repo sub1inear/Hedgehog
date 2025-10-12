@@ -72,11 +72,9 @@ hhg_node_t *hhg_parse_unary(hhg_lexer_t *lexer)
         hhg_node_t *var_decl = hhg_node_new('=');
         hhg_parse_type(lexer, &var_decl->value_type);
 
-        char *str = NULL;
         if (lexer->token.type == HHG_TOKEN_ID)
-            str = hhg_strdup(lexer->token.str.str);
+            var_decl->value.var_decl.id = hhg_strdup(lexer->token.str.str);
         hhg_lexer_match(lexer, HHG_TOKEN_ID);
-        var_decl->value.var_decl.id = str;
 
         hhg_lexer_match(lexer, '=');
 
