@@ -20,14 +20,13 @@ void hhg_msg(hhg_msg_type_t type,
              const char *fmt,
              ...)
 {
-    error_count++;
-    
     va_list va;
 
     va_start(va, fmt);
 
     switch (type) {
     case HHG_MSG_ERROR:
+        error_count++;
         fputs("\x1b[1;31m" "error: ", stderr);
         break;
     case HHG_MSG_WARNING:
@@ -72,7 +71,7 @@ static void hhg_vfprintf(FILE *stream, const char *fmt, va_list va)
         if (c == '%')
             switch (c = *fmt++) {
             case 's': {
-                char *str_arg = va_arg(va, char *);
+                const char *str_arg = va_arg(va, const char *);
                 if (str_arg)
                     fputs(str_arg, stream);
                 else

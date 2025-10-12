@@ -185,7 +185,8 @@ void hhg_token_print(hhg_token_t *token)
     case HHG_TOKEN_CHAR_LITERAL:
     case HHG_TOKEN_STRING_LITERAL:
     case HHG_TOKEN_ID:
-        fputs(token->str.str, stdout); 
+        if (token->str.str)
+            fputs(token->str.str, stdout); 
         break;
     default:
         fputs("null", stdout);

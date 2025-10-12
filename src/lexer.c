@@ -187,7 +187,7 @@ void hhg_lexer_match(hhg_lexer_t *lexer, hhg_token_type_t type)
     hhg_lexer_next(lexer);
 }
 
-void hhg_lexer_match_va(hhg_lexer_t *lexer, char *summary, int32_t count, ...)
+void hhg_lexer_match_va(hhg_lexer_t *lexer, const char *summary, int32_t count, ...)
 {
     va_list va;
     va_start(va, count);
@@ -201,6 +201,9 @@ void hhg_lexer_match_va(hhg_lexer_t *lexer, char *summary, int32_t count, ...)
             break;
     }
 
+    va_end(va);
+
+
     if (i == count) {
         hhg_lexer_error(
             "expected %s, got token \"%t\"",
@@ -211,8 +214,6 @@ void hhg_lexer_match_va(hhg_lexer_t *lexer, char *summary, int32_t count, ...)
     }
 
     hhg_lexer_next(lexer);
-
-    va_end(va);
 }
 
 void hhg_lexer_del(hhg_lexer_t *lexer)
@@ -336,6 +337,8 @@ static void hhg_lexer_lex_char_literal(hhg_lexer_t *lexer, int c)
         c = hhg_lexer_next_char(lexer);
         hhg_str_append_char(&lexer->token.str, c);
     }
+
+    c = hhg_lexer_next_char(lexer);
 
     if (c == '\'')
         hhg_str_append_char(&lexer->token.str, c);
