@@ -34,7 +34,7 @@ void hhg_cmd_args_parse(char **argv)
         switch (option) {
         case 'h':
             printf(
-                "usage: %s [-hHvW | -r cmd | -D var | -o dir] [file | -] ...\n"
+                "usage: %s [-hHvW] [-r cmd] [-D var] [-o dir] [file | -] ...\n"
                 "-h --help     : print the help message\n"
                 "-H --heap     : print when object escapes to heap\n"
                 "-v --version  : print version\n"                   
