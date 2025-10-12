@@ -36,7 +36,7 @@ void hhg_free(void *ptr)
 #ifdef HHG_DEBUG_MEM
     printf("free: %p\n", ptr);
 #endif
-    free(ptr);
+    free((void *)ptr);
 }
 
 char *hhg_strdup(const char *str)

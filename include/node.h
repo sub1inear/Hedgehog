@@ -33,7 +33,6 @@ typedef struct _hhg_id_t {
 
 typedef struct _hhg_var_decl_t {
     char *id;
-    char **type;
     hhg_node_t *expr;
 } hhg_var_decl_t;
 
@@ -54,7 +53,6 @@ typedef struct _hhg_while_t {
 
 typedef struct _hhg_arg_t {
     char *arg;
-    char **type;
 } hhg_arg_t;
 
 typedef struct _hhg_func_decl_t {
@@ -85,6 +83,7 @@ typedef union _hhg_node_value_t  {
 struct _hhg_node_t {
     hhg_node_type_t type;
     hhg_node_value_t value;
+    hhg_type_t value_type;
 };
 
 hhg_node_t *hhg_node_new(hhg_node_type_t type);

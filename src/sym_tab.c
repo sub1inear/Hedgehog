@@ -12,25 +12,26 @@
 
 // unified symbol table
 static hhg_sym_t *sym_tab = NULL;
+
 // array of arrays of id strs for keeping track of scope
 static const char ***sym_key_arr = NULL;
-
-void hhg_sym_tab_init(void)
-{
-    sh_new_arena(sym_tab);
-}
 
 void hhg_sym_tab_enter_scope(void)
 {
     arrput(sym_key_arr, NULL);
 }
 
-void hhg_sym_tab_insert(hhg_sym_t *sym)
+hhg_sym_t *hhg_sym_tab_insert(hhg_sym_t sym)
 {
-    shput(sym_tab, sym->key, sym->value);
+    // inserts pointer to sym into sym_tab
+    shputs(sym_tab, sym);
     // pushes sym str onto last entry of sym_key_arr
     size_t last = arrlenu(sym_key_arr) - 1;
-    arrput(sym_key_arr[last], sym->key);
+    arrput(sym_key_arr[last], sym.key);
+
+    hhg_sym_t *p = shgetp_null(sym_tab, sym.key);
+    assert(p != NULL);
+    return p;
 }
 
 hhg_sym_t *hhg_sym_tab_lookup(const char *key)

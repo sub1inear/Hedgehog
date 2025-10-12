@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdio.h>
 
 #include "token.h"
@@ -83,6 +84,10 @@ const char *const token_type_to_str[] = {
 
     "time_t",
 
+    // type modifiers
+    "const",
+    "volatile",
+
     // composite operators
     "<<",
     ">>",
@@ -137,6 +142,34 @@ void hhg_token_reset_aux(hhg_token_t *token)
     hhg_str_reset(&token->str);
     token->prec = HHG_PREC_NONE;
 }
+
+
+bool hhg_token_is_type(hhg_token_t *token)
+{
+    switch (token->type) {
+    case HHG_TOKEN_I8:
+    case HHG_TOKEN_U8:
+    case HHG_TOKEN_I16:
+    case HHG_TOKEN_U16:
+    case HHG_TOKEN_I32:
+    case HHG_TOKEN_U32:
+    case HHG_TOKEN_I64:
+    case HHG_TOKEN_U64:
+    case HHG_TOKEN_INT:
+    case HHG_TOKEN_F32:
+    case HHG_TOKEN_F64:
+    case HHG_TOKEN_FLOAT:
+    case HHG_TOKEN_BOOL:
+    case HHG_TOKEN_CHAR:
+    case HHG_TOKEN_ISIZE:
+    case HHG_TOKEN_USIZE:
+    case HHG_TOKEN_TIME_T:
+        return true;
+    default:
+        return false;
+    }
+}
+
 
 void hhg_token_print(hhg_token_t *token)
 {

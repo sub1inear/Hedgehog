@@ -68,6 +68,10 @@ enum _hhg_token_type_t {
 
     HHG_TOKEN_TIME_T,
 
+    // type modifiers
+    HHG_TOKEN_CONST,
+    HHG_TOKEN_VOLATILE,
+
     // composite operators
     HHG_TOKEN_LSHIFT,
     HHG_TOKEN_RSHIFT,
@@ -113,6 +117,8 @@ typedef struct _hhg_token_t {
 void hhg_token_init(hhg_token_t *token);
 
 void hhg_token_reset_aux(hhg_token_t *token);
+
+bool hhg_token_is_type(hhg_token_t *token);
 
 void hhg_token_print(hhg_token_t *token);
 

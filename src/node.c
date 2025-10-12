@@ -18,6 +18,8 @@ hhg_node_t *hhg_node_new(hhg_node_type_t type)
     // initialize type and set other fields to NULL portably
     *node = (hhg_node_t) { .type = type };
 
+    hhg_type_init(&node->value_type);
+
     return node;
 }
 
@@ -27,6 +29,9 @@ void hhg_node_print(hhg_node_t *node, int32_t indent)
     hhg_node_print_indent(indent);
 
     hhg_token_type_print((hhg_token_type_t)node->type);
+    putchar('\n');
+
+    hhg_type_print(node->value_type);
     putchar('\n');
 
     int32_t next_indent = indent + HHG_NODE_INDENT_INC;
@@ -87,6 +92,15 @@ void hhg_node_print(hhg_node_t *node, int32_t indent)
 
 void hhg_node_free(hhg_node_t *node)
 {
+    switch (node->type) {
+    case HHG_TOKEN_STRING_LITERAL:
+    case HHG_TOKEN_INT_LITERAL:
+    case HHG_TOKEN_FLOAT_LITERAL:
+        hhg_free(node->value.literal.str);
+        break;
+    default:
+        break;
+    }
     hhg_free(node);
 }
 

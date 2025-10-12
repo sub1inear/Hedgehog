@@ -110,13 +110,25 @@ static const hhg_keyword_data_t keyword_data[] = {
     { "usize",    HHG_TOKEN_USIZE    },
       
     { "time_t",   HHG_TOKEN_TIME_T   },
+
+    // ------------------------------- //
+    
+    { "const",    HHG_TOKEN_CONST    },
+    { "volatile", HHG_TOKEN_VOLATILE },
 };
 
-static void hhg_lexer_lex(hhg_lexer_t *lexer);
 static void hhg_lexer_save_pos(hhg_lexer_t *lexer,
                                hhg_file_pos_save_t *save);
 static void hhg_lexer_restore_pos(hhg_lexer_t *lexer,
                                   hhg_file_pos_save_t *save);
+
+static int hhg_lexer_next_char(hhg_lexer_t *lexer);
+static void hhg_lexer_unget_char(hhg_lexer_t *lexer, int c);
+static void hhg_lexer_lex_id(hhg_lexer_t *lexer, int c);
+static void hhg_lexer_lex_num(hhg_lexer_t *lexer, int c);
+static void hhg_lexer_lex_str_literal(hhg_lexer_t *lexer, int c);
+static void hhg_lexer_lex_char_literal(hhg_lexer_t *lexer, int c);
+static bool hhg_lexer_lex_default(hhg_lexer_t *lexer, int c);
 
 void hhg_lexer_init(hhg_lexer_t *lexer, const char *filename)
 {
@@ -132,22 +144,28 @@ void hhg_lexer_init(hhg_lexer_t *lexer, const char *filename)
     hhg_token_init(&lexer->token);
 }
 
+
 void hhg_lexer_next(hhg_lexer_t *lexer)
 {
-    hhg_lexer_lex(lexer);
-
-    if (lexer->token.type == '\n') {
-        hhg_file_pos_save_t save;
-
-        do {
-            hhg_lexer_save_pos(lexer, &save);
-            hhg_lexer_lex(lexer);
-        } while (lexer->token.type == '\n');
-        
-        hhg_lexer_restore_pos(lexer, &save);
-
-        lexer->token.type = '\n';
-
+    hhg_token_reset_aux(&lexer->token);
+    while (true) {
+        int c = hhg_lexer_next_char(lexer);
+        if (c == ' ' || c == '\t')
+            ;
+        else if (isalpha(c) || c == '_') {
+            hhg_lexer_lex_id(lexer, c);
+            return;
+        } else if (isdigit(c))  {
+            hhg_lexer_lex_num(lexer, c);
+            return;
+        } else if (c == '"') {
+            hhg_lexer_lex_str_literal(lexer, c);
+            return;
+        } else if (c == '\'') {
+            hhg_lexer_lex_char_literal(lexer, c);
+            return;
+        } else if (hhg_lexer_lex_default(lexer, c))
+            return;
     }
 }
 
@@ -164,7 +182,7 @@ void hhg_lexer_match(hhg_lexer_t *lexer, hhg_token_type_t type)
             "expected \"%t\", got \"%t\"",
             type,
             lexer->token.type
-        );
+        );    
 
     hhg_lexer_next(lexer);
 }
@@ -195,22 +213,6 @@ void hhg_lexer_match_va(hhg_lexer_t *lexer, char *summary, int32_t count, ...)
     hhg_lexer_next(lexer);
 
     va_end(va);
-}
-
-void hhg_lexer_match_type(hhg_lexer_t *lexer)
-{
-    hhg_lexer_match_va(lexer, "type", 17,
-        HHG_TOKEN_I8, HHG_TOKEN_U8,
-        HHG_TOKEN_I16, HHG_TOKEN_U16,
-        HHG_TOKEN_I32, HHG_TOKEN_U32,
-        HHG_TOKEN_I64, HHG_TOKEN_U64,
-        HHG_TOKEN_INT,
-        HHG_TOKEN_F32, HHG_TOKEN_F64,
-        HHG_TOKEN_FLOAT,
-        HHG_TOKEN_BOOL, HHG_TOKEN_CHAR,
-        HHG_TOKEN_ISIZE, HHG_TOKEN_USIZE,
-        HHG_TOKEN_TIME_T
-    );
 }
 
 void hhg_lexer_del(hhg_lexer_t *lexer)
@@ -398,28 +400,4 @@ static bool hhg_lexer_lex_default(hhg_lexer_t *lexer, int c)
     hhg_lexer_restore_pos(lexer, &save); // consumed one char, give back two
     
     return true;
-}
-
-static void hhg_lexer_lex(hhg_lexer_t *lexer)
-{
-    hhg_token_reset_aux(&lexer->token);
-    while (true) {
-        int c = hhg_lexer_next_char(lexer);
-        if (c == ' ' || c == '\t')
-            ;
-        else if (isalpha(c) || c == '_') {
-            hhg_lexer_lex_id(lexer, c);
-            return;
-        } else if (isdigit(c))  {
-            hhg_lexer_lex_num(lexer, c);
-            return;
-        } else if (c == '"') {
-            hhg_lexer_lex_str_literal(lexer, c);
-            return;
-        } else if (c == '\'') {
-            hhg_lexer_lex_char_literal(lexer, c);
-            return;
-        } else if (hhg_lexer_lex_default(lexer, c))
-            return;
-    }
 }

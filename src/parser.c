@@ -4,13 +4,19 @@
 
 #include "parser.h"
 #include "lexer.h"
+#include "token.h"
 #include "node.h"
+#include "type.h"
+#include "sym.h"
+#include "sym_tab.h"
 #include "error.h"
 #include "mem.h"
 
 #define hhg_parser_error(...) hhg_error(lexer->pos, lexer->filename, __VA_ARGS__)
 #define hhg_parser_warning(...) hhg_warning(lexer->pos, lexer->filename, __VA_ARGS__)
 #define hhg_parser_info(...) hhg_info(lexer->pos, lexer->filename, __VA_ARGS__)
+
+static void hhg_parse_type(hhg_lexer_t *lexer, hhg_type_t *type);
 
 hhg_node_t *hhg_parse(hhg_lexer_t *lexer)
 {
@@ -20,6 +26,9 @@ hhg_node_t *hhg_parse(hhg_lexer_t *lexer)
 
     while (lexer->token.type != EOF) {
         hhg_lexer_skip(lexer, '\n');
+        
+        if (lexer->token.type == EOF)
+            break;
 
         arrput(
             prog->value.block.body,
@@ -59,6 +68,22 @@ hhg_node_t *hhg_parse_expr(hhg_lexer_t *lexer, int32_t min_prec)
 
 hhg_node_t *hhg_parse_unary(hhg_lexer_t *lexer)
 {
+    if (hhg_token_is_type(&lexer->token)) {
+        hhg_node_t *var_decl = hhg_node_new('=');
+        hhg_parse_type(lexer, &var_decl->value_type);
+
+        char *str = NULL;
+        if (lexer->token.type == HHG_TOKEN_ID)
+            str = hhg_strdup(lexer->token.str.str);
+        hhg_lexer_match(lexer, HHG_TOKEN_ID);
+        var_decl->value.var_decl.id = str;
+
+        hhg_lexer_match(lexer, '=');
+
+        var_decl->value.var_decl.expr =
+            hhg_parse_expr(lexer, HHG_PREC_START);
+        return var_decl;
+    } 
     switch (lexer->token.type) {
     case HHG_TOKEN_ID: {
         char *str = hhg_strdup(lexer->token.str.str);
@@ -74,7 +99,6 @@ hhg_node_t *hhg_parse_unary(hhg_lexer_t *lexer)
                 hhg_parse_expr(lexer, HHG_PREC_START);
 
             return var_decl;
-
         }
         default: {
             hhg_node_t *id = hhg_node_new(HHG_TOKEN_ID);
@@ -141,5 +165,31 @@ hhg_node_t *hhg_parse_unary(hhg_lexer_t *lexer)
     default:
         hhg_fatal_error("invalid syntax");
         return NULL;
+    }
+}
+
+static void hhg_parse_type(hhg_lexer_t *lexer, hhg_type_t *type)
+{
+    while (true) {
+        // not using switch to break out of loop
+        if (lexer->token.type == HHG_TOKEN_CONST) {
+            if (type->is_const)
+                hhg_parser_error("more than one const in type");
+            type->is_const = true;
+        } else if (lexer->token.type == HHG_TOKEN_VOLATILE) {
+            if (type->is_volatile)
+                hhg_parser_error("more than one const in type");
+            type->is_volatile = true;
+        } else {
+            hhg_base_type_t base = hhg_token_type_to_base_type(lexer->token.type);
+
+            if (base == HHG_TYPE_NONE)
+                break;
+            else if (type->type != HHG_TYPE_NONE)
+                hhg_parser_error("multiple types");
+
+            type->type = base;
+        }
+        hhg_lexer_next(lexer);
     }
 }

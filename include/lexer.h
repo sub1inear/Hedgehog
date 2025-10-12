@@ -35,7 +35,6 @@ void hhg_lexer_skip(hhg_lexer_t *lexer, hhg_token_type_t type);
 
 void hhg_lexer_match(hhg_lexer_t *lexer, hhg_token_type_t type);
 void hhg_lexer_match_va(hhg_lexer_t *lexer, char *summary, int32_t count, ...);
-void hhg_lexer_match_type(hhg_lexer_t *lexer);
 
 
 #endif
