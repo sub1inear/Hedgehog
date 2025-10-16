@@ -82,6 +82,7 @@ static const hhg_keyword_data_t keyword_data[] = {
     { "enum",     HHG_TOKEN_ENUM     },
       
     { "def",      HHG_TOKEN_DEF      },
+    { "return",   HHG_TOKEN_RETURN   },
     
     // ------------------------------- //
 
@@ -135,12 +136,13 @@ void hhg_lexer_init(hhg_lexer_t *lexer, const char *filename)
 {
     lexer->file = fopen(filename, "r");
     if (lexer->file == NULL)
-        hhg_fatal_error("opening file: %s", strerror(errno));
+        hhg_fatal_error("%s: %s", filename, strerror(errno));
 
     lexer->filename = filename;
 
     hhg_file_pos_init(&lexer->pos);
     lexer->last_col = lexer->pos.col;
+    lexer->newline = false;
 
     hhg_token_init(&lexer->token);
 }
@@ -149,10 +151,13 @@ void hhg_lexer_init(hhg_lexer_t *lexer, const char *filename)
 void hhg_lexer_next(hhg_lexer_t *lexer)
 {
     hhg_token_reset_aux(&lexer->token);
+    lexer->newline = false;
     while (true) {
         int c = hhg_lexer_next_char(lexer);
         if (c == ' ' || c == '\t')
             ;
+        else if (c == '\n')
+            lexer->newline = true;
         else if (isalpha(c) || c == '_') {
             hhg_lexer_lex_id(lexer, c);
             return;
@@ -168,13 +173,6 @@ void hhg_lexer_next(hhg_lexer_t *lexer)
         } else if (hhg_lexer_lex_default(lexer, c))
             return;
     }
-}
-
-void hhg_lexer_skip(hhg_lexer_t *lexer, hhg_token_type_t type)
-{
-    assert(type != EOF);
-    while (lexer->token.type == type)
-        hhg_lexer_next(lexer);
 }
 
 void hhg_lexer_match(hhg_lexer_t *lexer, hhg_token_type_t type)

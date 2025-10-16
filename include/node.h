@@ -51,6 +51,10 @@ typedef struct _hhg_while_t {
     hhg_node_t *body;
 } hhg_while_t;
 
+typedef struct _hhg_ret_t {
+    hhg_node_t *expr;
+} hhg_ret_t;
+
 typedef struct _hhg_arg_t {
     char *arg;
 } hhg_arg_t;
@@ -75,6 +79,7 @@ typedef union _hhg_node_value_t  {
     hhg_literal_t literal;
     hhg_if_t if_stmt;
     hhg_while_t while_stmt;
+    hhg_ret_t ret;
     hhg_arg_t arg;
     hhg_func_decl_t func_decl;
     hhg_class_decl_t class_decl;

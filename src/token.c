@@ -54,6 +54,7 @@ const char *const token_type_to_str[] = {
     "enum",
 
     "def",
+    "return",
     
     // types
     "i8",

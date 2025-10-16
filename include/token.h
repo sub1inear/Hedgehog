@@ -38,6 +38,7 @@ enum _hhg_token_type_t {
     HHG_TOKEN_ENUM,
 
     HHG_TOKEN_DEF,
+    HHG_TOKEN_RETURN,
 
     // types
     HHG_TOKEN_I8,

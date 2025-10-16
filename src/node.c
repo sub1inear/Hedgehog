@@ -33,9 +33,6 @@ void hhg_node_print(hhg_node_t *node, int32_t indent)
     hhg_token_type_print((hhg_token_type_t)node->type);
     putchar('\n');
 
-    hhg_type_print(node->value_type);
-    putchar('\n');
-
     int32_t next_indent = indent + HHG_NODE_INDENT_INC;
 
     switch (node->type) {
@@ -74,6 +71,8 @@ void hhg_node_print(hhg_node_t *node, int32_t indent)
         break;
     case HHG_TOKEN_DEF: {
         hhg_node_print_indent(next_indent);
+        puts("id");
+        hhg_node_print_indent(next_indent + HHG_NODE_INDENT_INC);
         puts(node->value.func_decl.id);
         size_t len = arrlenu(node->value.func_decl.args);
         for (size_t i = 0; i < len; i++)
@@ -83,7 +82,6 @@ void hhg_node_print(hhg_node_t *node, int32_t indent)
         break;
     }
     case HHG_TOKEN_TRUE:
-        break;
     case HHG_TOKEN_FALSE:
         break;
     default:

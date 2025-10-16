@@ -12,6 +12,7 @@ typedef struct _hhg_lexer_t {
     const char *filename;
     hhg_file_pos_t pos;
     int32_t last_col;
+    bool newline;
     hhg_token_t token;
 } hhg_lexer_t;
 
@@ -31,10 +32,7 @@ void hhg_lexer_del(hhg_lexer_t *lexer);
 
 void hhg_lexer_next(hhg_lexer_t *lexer);
 
-void hhg_lexer_skip(hhg_lexer_t *lexer, hhg_token_type_t type);
-
 void hhg_lexer_match(hhg_lexer_t *lexer, hhg_token_type_t type);
 void hhg_lexer_match_va(hhg_lexer_t *lexer, const char *summary, int32_t count, ...);
-
 
 #endif

@@ -1,0 +1,3 @@
+def inc(i32 x)
+    return inc + 1
+inc(1)
