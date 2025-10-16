@@ -138,10 +138,8 @@ hhg_node_t *hhg_parse_unary(hhg_lexer_t *lexer)
         hhg_lexer_match(lexer, '(');
 
         while (lexer->token.type != ')') {
-            if (lexer->token.type == EOF) {
-                hhg_parser_error("unexpected EOF while parsing function args");
+            if (lexer->token.type == EOF)
                 break;
-            }
             hhg_node_t *arg = hhg_node_new(HHG_NODE_ARG);
 
             hhg_parse_type(lexer, &arg->value_type);
