@@ -16,7 +16,6 @@
 #define hhg_parser_warning(...) hhg_warning(lexer->pos, lexer->filename, __VA_ARGS__)
 #define hhg_parser_info(...) hhg_info(lexer->pos, lexer->filename, __VA_ARGS__)
 
-static hhg_node_t *hhg_parse_func_stmt(hhg_lexer_t *lexer);
 static hhg_node_t *hhg_parse_expr(hhg_lexer_t *lexer, int32_t min_prec);
 static hhg_node_t *hhg_parse_unary(hhg_lexer_t *lexer);
 static void hhg_parse_type(hhg_lexer_t *lexer, hhg_type_t *type);

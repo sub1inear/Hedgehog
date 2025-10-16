@@ -19,7 +19,7 @@ void hhg_debug_lexer(const char *filename)
     hhg_lexer_del(&lexer);
 }
 
-void hhg_debug_parser(const char *filename)
+bool hhg_debug_parser(const char *filename)
 {
     hhg_lexer_t lexer;
     hhg_lexer_init(&lexer, filename);
@@ -28,9 +28,11 @@ void hhg_debug_parser(const char *filename)
 
     if (hhg_msgs_get_error_count() > 0) {
         hhg_lexer_del(&lexer);
-        return;
+        return true;
     }
 
     hhg_node_print(program, HHG_NODE_INDENT_START);
     hhg_lexer_del(&lexer);
+
+    return false;
 }

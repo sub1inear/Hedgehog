@@ -59,7 +59,7 @@ void hhg_fatal_error(const char *fmt, ...) {
     exit(EXIT_FAILURE);
 }
 
-int32_t hhg_msgs_get_error_count()
+int32_t hhg_msgs_get_error_count(void)
 {
     return error_count;
 }
