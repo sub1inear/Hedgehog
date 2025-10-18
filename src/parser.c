@@ -113,6 +113,12 @@ hhg_node_t *hhg_parse_unary(hhg_lexer_t *lexer)
         }
         }
     }
+    case HHG_TOKEN_TRUE:
+    case HHG_TOKEN_FALSE: {
+        hhg_node_t *literal = hhg_node_new(lexer->token.type);
+        hhg_lexer_next(lexer);
+        return literal;
+    }
     case HHG_TOKEN_STRING_LITERAL:
     case HHG_TOKEN_INT_LITERAL:
     case HHG_TOKEN_FLOAT_LITERAL: {
