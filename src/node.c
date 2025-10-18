@@ -88,6 +88,7 @@ void hhg_node_print(hhg_node_t *node, int32_t indent)
         size_t len = arrlenu(node->value.func_call.args);
         for (size_t i = 0; i < len; i++)
             hhg_node_print(node->value.func_call.args[i], next_next_indent);
+        break;
     }
     case HHG_TOKEN_TRUE:
     case HHG_TOKEN_FALSE:
