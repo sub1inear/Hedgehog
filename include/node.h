@@ -11,10 +11,11 @@
 enum _hhg_node_type_t {
     HHG_NODE_BLOCK = HHG_NODE_START,
     HHG_NODE_ARG,
+    HHG_NODE_FUNC_CALL,
 };
 typedef int hhg_node_type_t;
 
-#define HHG_NODE_END (HHG_NODE_BLOCK + 1)
+#define HHG_NODE_END (HHG_NODE_FUNC_CALL + 1)
 
 typedef struct _hhg_node_t hhg_node_t;
 
@@ -65,6 +66,11 @@ typedef struct _hhg_func_decl_t {
     hhg_node_t *body;
 } hhg_func_decl_t;
 
+typedef struct _hhg_func_call_t {
+    char *id;
+    hhg_node_t **args;
+} hhg_func_call_t;
+
 typedef struct _hhg_class_decl_t {
     char *id;
     hhg_node_t **var_decls;
@@ -82,6 +88,7 @@ typedef union _hhg_node_value_t  {
     hhg_ret_t ret;
     hhg_arg_t arg;
     hhg_func_decl_t func_decl;
+    hhg_func_call_t func_call;
     hhg_class_decl_t class_decl;
 } hhg_node_value_t;
 

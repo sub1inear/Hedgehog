@@ -90,6 +90,22 @@ hhg_node_t *hhg_parse_unary(hhg_lexer_t *lexer)
 
             return var_decl;
         }
+        case '(': {
+            hhg_node_t *func_call = hhg_node_new(HHG_NODE_FUNC_CALL);
+            func_call->value.func_call.id = str;
+            hhg_lexer_next(lexer);
+            while (lexer->token.type != ')' &&
+                   lexer->token.type != EOF) {
+                arrput(
+                    func_call->value.func_call.args,
+                    hhg_parse_expr(lexer, HHG_PREC_START)
+                );
+                if (lexer->token.type != ')')
+                    hhg_lexer_match(lexer, ',');
+            }
+            hhg_lexer_match(lexer, ')');
+            return func_call;
+        }
         default: {
             hhg_node_t *id = hhg_node_new(HHG_TOKEN_ID);
             id->value.id.id = str;
@@ -137,9 +153,8 @@ hhg_node_t *hhg_parse_unary(hhg_lexer_t *lexer)
         hhg_lexer_match(lexer, HHG_TOKEN_ID);
         hhg_lexer_match(lexer, '(');
 
-        while (lexer->token.type != ')') {
-            if (lexer->token.type == EOF)
-                break;
+        while (lexer->token.type != ')' &&
+               lexer->token.type != EOF) {
             hhg_node_t *arg = hhg_node_new(HHG_NODE_ARG);
 
             hhg_parse_type(lexer, &arg->value_type);

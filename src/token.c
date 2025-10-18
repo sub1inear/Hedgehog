@@ -117,6 +117,7 @@ const char *const token_type_to_str[] = {
     // node types
     "block",
     "arg",
+    "func call",
 };
 
 const char *hhg_token_type_to_str(hhg_token_type_t type)

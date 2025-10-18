@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include <stdio.h>
 #include <stdbool.h>
 
@@ -10,6 +11,7 @@
 #define HHG_NODE_INDENT_INC 4
 
 static void hhg_node_print_indent(int32_t indent);
+static void hhg_node_print_str(const char *str, int32_t indent);
 
 hhg_node_t *hhg_node_new(hhg_node_type_t type)
 {
@@ -34,6 +36,7 @@ void hhg_node_print(hhg_node_t *node, int32_t indent)
     putchar('\n');
 
     int32_t next_indent = indent + HHG_NODE_INDENT_INC;
+    int32_t next_next_indent = next_indent + HHG_NODE_INDENT_INC;
 
     switch (node->type) {
     case HHG_NODE_BLOCK: {
@@ -43,18 +46,15 @@ void hhg_node_print(hhg_node_t *node, int32_t indent)
         break;
     }
     case HHG_NODE_ARG:
-        hhg_node_print_indent(next_indent);
-        puts(node->value.arg.arg);
+        hhg_node_print_str(node->value.arg.arg, next_indent);
         break;
     case HHG_TOKEN_ID:
-        hhg_node_print_indent(next_indent);
-        puts(node->value.id.id);
+        hhg_node_print_str(node->value.id.id, next_indent);
         break;
     case HHG_TOKEN_STRING_LITERAL:
     case HHG_TOKEN_INT_LITERAL:
     case HHG_TOKEN_FLOAT_LITERAL:
-        hhg_node_print_indent(next_indent);
-        puts(node->value.literal.str);
+        hhg_node_print_str(node->value.literal.str, next_indent);
         break;
     case HHG_TOKEN_IF:
         hhg_node_print(node->value.if_stmt.cond, next_indent);
@@ -65,21 +65,29 @@ void hhg_node_print(hhg_node_t *node, int32_t indent)
         hhg_node_print(node->value.while_stmt.body, next_indent);
         break;
     case '=':
-        hhg_node_print_indent(next_indent);
-        puts(node->value.var_decl.id);
+        hhg_node_print_str(node->value.var_decl.id, next_indent);
         hhg_node_print(node->value.var_decl.expr, next_indent);
         break;
     case HHG_TOKEN_DEF: {
-        hhg_node_print_indent(next_indent);
-        puts("id");
-        hhg_node_print_indent(next_indent + HHG_NODE_INDENT_INC);
-        puts(node->value.func_decl.id);
+        hhg_node_print_str("id", next_indent);
+        hhg_node_print_str(node->value.func_decl.id, next_next_indent);
+
+        hhg_node_print_str("args", next_indent);
         size_t len = arrlenu(node->value.func_decl.args);
         for (size_t i = 0; i < len; i++)
-            hhg_node_print(node->value.func_decl.args[i], next_indent);
+            hhg_node_print(node->value.func_decl.args[i], next_next_indent);
 
         hhg_node_print(node->value.func_decl.body, next_indent);
         break;
+    }
+    case HHG_NODE_FUNC_CALL: {
+        hhg_node_print_str("id", next_indent);
+        hhg_node_print_str(node->value.func_call.id, next_next_indent);
+
+        hhg_node_print_str("args", next_indent);
+        size_t len = arrlenu(node->value.func_call.args);
+        for (size_t i = 0; i < len; i++)
+            hhg_node_print(node->value.func_call.args[i], next_next_indent);
     }
     case HHG_TOKEN_TRUE:
     case HHG_TOKEN_FALSE:
@@ -110,4 +118,10 @@ static void hhg_node_print_indent(int32_t indent)
     for (int32_t i = 0; i < indent; i++) {
         putchar(' ');
     }
+}
+
+static void hhg_node_print_str(const char *str, int32_t indent)
+{
+    hhg_node_print_indent(indent);
+    puts(str);
 }
