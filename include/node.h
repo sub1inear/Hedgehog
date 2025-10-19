@@ -3,6 +3,7 @@
 
 #include "token.h"
 #include "sym.h"
+#include "mem.h"
 
 #define HHG_NODE_INDENT_START 0
 
@@ -98,7 +99,7 @@ struct _hhg_node_t {
     hhg_type_t value_type;
 };
 
-hhg_node_t *hhg_node_new(hhg_node_type_t type);
+hhg_node_t *hhg_node_new(hhg_arena_t *arena, hhg_node_type_t type);
 
 void hhg_node_print(hhg_node_t *node, int32_t indent);
 

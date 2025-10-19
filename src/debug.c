@@ -24,15 +24,18 @@ bool hhg_debug_parser(const char *filename)
     hhg_lexer_t lexer;
     hhg_lexer_init(&lexer, filename);
 
-    hhg_node_t *program = hhg_parse(&lexer);
+    hhg_parser_t parser;
+    hhg_parser_init(&parser, &lexer);
 
-    if (hhg_msgs_get_error_count() > 0) {
-        hhg_lexer_del(&lexer);
-        return true;
-    }
+    hhg_node_t *program = hhg_parser_parse(&parser);
 
-    hhg_node_print(program, HHG_NODE_INDENT_START);
+    bool result = hhg_msgs_get_error_count();
+
+    if (result)
+        hhg_node_print(program, HHG_NODE_INDENT_START);
+
+    hhg_parser_del(&parser);
     hhg_lexer_del(&lexer);
 
-    return false;
+    return result;
 }

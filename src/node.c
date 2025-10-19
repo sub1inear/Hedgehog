@@ -13,9 +13,9 @@
 static void hhg_node_print_indent(int32_t indent);
 static void hhg_node_print_str(const char *str, int32_t indent);
 
-hhg_node_t *hhg_node_new(hhg_node_type_t type)
+hhg_node_t *hhg_node_new(hhg_arena_t *arena, hhg_node_type_t type)
 {
-    hhg_node_t *node = hhg_malloc(sizeof(hhg_node_t));
+    hhg_node_t *node = hhg_arena_malloc(arena, sizeof(hhg_node_t));
 
     // initialize type and set other fields to NULL portably
     *node = (hhg_node_t) { .type = type };

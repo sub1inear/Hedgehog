@@ -3,15 +3,19 @@
 #include <stdio.h>
 #endif
 
+#define ARENA_API static
+#define ARENA_IMPLEMENTATION
+#include <arena.h>
+
 #include "mem.h"
 #include "error.h"
 
 void *hhg_malloc(size_t size)
 {
     void *ptr = malloc(size);
-    if (ptr == NULL) {
+    if (ptr == NULL)
         hhg_fatal_error("memory allocation failed");
-    }
+
 #ifdef HHG_DEBUG_MEM
     printf("alloc: %p (%zu bytes)\n", ptr, size);
 #endif
@@ -44,4 +48,41 @@ char *hhg_strdup(const char *str)
     size_t len = strlen(str) + 1;
     char *buf = hhg_malloc(len);
     return strcpy(buf, str);
+}
+
+hhg_arena_t *hhg_arena_new(void)
+{
+    arena_t *arena = arena_create();
+    if (arena == NULL)
+        hhg_fatal_error("arena creation failed");
+#ifdef HHG_DEBUG_MEM
+    printf("arena created: %p\n", arena);
+#endif
+    return arena;
+}
+
+void *hhg_arena_malloc(hhg_arena_t *arena, size_t size)
+{
+    void *ptr = arena_malloc(arena, size);
+    if (ptr == NULL)
+        hhg_fatal_error("arena allocation failed");
+#ifdef HHG_DEBUG_MEM
+    printf("arena alloc: %p (%zu bytes)\n", ptr, size);
+#endif
+    return ptr;
+}
+
+char *hhg_arena_strdup(hhg_arena_t *arena, const char *str)
+{
+    size_t len = strlen(str) + 1;
+    char *buf = hhg_arena_malloc(arena, len);
+    return strcpy(buf, str);
+}
+
+void hhg_arena_free(hhg_arena_t *arena)
+{
+#ifdef HHG_DEBUG_MEM
+    printf("arena destroyed: %p\n", arena);
+#endif
+    arena_destroy(arena);
 }
