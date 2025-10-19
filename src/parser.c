@@ -250,7 +250,7 @@ static void hhg_parser_parse_type(hhg_parser_t *parser, hhg_type_t *type)
             type->is_const = true;
         } else if (parser->lexer->token.type == HHG_TOKEN_VOLATILE) {
             if (type->is_volatile)
-                hhg_parser_error("more than one const in type");
+                hhg_parser_error("more than one volatile in type");
             type->is_volatile = true;
         } else {
             hhg_base_type_t base =

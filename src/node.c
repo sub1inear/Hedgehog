@@ -100,20 +100,6 @@ void hhg_node_print(hhg_node_t *node, int32_t indent)
     }
 }
 
-void hhg_node_free(hhg_node_t *node)
-{
-    switch (node->type) {
-    case HHG_TOKEN_STRING_LITERAL:
-    case HHG_TOKEN_INT_LITERAL:
-    case HHG_TOKEN_FLOAT_LITERAL:
-        hhg_free(node->value.literal.str);
-        break;
-    default:
-        break;
-    }
-    hhg_free(node);
-}
-
 static void hhg_node_print_indent(int32_t indent)
 {
     for (int32_t i = 0; i < indent; i++) {
@@ -123,6 +109,8 @@ static void hhg_node_print_indent(int32_t indent)
 
 static void hhg_node_print_str(const char *str, int32_t indent)
 {
-    hhg_node_print_indent(indent);
-    puts(str);
+    if (str) {
+        hhg_node_print_indent(indent);
+        puts(str);
+    }
 }

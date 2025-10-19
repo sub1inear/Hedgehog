@@ -103,6 +103,4 @@ hhg_node_t *hhg_node_new(hhg_arena_t *arena, hhg_node_type_t type);
 
 void hhg_node_print(hhg_node_t *node, int32_t indent);
 
-void hhg_node_free(hhg_node_t *node);
-
 #endif

@@ -17,6 +17,7 @@ static const struct optparse_long longopts[] = {
     { "warnings", 'W',  OPTPARSE_NONE     },
     { "heap",     'H',  OPTPARSE_NONE     },
     { "define",   'D',  OPTPARSE_REQUIRED },
+    { "output",   'o',  OPTPARSE_REQUIRED },
     { "run",      'r',  OPTPARSE_REQUIRED },
     { NULL ,      '\0', OPTPARSE_NONE     },
 };
@@ -40,6 +41,7 @@ void hhg_cmd_args_parse(char **argv)
                 "-v --version  : print version\n"                   
                 "-W --warnings : enable warnings\n"
                 "-D --define   : define constexpr bool 'var' to be true\n"
+                "-o --output   : set output directory to 'dir'\n"
                 "-r --run      : compile and run program with 'cmd'\n"
                 "file          : file to compile\n"
                 "-             : use stdin as file to compile\n"
@@ -59,6 +61,7 @@ void hhg_cmd_args_parse(char **argv)
             cmd_args.heap = true;
             break;
         case 'D':
+        case 'o':
             break;
         case 'r':
             cmd_args.run_cmd = options.optarg;
@@ -73,7 +76,7 @@ void hhg_cmd_args_parse(char **argv)
 
     cmd_args.filename = optparse_arg(&options);
 
-    cmd_args.pass = &argv[options.optind];
+    cmd_args.pass = &options.argv[options.optind];
 
 }
 

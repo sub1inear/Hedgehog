@@ -31,7 +31,7 @@ bool hhg_debug_parser(const char *filename)
 
     bool result = hhg_msgs_get_error_count();
 
-    if (result)
+    if (!result)
         hhg_node_print(program, HHG_NODE_INDENT_START);
 
     hhg_parser_del(&parser);
