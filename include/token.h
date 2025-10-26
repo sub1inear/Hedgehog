@@ -7,7 +7,7 @@
 #include "str.h"
 
 #define HHG_TOKEN_START UCHAR_MAX
-enum _hhg_token_type_t {
+enum hhg_token_type {
     HHG_TOKEN_NONE = HHG_TOKEN_START,
     HHG_TOKEN_ID,
     // literals
@@ -109,7 +109,7 @@ const char *hhg_token_type_to_str(hhg_token_type_t type);
 
 void hhg_token_type_print(hhg_token_type_t type);
 
-typedef struct _hhg_token_t {
+typedef struct hhg_token {
     hhg_token_type_t type;
     hhg_str_t str;
     int32_t prec;

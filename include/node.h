@@ -9,7 +9,7 @@
 
 #define HHG_NODE_START HHG_TOKEN_END
 
-enum _hhg_node_type_t {
+enum hhg_node_type{
     HHG_NODE_BLOCK = HHG_NODE_START,
     HHG_NODE_ARG,
     HHG_NODE_FUNC_CALL,
@@ -18,67 +18,67 @@ typedef int hhg_node_type_t;
 
 #define HHG_NODE_END (HHG_NODE_FUNC_CALL + 1)
 
-typedef struct _hhg_node_t hhg_node_t;
+typedef struct hhg_node hhg_node_t;
 
-typedef struct _hhg_expr_t {
+typedef struct hhg_expr {
     hhg_node_t *left;
     hhg_node_t *right;
 } hhg_expr_t;
 
-typedef struct _hhg_block_t {
+typedef struct hhg_block {
     hhg_node_t **body;
 } hhg_block_t;
 
-typedef struct _hhg_id_t {
+typedef struct hhg_id {
     char *id;
 } hhg_id_t;
 
-typedef struct _hhg_var_decl_t {
+typedef struct hhg_var_decl {
     char *id;
     hhg_node_t *expr;
 } hhg_var_decl_t;
 
-typedef struct _hhg_literal_t {
+typedef struct hhg_literal {
     char *str;
 } hhg_literal_t;
 
-typedef struct _hhg_if_t {
+typedef struct hhg_if {
     hhg_node_t *cond;
     hhg_node_t *if_body;
     hhg_node_t *else_body;
 } hhg_if_t;
 
-typedef struct _hhg_while_t {
+typedef struct hhg_while {
     hhg_node_t *cond;
     hhg_node_t *body;
 } hhg_while_t;
 
-typedef struct _hhg_ret_t {
+typedef struct hhg_ret {
     hhg_node_t *expr;
 } hhg_ret_t;
 
-typedef struct _hhg_arg_t {
+typedef struct hhg_arg {
     char *arg;
 } hhg_arg_t;
 
-typedef struct _hhg_func_decl_t {
+typedef struct hhg_func_decl {
     char *id;
     hhg_node_t **args;
     hhg_node_t *body;
 } hhg_func_decl_t;
 
-typedef struct _hhg_func_call_t {
+typedef struct hhg_func_call {
     char *id;
     hhg_node_t **args;
 } hhg_func_call_t;
 
-typedef struct _hhg_class_decl_t {
+typedef struct hhg_class_decl {
     char *id;
     hhg_node_t **var_decls;
     hhg_node_t **func_decls;
 } hhg_class_decl_t;
 
-typedef union _hhg_node_value_t  {
+typedef union hhg_node_value  {
     hhg_expr_t expr;
     hhg_block_t block;
     hhg_id_t id;
@@ -93,7 +93,7 @@ typedef union _hhg_node_value_t  {
     hhg_class_decl_t class_decl;
 } hhg_node_value_t;
 
-struct _hhg_node_t {
+struct hhg_node {
     hhg_node_type_t type;
     hhg_node_value_t value;
     hhg_type_t value_type;

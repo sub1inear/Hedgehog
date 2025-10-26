@@ -3,7 +3,7 @@
 
 #include <stdlib.h>
 
-typedef struct _hhg_str_t {
+typedef struct hhg_str {
     size_t len, cap;
     char *str;
 } hhg_str_t;

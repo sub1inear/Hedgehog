@@ -5,9 +5,9 @@
 
 #include "token.h"
 
-typedef struct _hhg_sym_t hhg_sym_t;
+typedef struct hhg_sym hhg_sym_t;
 
-enum _hhg_base_type_t {
+enum hhg_base_type {
     HHG_TYPE_NONE,
     HHG_TYPE_I8,
     HHG_TYPE_U8,
@@ -46,7 +46,7 @@ enum _hhg_base_type_t {
 // guarantee being unsigned to not overflow bit-field
 typedef unsigned int hhg_base_type_t;
 
-typedef struct _hhg_type_t {
+typedef struct hhg_type {
     hhg_base_type_t type : 5;
     unsigned int is_const : 1;
     unsigned int is_volatile : 1;

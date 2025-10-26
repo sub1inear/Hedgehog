@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-typedef struct _hhg_cmd_args_t {
+typedef struct hhg_cmd_args {
     bool warnings;
     bool heap;
     char *run_cmd;

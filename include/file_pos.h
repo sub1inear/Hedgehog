@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-typedef struct _hhg_file_pos_t {
+typedef struct hhg_file_pos {
     int32_t line;
     int32_t col;
 } hhg_file_pos_t;

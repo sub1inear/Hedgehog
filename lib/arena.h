@@ -32,11 +32,11 @@ SOFTWARE.
 #define ARENA_API
 #endif
 
-typedef struct _arena_t {
+typedef struct arena {
     uint8_t *region;
     size_t size;
     size_t current;
-    struct _arena_t *next;
+    struct arena *next;
 } arena_t;
 
 ARENA_API

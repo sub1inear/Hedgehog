@@ -16,7 +16,7 @@
 #define hhg_lexer_warning(...) hhg_warning(lexer->pos, lexer->filename, __VA_ARGS__)
 #define hhg_lexer_info(...) hhg_info(lexer->pos, lexer->filename, __VA_ARGS__)
 
-typedef struct _hhg_file_pos_save_t {
+typedef struct hhg_file_pos_save {
     hhg_file_pos_t pos;
     long fpos;
 } hhg_file_pos_save_t;

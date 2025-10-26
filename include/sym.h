@@ -3,7 +3,7 @@
 
 #include "type.h"
 
-typedef struct _hhg_sym_t {
+typedef struct hhg_sym {
     char *key;
     hhg_type_t value;
 } hhg_sym_t;

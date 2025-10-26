@@ -5,7 +5,7 @@
 #include "lexer.h"
 #include "mem.h"
 
-typedef struct _hhg_parser_t {
+typedef struct hhg_parser {
     hhg_lexer_t *lexer;
     hhg_arena_t *arena;
 } hhg_parser_t;

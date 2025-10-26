@@ -7,7 +7,7 @@
 #include "token.h"
 #include "file_pos.h"
 
-typedef struct _hhg_lexer_t {
+typedef struct hhg_lexer {
     FILE *file;
     const char *filename;
     hhg_file_pos_t pos;
@@ -16,13 +16,13 @@ typedef struct _hhg_lexer_t {
     hhg_token_t token;
 } hhg_lexer_t;
 
-typedef struct _hhg_op_data_t {
+typedef struct hhg_op_data {
     char str[3];
     hhg_token_type_t type;
     int32_t prec;
 } hhg_op_data_t;
 
-typedef struct _hhg_keyword_data_t {
+typedef struct hhg_keyword_data {
     char *str;
     hhg_token_type_t type;
 } hhg_keyword_data_t;
