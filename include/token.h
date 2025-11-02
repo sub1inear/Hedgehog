@@ -98,7 +98,7 @@ enum hhg_token_type {
     HHG_TOKEN_INC,
     HHG_TOKEN_DEC,
 };
-// guarentee being signed (for comparison with EOF)
+// guarantee being signed (for comparison with EOF)
 typedef int hhg_token_type_t;
 
 #define HHG_TOKEN_END (HHG_TOKEN_DEC + 1)

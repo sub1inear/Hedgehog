@@ -1,16 +1,15 @@
 #ifndef HHG_ERROR_H
 #define HHG_ERROR_H
 
-#include <stdbool.h>
+#include <stdint.h>
 
 #include "file_pos.h"
 
-enum hhg_msg_type {
+typedef enum hhg_msg_type {
     HHG_MSG_ERROR,
     HHG_MSG_WARNING,
     HHG_MSG_INFO,
-};
-typedef int hhg_msg_type_t;
+} hhg_msg_type_t;
 
 void hhg_msg(hhg_msg_type_t type,
              hhg_file_pos_t pos,

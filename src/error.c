@@ -14,11 +14,13 @@ static int32_t error_count;
 
 static void hhg_vfprintf(FILE *stream, const char *fmt, va_list va);
 
-void hhg_msg(hhg_msg_type_t type,
-             hhg_file_pos_t pos,
-             const char *filename,
-             const char *fmt,
-             ...)
+void hhg_msg(
+    hhg_msg_type_t type,
+    hhg_file_pos_t pos,
+    const char *filename,
+    const char *fmt,
+    ...
+)
 {
     va_list va;
 
