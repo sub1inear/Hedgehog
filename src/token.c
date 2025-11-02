@@ -118,6 +118,7 @@ const char *const token_type_to_str[] = {
     "block",
     "arg",
     "func call",
+    "arr literal",
 };
 
 const char *hhg_token_type_to_str(hhg_token_type_t type)

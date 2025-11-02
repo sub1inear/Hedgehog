@@ -93,6 +93,12 @@ void hhg_node_print(hhg_node_t *node, int32_t indent)
     case HHG_TOKEN_TRUE:
     case HHG_TOKEN_FALSE:
         break;
+    case HHG_NODE_ARR_LITERAL: {
+        size_t len = arrlenu(node->value.arr_literal.elems);
+        for (size_t i = 0; i < len; i++)
+            hhg_node_print(node->value.arr_literal.elems[i], next_indent);
+        break;
+    }
     default:
         hhg_node_print(node->value.expr.left, next_indent);
         hhg_node_print(node->value.expr.right, next_indent);

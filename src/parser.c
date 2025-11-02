@@ -148,6 +148,21 @@ hhg_node_t *hhg_parser_parse_unary(hhg_parser_t *parser)
         hhg_lexer_next(parser->lexer);
         return literal;
     }
+    case '[': {
+        hhg_node_t *arr_literal = hhg_parser_node_new(HHG_NODE_ARR_LITERAL);
+        hhg_lexer_next(parser->lexer);
+        while (parser->lexer->token.type != ']' &&
+               parser->lexer->token.type != EOF) {
+            arrput(
+                arr_literal->value.arr_literal.elems,
+                hhg_parser_parse_expr(parser, HHG_PREC_START)
+            );
+            if (parser->lexer->token.type != ']')
+                hhg_lexer_match(parser->lexer, ',');
+        }
+        hhg_lexer_match(parser->lexer, ']');
+        return arr_literal;
+    }
     case HHG_TOKEN_IF: {
         hhg_lexer_next(parser->lexer);
         hhg_node_t *if_stmt = hhg_parser_node_new(HHG_TOKEN_IF);
