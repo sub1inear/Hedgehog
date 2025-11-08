@@ -77,7 +77,7 @@ Variables types are automatically inferred by default. However, if you want to e
 |------|------|-------|
 | i8 | signed 8-bit number | -128 to 127 |
 | u8 | unsigned 8-bit number | 0 to 255 |
-| i16 | signed 16-bit number | 32,768 to 32,767 |
+| i16 | signed 16-bit number | -32,768 to 32,767 |
 | u16 | unsigned 16-bit number | 0 to 65535 |
 | i32 | signed 32-bit number | -2,147,483,648 to 2,147,483,647 |
 | u32 | unsigned 32-bit number | 0 to 4,294,967,295 |
@@ -104,9 +104,9 @@ Limited-precision integers will wrap around in their ranges if they exceed them.
 
 `constexpr` can be used to tell the compiler a variable's value can be computed at compile-time. 
 
-## Arithmatic
+## Arithmetic
 
-All standard arithmatic operators are supported with C++ precedence.
+All standard arithmetic operators are supported with C++ precedence.
 
 ```python
 x = y + z - a
@@ -432,7 +432,7 @@ for i = 0; i < 10; { i++; value++ }
 
 Classes are declared with the keyword `class`. All members of a class are public.  All variables in a class must be typed.
 
-The `__init__` method serves as the constructor, while the `__del__` method serves as the deconstructor. By default, the constructor initalizes all the members in the order they are declared, like the default constructor of C++.
+The `__init__` method serves as the constructor, while the `__del__` method serves as the destructor. By default, the constructor initializes all the members in the order they are declared, like the default constructor of C++.
 
 `self` is automatically passed to the function, similar to `this` in C++. Like Python and unlike C++, you must explicitly use it.
 ```python
@@ -465,7 +465,7 @@ def func() {
 }
 ```
 
-You can index a tuple similar to a normal array. Unlike Python and like C++, tuple indicies must be computable at compile-time.
+You can index a tuple similar to a normal array. Unlike Python and like C++, tuple indices must be computable at compile-time.
 
 ```python
 print(t[1])
