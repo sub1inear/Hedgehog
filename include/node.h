@@ -83,20 +83,26 @@ typedef struct hhg_class_decl {
     hhg_node_t **func_decls;
 } hhg_class_decl_t;
 
+typedef struct hhg_field_access_t {
+    char *id;
+    hhg_node_t *next;
+} hhg_field_access_t;
+
 typedef union hhg_node_value  {
-    hhg_expr_t expr;
-    hhg_block_t block;
-    hhg_id_t id;
-    hhg_var_decl_t var_decl;
-    hhg_literal_t literal;
-    hhg_arr_literal_t arr_literal;
-    hhg_if_t if_stmt;
-    hhg_while_t while_stmt;
-    hhg_ret_t ret;
-    hhg_arg_t arg;
-    hhg_func_decl_t func_decl;
-    hhg_func_call_t func_call;
-    hhg_class_decl_t class_decl;
+    hhg_expr_t expr;                 // +, -, *, /, %, ==, !=, <, <=, >, >=, &&, ||
+    hhg_block_t block;               // HHG_NODE_BLOCK
+    hhg_id_t id;                     // HHG_TOKEN_ID
+    hhg_var_decl_t var_decl;         // =
+    hhg_literal_t literal;           // HHG_TOKEN_STRING_LITERAL, HHG_TOKEN_INT_LITERAL, HHG_TOKEN_FLOAT_LITERAL, HHG_TOKEN_TRUE, HHG_TOKEN_FALSE
+    hhg_arr_literal_t arr_literal;   // HHG_NODE_ARR_LITERAL
+    hhg_if_t if_stmt;                // HHG_TOKEN_IF
+    hhg_while_t while_stmt;          // HHG_TOKEN_WHILE
+    hhg_ret_t ret;                   // HHG_TOKEN_RETURN
+    hhg_arg_t arg;                   // HHG_NODE_ARG
+    hhg_func_decl_t func_decl;       // HHG_TOKEN_DEF
+    hhg_func_call_t func_call;       // HHG_NODE_FUNC_CALL
+    hhg_class_decl_t class_decl;     // HHG_TOKEN_CLASS
+    hhg_field_access_t field_access; // .
 } hhg_node_value_t;
 
 struct hhg_node {

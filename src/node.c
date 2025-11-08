@@ -7,6 +7,7 @@
 #include "node.h"
 #include "token.h"
 #include "mem.h"
+#include "error.h"
 
 #define HHG_NODE_INDENT_INC 4
 
@@ -80,6 +81,25 @@ void hhg_node_print(hhg_node_t *node, int32_t indent)
         hhg_node_print(node->value.func_decl.body, next_indent);
         break;
     }
+    case HHG_TOKEN_CLASS: {
+        hhg_node_print_str("id", next_indent);
+        hhg_node_print_str(node->value.class_decl.id, next_next_indent);
+        hhg_node_print_str("var decls", next_indent);
+        size_t var_decls_len = arrlenu(node->value.class_decl.var_decls);
+        for (size_t i = 0; i < var_decls_len; i++)
+            hhg_node_print(node->value.class_decl.var_decls[i], next_next_indent);
+
+        hhg_node_print_str("func decls", next_indent);
+        size_t func_decls_len = arrlenu(node->value.class_decl.func_decls);
+        for (size_t i = 0; i < func_decls_len; i++)
+            hhg_node_print(node->value.class_decl.func_decls[i], next_next_indent);
+        break;
+    }
+    case '.':
+        hhg_node_print_str("id", next_indent);
+        hhg_node_print_str(node->value.field_access.id, next_next_indent);
+        hhg_node_print(node->value.field_access.next, next_indent);
+        break;
     case HHG_NODE_FUNC_CALL: {
         hhg_node_print_str("id", next_indent);
         hhg_node_print_str(node->value.func_call.id, next_next_indent);
@@ -99,9 +119,39 @@ void hhg_node_print(hhg_node_t *node, int32_t indent)
             hhg_node_print(node->value.arr_literal.elems[i], next_indent);
         break;
     }
-    default:
+    case '+':
+    case '-':
+    case '*':
+    case '/':
+    case '%':
+    case '<':
+    case '>':
+    case '&':
+    case '^':
+    case '|':
+    case HHG_TOKEN_LSHIFT:
+    case HHG_TOKEN_RSHIFT:
+    case HHG_TOKEN_EQ:
+    case HHG_TOKEN_NOT_EQ:
+    case HHG_TOKEN_LT_EQ:
+    case HHG_TOKEN_GT_EQ:
+    case HHG_TOKEN_PLUS_EQ:
+    case HHG_TOKEN_SUB_EQ:
+    case HHG_TOKEN_MUL_EQ:
+    case HHG_TOKEN_DIV_EQ:
+    case HHG_TOKEN_MOD_EQ:
+    case HHG_TOKEN_AND_EQ:
+    case HHG_TOKEN_OR_EQ:
+    case HHG_TOKEN_XOR_EQ:
+    case HHG_TOKEN_LSHIFT_EQ:
+    case HHG_TOKEN_RSHIFT_EQ:
+    case HHG_TOKEN_AND:
+    case HHG_TOKEN_OR:
         hhg_node_print(node->value.expr.left, next_indent);
         hhg_node_print(node->value.expr.right, next_indent);
+        break;
+    default:
+        hhg_fatal_error("unhandled node type %t in hhg_node_print", node->type);
         break;
     }
 }

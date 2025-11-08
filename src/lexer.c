@@ -83,8 +83,10 @@ static const hhg_keyword_data_t keyword_data[] = {
       
     { "def",      HHG_TOKEN_DEF      },
     { "return",   HHG_TOKEN_RETURN   },
+
+    { "class",    HHG_TOKEN_CLASS    },
     
-    // ------------------------------- //
+    // ----------------------------- //
 
     { "i8",       HHG_TOKEN_I8       },
     { "u8",       HHG_TOKEN_U8       },
@@ -113,7 +115,7 @@ static const hhg_keyword_data_t keyword_data[] = {
       
     { "time_t",   HHG_TOKEN_TIME_T   },
 
-    // ------------------------------- //
+    // ----------------------------- //
     
     { "const",    HHG_TOKEN_CONST    },
     { "volatile", HHG_TOKEN_VOLATILE },

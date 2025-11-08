@@ -55,6 +55,8 @@ const char *const token_type_to_str[] = {
 
     "def",
     "return",
+
+    "class",
     
     // types
     "i8",

@@ -125,6 +125,18 @@ hhg_node_t *hhg_parser_parse_unary(hhg_parser_t *parser)
             hhg_lexer_match(parser->lexer, ')');
             return func_call;
         }
+        case '.': {
+            hhg_lexer_next(parser->lexer);
+            
+            hhg_node_t *field_access = hhg_parser_node_new('.');
+            field_access->value.field_access.id = str;
+
+            field_access->value.field_access.next = 
+                hhg_parser_parse_unary(parser);
+
+            return field_access;
+
+        }
         default: {
             hhg_node_t *id = hhg_parser_node_new(HHG_TOKEN_ID);
             id->value.id.id = str;
@@ -224,6 +236,43 @@ hhg_node_t *hhg_parser_parse_unary(hhg_parser_t *parser)
             hhg_parser_parse_expr(parser, HHG_PREC_START);
         return ret_stmt;
     }
+    case HHG_TOKEN_CLASS: {
+        hhg_lexer_next(parser->lexer);
+        hhg_node_t *class_decl = hhg_parser_node_new(HHG_TOKEN_CLASS);
+        if (parser->lexer->token.type == HHG_TOKEN_ID)
+            class_decl->value.class_decl.id =
+                hhg_parser_strdup(parser->lexer->token.str.str);
+
+        hhg_lexer_match(parser->lexer, HHG_TOKEN_ID);
+        hhg_lexer_match(parser->lexer, '{');
+
+        while (parser->lexer->token.type != '}' &&
+               parser->lexer->token.type != EOF) {
+            if (parser->lexer->token.type == HHG_TOKEN_DEF)
+                arrput(
+                    class_decl->value.class_decl.func_decls,
+                    hhg_parser_parse_unary(parser)
+                );
+            else {
+                hhg_node_t *var_decl = hhg_parser_node_new('=');
+                hhg_parser_parse_type(parser, &var_decl->value_type);
+                
+                if (var_decl->value_type.type == HHG_TYPE_NONE)
+                    hhg_parser_error("expected type in class variable declaration");
+                
+                if (parser->lexer->token.type == HHG_TOKEN_ID)
+                    var_decl->value.var_decl.id =
+                        hhg_parser_strdup(parser->lexer->token.str.str);
+
+                hhg_lexer_match(parser->lexer, HHG_TOKEN_ID);
+                arrput(class_decl->value.class_decl.var_decls, var_decl);
+            }          
+            if (!parser->lexer->newline)
+                break;
+        }
+        hhg_lexer_match(parser->lexer, '}');
+        return class_decl;
+    }
     case '{': {
         hhg_node_t *block = hhg_parser_node_new(HHG_NODE_BLOCK);
 
@@ -239,8 +288,6 @@ hhg_node_t *hhg_parser_parse_unary(hhg_parser_t *parser)
         }
 
         hhg_lexer_match(parser->lexer, '}');
-
-        hhg_lexer_next(parser->lexer);
 
         return block;
     }
