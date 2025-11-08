@@ -353,7 +353,7 @@ static hhg_node_t *hhg_parser_parse_class_decl(hhg_parser_t *parser)
         if (parser->lexer->token.type == HHG_TOKEN_DEF)
             arrput(
                 class_decl->value.class_decl.func_decls,
-                hhg_parser_parse_unary(parser)
+                hhg_parser_parse_func_decl(parser)
             );
         else {
             hhg_node_t *var_decl = hhg_parser_node_new('=');
