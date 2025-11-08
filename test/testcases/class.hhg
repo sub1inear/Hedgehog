@@ -3,11 +3,11 @@ class Player {
     i32 y
     i32 health
     def forward() {
-        self.x += 1
-        self.y += 1
+        self.x++
+        self.y++
     }
     def backward() {
-        self.x -= 1
-        self.y -= 1
+        self.x--
+        self.y--
     }
 }

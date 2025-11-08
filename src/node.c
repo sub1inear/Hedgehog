@@ -145,6 +145,8 @@ void hhg_node_print(hhg_node_t *node, int32_t indent)
     case HHG_TOKEN_XOR_EQ:
     case HHG_TOKEN_LSHIFT_EQ:
     case HHG_TOKEN_RSHIFT_EQ:
+    case HHG_TOKEN_INC:
+    case HHG_TOKEN_DEC:
     case HHG_TOKEN_AND:
     case HHG_TOKEN_OR:
         hhg_node_print(node->value.expr.left, next_indent);

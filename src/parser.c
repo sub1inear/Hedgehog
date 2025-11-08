@@ -125,6 +125,17 @@ hhg_node_t *hhg_parser_parse_unary(hhg_parser_t *parser)
             hhg_lexer_match(parser->lexer, ')');
             return func_call;
         }
+        case HHG_TOKEN_INC:
+        case HHG_TOKEN_DEC: {
+            hhg_node_t *inc_dec = hhg_parser_node_new(parser->lexer->token.type);
+
+            hhg_node_t *id = hhg_parser_node_new(HHG_TOKEN_ID);
+            id->value.id.id = str;
+            
+            inc_dec->value.expr.left = id;
+            hhg_lexer_next(parser->lexer);
+            return inc_dec;
+        }
         case '.': {
             hhg_lexer_next(parser->lexer);
             
@@ -319,12 +330,15 @@ static void hhg_parser_parse_type(hhg_parser_t *parser, hhg_type_t *type)
                 hhg_token_type_to_base_type(parser->lexer->token.type);
 
             if (base == HHG_TYPE_NONE)
-                if (type->type == HHG_TYPE_NONE)
+                if (type->type == HHG_TYPE_NONE) {
                     hhg_parser_error("expected type");
-                else
                     break;
-            else if (type->type != HHG_TYPE_NONE)
+                } else
+                    break;
+            else if (type->type != HHG_TYPE_NONE) {
                 hhg_parser_error("multiple types");
+                break;
+            }
 
             type->type = base;
         }
