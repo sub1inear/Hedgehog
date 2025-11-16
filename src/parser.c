@@ -32,7 +32,7 @@ static hhg_node_t *hhg_parser_parse_expr(
 static hhg_node_t *hhg_parser_parse_unary(hhg_parser_t *parser);
 static hhg_node_t *hhg_parser_parse_var_decl(hhg_parser_t *parser);
 static bool hhg_parser_is_type(hhg_parser_t *parser, hhg_token_t *token);
-static void hhg_parser_parse_type(hhg_parser_t *parser, hhg_type_t *type);
+static hhg_type_t hhg_parser_parse_type(hhg_parser_t *parser);
 static hhg_node_t *hhg_parser_parse_id(hhg_parser_t *parser);
 static hhg_node_t *hhg_parser_parse_bool_literal(hhg_parser_t *parser);
 static hhg_node_t *hhg_parser_parse_literal(hhg_parser_t *parser);
@@ -180,24 +180,28 @@ static bool hhg_parser_is_type(hhg_parser_t *parser, hhg_token_t *token)
     }
 }
 
-static void hhg_parser_parse_type(hhg_parser_t *parser, hhg_type_t *type)
+static hhg_type_t hhg_parser_parse_type(hhg_parser_t *parser)
 {
+    hhg_type_t type;
+    hhg_type_init(&type);
+
     while (true) {
         // not using switch to break out of loop
         if (parser->lexer->token.type == HHG_TOKEN_CONST) {
-            if (type->is_const)
+            if (type.is_const)
                 hhg_parser_error("more than one const in type");
-            type->is_const = true;
+            type.is_const = true;
         } else if (parser->lexer->token.type == HHG_TOKEN_VOLATILE) {
-            if (type->is_volatile)
+            if (type.is_volatile)
                 hhg_parser_error("more than one volatile in type");
-            type->is_volatile = true;
+            type.is_volatile = true;
         } else if (parser->lexer->token.type == '&') {
-            type->type = HHG_TYPE_REF;
+            type.type = HHG_TYPE_REF;
+            
             hhg_type_t *ref_type = hhg_type_new(parser->arena);
+            *ref_type = hhg_parser_parse_type(parser);
 
-            hhg_parser_parse_type(parser, ref_type);
-            type->info.ref.ref_type = ref_type;
+            type.info.ref.ref_type = ref_type;
             break; // type is consumed by recursive call
         } else if (parser->lexer->token.type == HHG_TOKEN_ID) {
             hhg_sym_t *sym = hhg_sym_tab_lookup(
@@ -205,7 +209,7 @@ static void hhg_parser_parse_type(hhg_parser_t *parser, hhg_type_t *type)
                 parser->lexer->token.str.str
             );
             if (sym == NULL) {
-                if (type->type == HHG_TYPE_NONE)
+                if (type.type == HHG_TYPE_NONE)
                     hhg_parser_error(
                         "unknown type \"%s\"",
                         parser->lexer->token.str.str
@@ -224,35 +228,36 @@ static void hhg_parser_parse_type(hhg_parser_t *parser, hhg_type_t *type)
                 break;
             }
 
-            if (type->type != HHG_TYPE_NONE) {
+            if (type.type != HHG_TYPE_NONE) {
                 hhg_parser_error("multiple types");
                 break;
             }
-            type->type = sym->value.type;
-            type->info.sym = sym;
+            type.type = sym->value.type;
+            type.info.sym = sym;
         } else {
             hhg_base_type_t base =
                 hhg_token_type_to_base_type(parser->lexer->token.type);
 
             if (base == HHG_TYPE_NONE) {
-                if (type->type == HHG_TYPE_NONE)
+                if (type.type == HHG_TYPE_NONE)
                     hhg_parser_error("expected type");
                 break;
-            } else if (type->type != HHG_TYPE_NONE) {
+            } else if (type.type != HHG_TYPE_NONE) {
                 hhg_parser_error("multiple types");
                 break;
             }
 
-            type->type = base;
+            type.type = base;
         }
         hhg_lexer_next(parser->lexer);
     }
+    return type;
 }
 
 static hhg_node_t *hhg_parser_parse_var_decl(hhg_parser_t *parser)
 {
     hhg_node_t *var_decl = hhg_parser_node_new('=');
-    hhg_parser_parse_type(parser, &var_decl->value_type);
+    var_decl->value_type = hhg_parser_parse_type(parser);
 
     if (parser->lexer->token.type == HHG_TOKEN_ID)
         var_decl->value.var_decl.id =
@@ -405,7 +410,7 @@ static hhg_node_t *hhg_parser_parse_func_decl(hhg_parser_t *parser)
            parser->lexer->token.type != EOF) {
         hhg_node_t *arg = hhg_parser_node_new(HHG_NODE_ARG);
 
-        hhg_parser_parse_type(parser, &arg->value_type);
+        arg->value_type = hhg_parser_parse_type(parser);
 
         if (parser->lexer->token.type == HHG_TOKEN_ID)
             arg->value.arg.arg =
@@ -462,7 +467,7 @@ static hhg_node_t *hhg_parser_parse_class_decl(hhg_parser_t *parser)
             );
         else {
             hhg_node_t *var_decl = hhg_parser_node_new('=');
-            hhg_parser_parse_type(parser, &var_decl->value_type);
+            var_decl->value_type = hhg_parser_parse_type(parser);
             
             if (var_decl->value_type.type == HHG_TYPE_NONE)
                 hhg_parser_error("expected type in class variable declaration");
