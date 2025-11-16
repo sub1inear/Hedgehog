@@ -23,7 +23,6 @@ void hhg_sym_tab_enter_scope(void)
 
 hhg_sym_t *hhg_sym_tab_insert(hhg_sym_t sym)
 {
-
     // inserts pointer to sym into sym_tab
     shputs(sym_tab, sym);
 

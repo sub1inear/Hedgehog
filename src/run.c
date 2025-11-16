@@ -5,6 +5,7 @@
 #include "lexer.h"
 #include "parser.h"
 #include "error.h"
+#include "sym_tab.h"
 
 bool hhg_run(const char *filename)
 {
@@ -13,9 +14,11 @@ bool hhg_run(const char *filename)
 
     hhg_parser_t parser;
     hhg_parser_init(&parser, &lexer);
+    hhg_sym_tab_enter_scope();
 
     hhg_parser_parse(&parser);
 
+    hhg_sym_tab_exit_scope();
     hhg_parser_del(&parser);
     hhg_lexer_del(&lexer);
 
