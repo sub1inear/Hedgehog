@@ -25,19 +25,21 @@ bool hhg_debug_parser(const char *filename)
     hhg_lexer_t lexer;
     hhg_lexer_init(&lexer, filename);
 
+    hhg_sym_tab_t sym_tab;
+    hhg_sym_tab_init(&sym_tab);
+
     hhg_parser_t parser;
-    hhg_parser_init(&parser, &lexer);
-    hhg_sym_tab_enter_scope();
+    hhg_parser_init(&parser, &lexer, &sym_tab);
 
     hhg_node_t *program = hhg_parser_parse(&parser);
 
-    bool result = hhg_msgs_get_error_count();
+    int32_t result = hhg_msgs_get_error_count();
 
-    if (!result)
+    if (result == 0)
         hhg_node_print(program, HHG_NODE_INDENT_START);
 
-    hhg_sym_tab_exit_scope();
     hhg_parser_del(&parser);
+    hhg_sym_tab_del(&sym_tab);
     hhg_lexer_del(&lexer);
 
     return result;

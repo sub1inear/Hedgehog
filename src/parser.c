@@ -31,6 +31,7 @@ static hhg_node_t *hhg_parser_parse_expr(
 );
 static hhg_node_t *hhg_parser_parse_unary(hhg_parser_t *parser);
 static hhg_node_t *hhg_parser_parse_var_decl(hhg_parser_t *parser);
+static bool hhg_parser_is_type(hhg_parser_t *parser, hhg_token_t *token);
 static void hhg_parser_parse_type(hhg_parser_t *parser, hhg_type_t *type);
 static hhg_node_t *hhg_parser_parse_id(hhg_parser_t *parser);
 static hhg_node_t *hhg_parser_parse_bool_literal(hhg_parser_t *parser);
@@ -43,10 +44,15 @@ static hhg_node_t *hhg_parser_parse_return(hhg_parser_t *parser);
 static hhg_node_t *hhg_parser_parse_class_decl(hhg_parser_t *parser);
 static hhg_node_t *hhg_parser_parse_block(hhg_parser_t *parser);
 
-void hhg_parser_init(hhg_parser_t *parser, hhg_lexer_t *lexer)
+void hhg_parser_init(
+    hhg_parser_t *parser,
+    hhg_lexer_t *lexer,
+    hhg_sym_tab_t *sym_tab
+)
 {
     parser->lexer = lexer;
     parser->arena = hhg_arena_new();
+    parser->sym_tab = sym_tab;
 }
 
 hhg_node_t *hhg_parser_parse(hhg_parser_t *parser)
@@ -64,6 +70,7 @@ hhg_node_t *hhg_parser_parse(hhg_parser_t *parser)
             break;
     }
     hhg_lexer_match(parser->lexer, EOF);
+    hhg_sym_tab_clear(parser->sym_tab);
     return prog;
 }
 
@@ -92,7 +99,7 @@ static hhg_node_t *hhg_parser_parse_expr(
 
 hhg_node_t *hhg_parser_parse_unary(hhg_parser_t *parser)
 {
-    if (hhg_token_is_type(&parser->lexer->token))
+    if (hhg_parser_is_type(parser, &parser->lexer->token))
         return hhg_parser_parse_var_decl(parser);
     switch (parser->lexer->token.type) {
     case HHG_TOKEN_ID:
@@ -127,6 +134,50 @@ hhg_node_t *hhg_parser_parse_unary(hhg_parser_t *parser)
 void hhg_parser_del(hhg_parser_t *parser)
 {
     hhg_arena_free(parser->arena);
+    hhg_sym_tab_del(parser->sym_tab);
+}
+
+static bool hhg_parser_is_type(hhg_parser_t *parser, hhg_token_t *token)
+{
+    if (token->type == HHG_TOKEN_ID) {
+        hhg_sym_t *sym = hhg_sym_tab_lookup(
+            parser->sym_tab,
+            token->str.str
+        );
+        if (sym == NULL)
+            return false;
+        switch (sym->value.type) {
+        case HHG_TYPE_CLASS:
+        case HHG_TYPE_ENUM:
+            return true;
+        default:
+            return false;
+        }
+    }
+    switch (token->type) {
+    case HHG_TOKEN_CONST:
+    case HHG_TOKEN_VOLATILE:
+    case HHG_TOKEN_I8:
+    case HHG_TOKEN_U8:
+    case HHG_TOKEN_I16:
+    case HHG_TOKEN_U16:
+    case HHG_TOKEN_I32:
+    case HHG_TOKEN_U32:
+    case HHG_TOKEN_I64:
+    case HHG_TOKEN_U64:
+    case HHG_TOKEN_INT:
+    case HHG_TOKEN_F32:
+    case HHG_TOKEN_F64:
+    case HHG_TOKEN_FLOAT:
+    case HHG_TOKEN_BOOL:
+    case HHG_TOKEN_CHAR:
+    case HHG_TOKEN_ISIZE:
+    case HHG_TOKEN_USIZE:
+    case HHG_TOKEN_TIME_T:
+        return true;
+    default:
+        return false;
+    }
 }
 
 static void hhg_parser_parse_type(hhg_parser_t *parser, hhg_type_t *type)
@@ -149,7 +200,10 @@ static void hhg_parser_parse_type(hhg_parser_t *parser, hhg_type_t *type)
             type->info.ref.ref_type = ref_type;
             break; // type is consumed by recursive call
         } else if (parser->lexer->token.type == HHG_TOKEN_ID) {
-            hhg_sym_t *sym = hhg_sym_tab_lookup(parser->lexer->token.str.str);
+            hhg_sym_t *sym = hhg_sym_tab_lookup(
+                parser->sym_tab,
+                parser->lexer->token.str.str
+            );
             if (sym == NULL) {
                 if (type->type == HHG_TYPE_NONE)
                     hhg_parser_error(
@@ -385,12 +439,15 @@ static hhg_node_t *hhg_parser_parse_class_decl(hhg_parser_t *parser)
     if (parser->lexer->token.type == HHG_TOKEN_ID) {
         class_decl->value.class_decl.id =
             hhg_parser_strdup(parser->lexer->token.str.str);
-        hhg_sym_tab_insert((hhg_sym_t) {
-            .key = class_decl->value.class_decl.id,
-            .value = (hhg_type_t) {
-                .type = HHG_TYPE_CLASS,
-            },
-        });
+        hhg_sym_tab_insert(
+            parser->sym_tab, 
+            (hhg_sym_t) {
+                .key = class_decl->value.class_decl.id,
+                .value = (hhg_type_t) {
+                    .type = HHG_TYPE_CLASS,
+                },
+            }
+        );
     }
 
     hhg_lexer_match(parser->lexer, HHG_TOKEN_ID);
