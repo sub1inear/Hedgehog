@@ -3,6 +3,8 @@
 
 #include "type.h"
 #include "token.h"
+#include "mem.h"
+#include "sym.h"
 
 static const char *const base_type_to_str[] = {
     "none",
@@ -35,6 +37,9 @@ static const char *const base_type_to_str[] = {
 
     "time_t",
 
+    "ref",
+    "arr",
+
     "func",
     "class",
     "enum",
@@ -47,6 +52,13 @@ void hhg_type_init(hhg_type_t *type)
         .is_const = false,
         .is_volatile = false,
     };
+}
+
+hhg_type_t *hhg_type_new(hhg_arena_t *arena)
+{
+    hhg_type_t *type = hhg_arena_malloc(arena, sizeof(hhg_type_t));
+    hhg_type_init(type);
+    return type;
 }
 
 hhg_base_type_t hhg_token_type_to_base_type(hhg_token_type_t token_type)
@@ -91,13 +103,30 @@ hhg_base_type_t hhg_token_type_to_base_type(hhg_token_type_t token_type)
     }
 }
 
-void hhg_type_print(hhg_type_t type)
+void hhg_type_print(hhg_type_t *type)
 {
-    if (type.is_const)
+    if (type->is_const)
         fputs("const ", stdout);
     
-    if (type.is_volatile)
+    if (type->is_volatile)
         fputs("volatile ", stdout);
 
-    fputs(base_type_to_str[type.type], stdout);
+    fputs(base_type_to_str[type->type], stdout);
+
+    switch (type->type) {
+    case HHG_TYPE_REF:
+        hhg_type_print(type->info.ref.ref_type);
+        break;
+    case HHG_TYPE_ARR:
+        printf("[%zd] of ", type->info.arr.size);
+        hhg_type_print(type->info.arr.elem_type);
+        break;
+    case HHG_TYPE_FUNC:
+    case HHG_TYPE_ENUM:
+    case HHG_TYPE_CLASS:
+        hhg_sym_print(type->info.sym);
+        break;
+    default:
+        break;
+    }
 }

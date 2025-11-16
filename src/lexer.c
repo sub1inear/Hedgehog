@@ -181,9 +181,9 @@ void hhg_lexer_match(hhg_lexer_t *lexer, hhg_token_type_t type)
 {
     if (lexer->token.type != type)
         hhg_lexer_error(
-            "expected \"%t\", got \"%t\"",
-            type,
-            lexer->token.type
+            "expected \"%s\", got \"%s\"",
+            hhg_token_type_to_str(type),
+            hhg_token_type_to_str(lexer->token.type)
         );    
 
     hhg_lexer_next(lexer);
@@ -208,9 +208,9 @@ void hhg_lexer_match_va(hhg_lexer_t *lexer, const char *summary, int32_t count, 
 
     if (i == count) {
         hhg_lexer_error(
-            "expected %s, got token \"%t\"",
+            "expected %s, got token \"%s\"",
             summary,
-            lexer->token.type
+            hhg_token_type_to_str(lexer->token.type)
         );
         return;
     }

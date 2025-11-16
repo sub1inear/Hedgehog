@@ -23,10 +23,15 @@ void hhg_sym_tab_enter_scope(void)
 
 hhg_sym_t *hhg_sym_tab_insert(hhg_sym_t sym)
 {
+
     // inserts pointer to sym into sym_tab
     shputs(sym_tab, sym);
+
+    size_t len = arrlenu(sym_key_arr);
+    assert(len > 0);
+
     // pushes sym str onto last entry of sym_key_arr
-    size_t last = arrlenu(sym_key_arr) - 1;
+    size_t last = len - 1;
     arrput(sym_key_arr[last], sym.key);
 
     hhg_sym_t *p = shgetp_null(sym_tab, sym.key);

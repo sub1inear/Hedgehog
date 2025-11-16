@@ -2,6 +2,8 @@
 #include <stdio.h>
 
 #include "token.h"
+#include "sym_tab.h"
+#include "sym.h"
 
 const char *const token_type_to_str[] = {
     // ASCII
@@ -151,7 +153,21 @@ void hhg_token_reset_aux(hhg_token_t *token)
 
 bool hhg_token_is_type(hhg_token_t *token)
 {
+    if (token->type == HHG_TOKEN_ID) {
+        hhg_sym_t *sym = hhg_sym_tab_lookup(token->str.str);
+        if (sym == NULL)
+            return false;
+        switch (sym->value.type) {
+        case HHG_TYPE_CLASS:
+        case HHG_TYPE_ENUM:
+            return true;
+        default:
+            return false;
+        }
+    }
     switch (token->type) {
+    case HHG_TOKEN_CONST:
+    case HHG_TOKEN_VOLATILE:
     case HHG_TOKEN_I8:
     case HHG_TOKEN_U8:
     case HHG_TOKEN_I16:

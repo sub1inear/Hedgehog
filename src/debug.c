@@ -4,6 +4,7 @@
 #include "parser.h"
 #include "node.h"
 #include "error.h"
+#include "sym_tab.h"
 
 void hhg_debug_lexer(const char *filename)
 {
@@ -26,6 +27,7 @@ bool hhg_debug_parser(const char *filename)
 
     hhg_parser_t parser;
     hhg_parser_init(&parser, &lexer);
+    hhg_sym_tab_enter_scope();
 
     hhg_node_t *program = hhg_parser_parse(&parser);
 
@@ -34,6 +36,7 @@ bool hhg_debug_parser(const char *filename)
     if (!result)
         hhg_node_print(program, HHG_NODE_INDENT_START);
 
+    hhg_sym_tab_exit_scope();
     hhg_parser_del(&parser);
     hhg_lexer_del(&lexer);
 

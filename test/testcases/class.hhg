@@ -11,3 +11,5 @@ class Player {
         self.y--
     }
 }
+
+Player player = 1

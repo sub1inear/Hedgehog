@@ -53,7 +53,7 @@ void arena_destroy(arena_t *arena);
 #define ARENA_PAGE_SIZE 4095
 #define ARENA_ALIGN_TO(x, align) (((x) + ((align)-1)) & ~((align)-1))
 
-typedef union _arena_max_align_t {
+typedef union arena_max_align_t {
     long double ld;
     double d;
     void *p;

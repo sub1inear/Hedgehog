@@ -8,4 +8,6 @@ typedef struct hhg_sym {
     hhg_type_t value;
 } hhg_sym_t;
 
+void hhg_sym_print(hhg_sym_t *sym);
+
 #endif
