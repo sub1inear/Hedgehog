@@ -14,6 +14,7 @@ enum hhg_node_type{
     HHG_NODE_ARG,
     HHG_NODE_FUNC_CALL,
     HHG_NODE_ARR_LITERAL,
+    HHG_NODE_OBJ_INIT,
 };
 typedef int hhg_node_type_t;
 
@@ -88,6 +89,10 @@ typedef struct hhg_field_access_t {
     hhg_node_t *next;
 } hhg_field_access_t;
 
+typedef struct hhg_obj_init {
+    hhg_node_t **args;
+} hhg_obj_init_t;
+
 typedef union hhg_node_value  {
     hhg_expr_t expr;                 // +, -, *, /, %, ==, !=, <, <=, >, >=, &&, ||
     hhg_block_t block;               // HHG_NODE_BLOCK
@@ -103,6 +108,7 @@ typedef union hhg_node_value  {
     hhg_func_call_t func_call;       // HHG_NODE_FUNC_CALL
     hhg_class_decl_t class_decl;     // HHG_TOKEN_CLASS
     hhg_field_access_t field_access; // .
+    hhg_obj_init_t obj_init;         // HHG_NODE_OBJ_INIT
 } hhg_node_value_t;
 
 struct hhg_node {

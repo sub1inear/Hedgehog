@@ -12,4 +12,7 @@ class Player {
     }
 }
 
-Player player = 1
+player = Player(1, 2, 3)
+
+player.forward()
+player.backward()

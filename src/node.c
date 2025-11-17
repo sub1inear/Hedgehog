@@ -69,6 +69,12 @@ void hhg_node_print(hhg_node_t *node, int32_t indent)
         hhg_node_print_str(node->value.var_decl.id, next_indent);
         hhg_node_print(node->value.var_decl.expr, next_indent);
         break;
+    case HHG_NODE_OBJ_INIT: {
+        size_t len = arrlenu(node->value.obj_init.args);
+        for (size_t i = 0; i < len; i++)
+            hhg_node_print(node->value.obj_init.args[i], next_indent);
+        break;
+    }
     case HHG_TOKEN_DEF: {
         hhg_node_print_str("id", next_indent);
         hhg_node_print_str(node->value.func_decl.id, next_next_indent);
