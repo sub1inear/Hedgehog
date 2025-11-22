@@ -8,6 +8,7 @@
 
 typedef struct hhg_sym hhg_sym_t;
 
+// must have <= 32 types to fit in 5 bits in hhg_type_t
 enum hhg_base_type {
     HHG_TYPE_NONE,
     HHG_TYPE_I8,
