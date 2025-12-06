@@ -159,10 +159,10 @@ static void hhg_sem_an_run_while(hhg_sem_an_t *sem_an, hhg_node_t *node)
 
 static void hhg_sem_an_run_var_decl(hhg_sem_an_t *sem_an, hhg_node_t *node)
 {
-    /* run sem an on expr first to handle x = x where x is not defined yet */
+    // run sem an on expr first to handle x = x where x is not defined yet
     hhg_sem_an_run(sem_an, node->value.var_decl.expr);
 
-    /* insert variable into symbol table if not done already */
+    // insert variable into symbol table if not done already
     hhg_sym_t *sym =
         hhg_sym_tab_lookup(sem_an->sym_tab, node->value.var_decl.id.str);
     if (sym == NULL) {
@@ -278,7 +278,7 @@ static void hhg_sem_an_run_class_decl(hhg_sem_an_t *sem_an, hhg_node_t *node)
         size_t var_decls_len = arrlenu(node->value.class_decl.var_decls);
         for (size_t i = 0; i < var_decls_len; i++) {
             hhg_node_t *var_decl = node->value.class_decl.var_decls[i];
-            /* check for redeclaration of field in class */
+            // check for redeclaration of field in class
             for (size_t j = 0; j < var_decls_len; j++) {
                 if (i == j)
                     continue;
@@ -307,7 +307,7 @@ static void hhg_sem_an_run_class_decl(hhg_sem_an_t *sem_an, hhg_node_t *node)
                 .params = NULL,
             };
 
-            /* check for redeclaration of method in class */
+            // check for redeclaration of method in class
             for (size_t j = 0; j < func_decls_len; j++) {
                 if (i == j)
                     continue;
@@ -356,7 +356,7 @@ static void hhg_sem_an_run_class_decl(hhg_sem_an_t *sem_an, hhg_node_t *node)
 
             arrput(class_type->info.class.fields, func_type);
 
-            /* update func decl node with func type */
+            // update func decl node with func type
             func_decl->value_type = func_type;
 
             hhg_sem_an_run(sem_an, func_decl->value.func_decl.body);
