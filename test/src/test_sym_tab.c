@@ -8,12 +8,22 @@
 
 int main(void)
 {
+
     hhg_sym_tab_t sym_tab;
     hhg_sym_tab_init(&sym_tab);
 
-    hhg_sym_t result_sym;
-    result_sym.key = "test";
-    hhg_type_init(&result_sym.value);
+    hhg_sym_tab_enter_scope(&sym_tab);
+
+    hhg_arena_t *arena = hhg_arena_new();
+    hhg_type_t *type = hhg_type_new(HHG_TYPE_INT, arena);
+
+    hhg_sym_t result_sym = {
+        .key = "test",
+        .value = {
+            .sym_type = HHG_SYM_VAR,
+            .type = type,
+        }
+    };
 
     hhg_sym_t *sym = hhg_sym_tab_lookup(&sym_tab, "test");
 
@@ -25,11 +35,11 @@ int main(void)
 
     hhg_unit_assert_msg(sym != NULL, "symbol lookup");
 
-    hhg_unit_assert_msg(!strcmp(sym->key, result_sym.key), "restore key");
-    hhg_unit_assert_msg(sym->value.type == result_sym.value.type, "restore type");
-    hhg_unit_assert_msg(sym->value.is_const == 0, "restore is_const");
-    hhg_unit_assert_msg(sym->value.is_volatile == result_sym.value.is_volatile, "restore is_volatile");
-
+    hhg_unit_assert_msg(
+        memcmp(sym, &result_sym, sizeof(hhg_sym_t)) == 0,
+        "restore symbol"
+    );
+    
     hhg_sym_tab_exit_scope(&sym_tab);
 
     sym = hhg_sym_tab_lookup(&sym_tab, "test");

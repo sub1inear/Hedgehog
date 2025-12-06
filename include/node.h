@@ -1,6 +1,8 @@
 #ifndef HHG_NODE_H
 #define HHG_NODE_H
 
+#include <stdbool.h>
+
 #include "token.h"
 #include "sym.h"
 #include "mem.h"
@@ -11,7 +13,7 @@
 
 enum hhg_node_type{
     HHG_NODE_BLOCK = HHG_NODE_START,
-    HHG_NODE_ARG,
+    HHG_NODE_PARAM,
     HHG_NODE_FUNC_CALL,
     HHG_NODE_ARR_LITERAL,
     HHG_NODE_OBJ_INIT,
@@ -31,12 +33,13 @@ typedef struct hhg_block {
     hhg_node_t **body;
 } hhg_block_t;
 
-typedef struct hhg_id {
-    char *id;
+typedef union hhg_id {
+    hhg_sym_t *sym;
+    char *str;
 } hhg_id_t;
 
 typedef struct hhg_var_decl {
-    char *id;
+    hhg_id_t id;
     hhg_node_t *expr;
 } hhg_var_decl_t;
 
@@ -63,29 +66,29 @@ typedef struct hhg_ret {
     hhg_node_t *expr;
 } hhg_ret_t;
 
-typedef struct hhg_arg {
-    char *arg;
-} hhg_arg_t;
+typedef struct hhg_param {
+    hhg_id_t id;
+} hhg_param_t;
 
 typedef struct hhg_func_decl {
-    char *id;
-    hhg_node_t **args;
+    hhg_id_t id;
+    hhg_node_t **params;
     hhg_node_t *body;
 } hhg_func_decl_t;
 
 typedef struct hhg_func_call {
-    char *id;
+    hhg_id_t id;
     hhg_node_t **args;
 } hhg_func_call_t;
 
 typedef struct hhg_class_decl {
-    char *id;
+    hhg_id_t id;
     hhg_node_t **var_decls;
     hhg_node_t **func_decls;
 } hhg_class_decl_t;
 
 typedef struct hhg_field_access_t {
-    char *id;
+    char *str;
     hhg_node_t *next;
 } hhg_field_access_t;
 
@@ -94,31 +97,53 @@ typedef struct hhg_obj_init {
 } hhg_obj_init_t;
 
 typedef union hhg_node_value  {
-    hhg_expr_t expr;                 // +, -, *, /, %, ==, !=, <, <=, >, >=, &&, ||
-    hhg_block_t block;               // HHG_NODE_BLOCK
-    hhg_id_t id;                     // HHG_TOKEN_ID
-    hhg_var_decl_t var_decl;         // =
-    hhg_literal_t literal;           // HHG_TOKEN_STRING_LITERAL, HHG_TOKEN_INT_LITERAL, HHG_TOKEN_FLOAT_LITERAL, HHG_TOKEN_TRUE, HHG_TOKEN_FALSE
-    hhg_arr_literal_t arr_literal;   // HHG_NODE_ARR_LITERAL
-    hhg_if_t if_stmt;                // HHG_TOKEN_IF
-    hhg_while_t while_stmt;          // HHG_TOKEN_WHILE
-    hhg_ret_t ret;                   // HHG_TOKEN_RETURN
-    hhg_arg_t arg;                   // HHG_NODE_ARG
-    hhg_func_decl_t func_decl;       // HHG_TOKEN_DEF
-    hhg_func_call_t func_call;       // HHG_NODE_FUNC_CALL
-    hhg_class_decl_t class_decl;     // HHG_TOKEN_CLASS
-    hhg_field_access_t field_access; // .
-    hhg_obj_init_t obj_init;         // HHG_NODE_OBJ_INIT
+    // +, -, *, /, %, <, >, &, ^, |
+    // HHG_TOKEN_LSHIFT, HHG_TOKEN_RSHIFT, HHG_TOKEN_EQ, HHG_TOKEN_NOT_EQ
+    // HHG_TOKEN_LT_EQ, HHG_TOKEN_GT_EQ, HHG_TOKEN_PLUS_EQ,
+    // HHG_TOKEN_SUB_EQ, HHG_TOKEN_MUL_EQ, HHG_TOKEN_DIV_EQ,
+    // HHG_TOKEN_MOD_EQ, HHG_TOKEN_AND_EQ, HHG_TOKEN_OR_EQ,
+    // HHG_TOKEN_XOR_EQ, HHG_TOKEN_LSHIFT_EQ, HHG_TOKEN_RSHIFT_EQ,
+    // HHG_TOKEN_INC, HHG_TOKEN_DEC, HHG_TOKEN_AND, HHG_TOKEN_OR,
+    hhg_expr_t expr;
+    // HHG_NODE_BLOCK
+    hhg_block_t block;
+    // HHG_TOKEN_ID
+    hhg_id_t id;
+    // =
+    hhg_var_decl_t var_decl;
+    // HHG_TOKEN_STRING_LITERAL, HHG_TOKEN_INT_LITERAL,
+    // HHG_TOKEN_FLOAT_LITERAL, HHG_TOKEN_TRUE, HHG_TOKEN_FALSE
+    hhg_literal_t literal;
+    // HHG_NODE_ARR_LITERAL
+    hhg_arr_literal_t arr_literal;
+    // HHG_TOKEN_IF
+    hhg_if_t if_stmt;
+    // HHG_TOKEN_WHILE
+    hhg_while_t while_stmt;
+    // HHG_TOKEN_RETURN
+    hhg_ret_t ret;
+    // HHG_NODE_PARAM
+    hhg_param_t param;
+    // HHG_TOKEN_DEF
+    hhg_func_decl_t func_decl;
+    // HHG_NODE_FUNC_CALL
+    hhg_func_call_t func_call;
+    // HHG_TOKEN_CLASS
+    hhg_class_decl_t class_decl;
+    // .
+    hhg_field_access_t field_access;
+    // HHG_NODE_OBJ_INIT
+    hhg_obj_init_t obj_init;
 } hhg_node_value_t;
 
 struct hhg_node {
     hhg_node_type_t type;
     hhg_node_value_t value;
-    hhg_type_t value_type;
+    hhg_type_t *value_type;
 };
 
 hhg_node_t *hhg_node_new(hhg_arena_t *arena, hhg_node_type_t type);
 
-void hhg_node_print(hhg_node_t *node, int32_t indent);
+void hhg_node_print(hhg_node_t *node, int32_t indent, bool use_sym);
 
 #endif

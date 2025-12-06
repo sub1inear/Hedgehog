@@ -1,6 +1,8 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+#include <stb_ds.h>
+
 #include "type.h"
 #include "token.h"
 #include "mem.h"
@@ -45,19 +47,19 @@ static const char *const base_type_to_str[] = {
     "enum",
 };
 
-void hhg_type_init(hhg_type_t *type)
+void hhg_type_init(hhg_type_t *type, hhg_base_type_t base)
 {
     *type = (hhg_type_t) {
-        .type = HHG_TYPE_NONE,
+        .type = base,
         .is_const = false,
         .is_volatile = false,
     };
 }
 
-hhg_type_t *hhg_type_new(hhg_arena_t *arena)
+hhg_type_t *hhg_type_new(hhg_base_type_t base, hhg_arena_t *arena)
 {
     hhg_type_t *type = hhg_arena_malloc(arena, sizeof(hhg_type_t));
-    hhg_type_init(type);
+    hhg_type_init(type, base);
     return type;
 }
 
@@ -115,18 +117,42 @@ void hhg_type_print(hhg_type_t *type)
 
     switch (type->type) {
     case HHG_TYPE_REF:
-        hhg_type_print(type->info.ref.ref_type);
+        hhg_type_print(type->info.ref.base);
         break;
     case HHG_TYPE_ARR:
         printf("[%zd] of ", type->info.arr.size);
-        hhg_type_print(type->info.arr.elem_type);
+        hhg_type_print(type->info.arr.elem);
         break;
     case HHG_TYPE_FUNC:
-    case HHG_TYPE_ENUM:
-    case HHG_TYPE_CLASS:
-        hhg_sym_print(type->info.sym);
-        break;
+        hhg_type_print(type->info.func.ret);
+        fputs(" func(", stdout);
+        size_t len = arrlenu(type->info.func.params);
+        for (size_t i = 0; i < len; i++) {
+            hhg_type_print(type->info.func.params[i]);
+            if (i < len - 1)
+                fputs(", ", stdout);
+        }
     default:
         break;
+    }
+}
+
+void hhg_type_del(hhg_type_t *type)
+{
+    switch (type->type) {
+    case HHG_TYPE_FUNC: {
+        size_t len = arrlenu(type->info.func.params);
+        for (size_t i = 0; i < len; i++)
+            hhg_type_del(type->info.func.params[i]);
+        arrfree(type->info.func.params);
+        break;
+    }
+    case HHG_TYPE_CLASS: {
+        size_t len = arrlenu(type->info.class.fields);
+        for (size_t i = 0; i < len; i++)
+            hhg_type_del(type->info.class.fields[i]);
+        arrfree(type->info.class.fields);
+        break;
+    }
     }
 }

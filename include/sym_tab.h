@@ -16,7 +16,6 @@ void hhg_sym_tab_enter_scope(hhg_sym_tab_t *sym_tab);
 
 hhg_sym_t *hhg_sym_tab_insert(hhg_sym_tab_t *sym_tab, hhg_sym_t sym);
 
-// key must be strduped; not freed during clear/exit scope/del
 hhg_sym_t *hhg_sym_tab_lookup(hhg_sym_tab_t *sym_tab, const char *key);
 
 void hhg_sym_tab_exit_scope(hhg_sym_tab_t *sym_tab);
