@@ -123,15 +123,6 @@ void hhg_type_print(hhg_type_t *type)
         printf("[%zd] of ", type->info.arr.size);
         hhg_type_print(type->info.arr.elem);
         break;
-    case HHG_TYPE_FUNC:
-        hhg_type_print(type->info.func.ret);
-        fputs(" func(", stdout);
-        size_t len = arrlenu(type->info.func.params);
-        for (size_t i = 0; i < len; i++) {
-            hhg_type_print(type->info.func.params[i]);
-            if (i < len - 1)
-                fputs(", ", stdout);
-        }
     default:
         break;
     }

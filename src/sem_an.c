@@ -166,14 +166,13 @@ static void hhg_sem_an_run_var_decl(hhg_sem_an_t *sem_an, hhg_node_t *node)
     hhg_sym_t *sym =
         hhg_sym_tab_lookup(sem_an->sym_tab, node->value.var_decl.id.str);
     if (sym == NULL) {
-        hhg_sym_t *new_sym = hhg_sym_tab_insert(sem_an->sym_tab, (hhg_sym_t) {
+        node->value.var_decl.id.sym = hhg_sym_tab_insert(sem_an->sym_tab, (hhg_sym_t) {
             .key = node->value.var_decl.id.str,
             .value = {
                 .sym_type = HHG_SYM_VAR,
                 .type = node->value_type,
             },
         });
-        node->value.var_decl.id.sym = new_sym;
     }
 }
 
@@ -209,7 +208,7 @@ static void hhg_sem_an_run_func_decl(hhg_sem_an_t *sem_an, hhg_node_t *node)
             );
 
             if (param_sym == NULL) {
-                hhg_sym_t *new_sym = hhg_sym_tab_insert(
+                param->value.param.id.sym = hhg_sym_tab_insert(
                     sem_an->sym_tab,
                     (hhg_sym_t) {
                         .key = param->value.param.id.str,
@@ -219,7 +218,6 @@ static void hhg_sem_an_run_func_decl(hhg_sem_an_t *sem_an, hhg_node_t *node)
                         },
                     }
                 );
-                param->value.param.id.sym = new_sym;
             } else
                 hhg_fatal_error(
                     "redeclaration of parameter \"%s\"",
@@ -235,9 +233,7 @@ static void hhg_sem_an_run_func_decl(hhg_sem_an_t *sem_an, hhg_node_t *node)
             },
         };
 
-        hhg_sym_t *new_sym = hhg_sym_tab_insert(sem_an->sym_tab, func_sym);
-
-        node->value.func_decl.id.sym = new_sym;
+        node->value.func_decl.id.sym = hhg_sym_tab_insert(sem_an->sym_tab, func_sym);
     } else
         hhg_fatal_error(
             "redeclaration of function \"%s\"",
@@ -249,9 +245,8 @@ static void hhg_sem_an_run_func_decl(hhg_sem_an_t *sem_an, hhg_node_t *node)
 
 static void hhg_sem_an_run_class_decl(hhg_sem_an_t *sem_an, hhg_node_t *node)
 {
-    hhg_sym_tab_enter_scope(sem_an->sym_tab);
-
-    hhg_sym_t *sym = hhg_sym_tab_lookup(sem_an->sym_tab, node->value.class_decl.id.str);
+    hhg_sym_t *sym =
+        hhg_sym_tab_lookup(sem_an->sym_tab, node->value.class_decl.id.str);
     if (sym == NULL) {
         hhg_type_t *class_type = hhg_type_new(HHG_TYPE_CLASS, sem_an->arena);
         class_type->info.class = (hhg_type_class_info_t) {
@@ -265,6 +260,11 @@ static void hhg_sem_an_run_class_decl(hhg_sem_an_t *sem_an, hhg_node_t *node)
                 .type = class_type,
             },
         };
+
+        hhg_sym_tab_enter_scope(sem_an->sym_tab);
+
+        node->value_type = class_type;
+        node->value.class_decl.id.sym = hhg_sym_tab_insert(sem_an->sym_tab, class_sym);
 
         hhg_sym_t self_sym = {
             .key = "self",
@@ -282,7 +282,8 @@ static void hhg_sem_an_run_class_decl(hhg_sem_an_t *sem_an, hhg_node_t *node)
             for (size_t j = 0; j < var_decls_len; j++) {
                 if (i == j)
                     continue;
-                hhg_node_t *other_var_decl = node->value.class_decl.var_decls[j];
+                hhg_node_t *other_var_decl =
+                    node->value.class_decl.var_decls[j];
                 if (!strcmp(
                     var_decl->value.var_decl.id.str,
                     other_var_decl->value.var_decl.id.str)
@@ -311,7 +312,8 @@ static void hhg_sem_an_run_class_decl(hhg_sem_an_t *sem_an, hhg_node_t *node)
             for (size_t j = 0; j < func_decls_len; j++) {
                 if (i == j)
                     continue;
-                hhg_node_t *other_func_decl = node->value.class_decl.func_decls[j];
+                hhg_node_t *other_func_decl =
+                    node->value.class_decl.func_decls[j];
                 if (!strcmp(
                     func_decl->value.func_decl.id.str,
                     other_func_decl->value.func_decl.id.str)
@@ -336,7 +338,7 @@ static void hhg_sem_an_run_class_decl(hhg_sem_an_t *sem_an, hhg_node_t *node)
                 );
 
                 if (param_sym == NULL) {
-                    hhg_sym_t *new_sym = hhg_sym_tab_insert(
+                    param->value.param.id.sym = hhg_sym_tab_insert(
                         sem_an->sym_tab,
                         (hhg_sym_t) {
                             .key = param->value.param.id.str,
@@ -346,7 +348,6 @@ static void hhg_sem_an_run_class_decl(hhg_sem_an_t *sem_an, hhg_node_t *node)
                             },
                         }
                     );
-                    param->value.param.id.sym = new_sym;
                 } else
                     hhg_fatal_error(
                         "redeclaration of parameter \"%s\"",
@@ -361,12 +362,6 @@ static void hhg_sem_an_run_class_decl(hhg_sem_an_t *sem_an, hhg_node_t *node)
 
             hhg_sem_an_run(sem_an, func_decl->value.func_decl.body);
         }
-
-        hhg_sym_t *new_sym = hhg_sym_tab_insert(sem_an->sym_tab, class_sym);
-
-        node->value_type = class_type;
-        node->value.class_decl.id.sym = new_sym;
-
     } else
         hhg_fatal_error(
             "redeclaration of class \"%s\"",
