@@ -11,6 +11,7 @@
 #include "type.h"
 #include "type_ctx.h"
 
+static void hhg_sem_an_run_children(hhg_sem_an_t *sem_an, hhg_node_t **children);
 static void hhg_sem_an_run_block(hhg_sem_an_t *sem_an, hhg_node_t *node);
 static void hhg_sem_an_run_id(hhg_sem_an_t *sem_an, hhg_node_t *node);
 static void hhg_sem_an_run_if(hhg_sem_an_t *sem_an, hhg_node_t *node);
@@ -125,12 +126,17 @@ void hhg_sem_an_run(hhg_sem_an_t *sem_an, hhg_node_t *node)
     }
 }
 
+static void hhg_sem_an_run_children(hhg_sem_an_t *sem_an, hhg_node_t **children)
+{
+    size_t len = arrlenu(children);
+    for (size_t i = 0; i < len; i++)
+        hhg_sem_an_run(sem_an, children[i]);
+}
+
 static void hhg_sem_an_run_block(hhg_sem_an_t *sem_an, hhg_node_t *node)
 {
     hhg_sym_tab_enter_scope(sem_an->sym_tab);
-    size_t len = arrlenu(node->value.block.body);
-    for (size_t i = 0; i < len; i++)
-        hhg_sem_an_run(sem_an, node->value.block.body[i]);
+    hhg_sem_an_run_children(sem_an, node->value.block.body);
     hhg_sym_tab_exit_scope(sem_an->sym_tab);
 }
 
@@ -178,9 +184,7 @@ static void hhg_sem_an_run_var_decl(hhg_sem_an_t *sem_an, hhg_node_t *node)
 
 static void hhg_sem_an_run_obj_init(hhg_sem_an_t *sem_an, hhg_node_t *node)
 {
-    size_t len = arrlenu(node->value.obj_init.args);
-    for (size_t i = 0; i < len; i++)
-        hhg_sem_an_run(sem_an, node->value.obj_init.args[i]);
+    hhg_sem_an_run_children(sem_an, node->value.obj_init.args);
 }
 
 static void hhg_sem_an_run_func_decl(hhg_sem_an_t *sem_an, hhg_node_t *node)
@@ -195,7 +199,7 @@ static void hhg_sem_an_run_func_decl(hhg_sem_an_t *sem_an, hhg_node_t *node)
         };
 
         node->value_type = func_type;
-
+        
         size_t len = arrlenu(node->value.func_decl.params);
         for (size_t i = 0; i < len; i++) {
             hhg_node_t *param = node->value.func_decl.params[i];
@@ -373,16 +377,12 @@ static void hhg_sem_an_run_class_decl(hhg_sem_an_t *sem_an, hhg_node_t *node)
 
 static void hhg_sem_an_run_func_call(hhg_sem_an_t *sem_an, hhg_node_t *node)
 {
-    size_t len = arrlenu(node->value.func_call.args);
-    for (size_t i = 0; i < len; i++)
-        hhg_sem_an_run(sem_an, node->value.func_call.args[i]);
+    hhg_sem_an_run_children(sem_an, node->value.func_call.args);
 }
 
 static void hhg_sem_an_run_arr_literal(hhg_sem_an_t *sem_an, hhg_node_t *node)
 {
-    size_t len = arrlenu(node->value.arr_literal.elems);
-    for (size_t i = 0; i < len; i++)
-        hhg_sem_an_run(sem_an, node->value.arr_literal.elems[i]);
+    hhg_sem_an_run_children(sem_an, node->value.arr_literal.elems);
 }
 
 static void hhg_sem_an_run_expr(hhg_sem_an_t *sem_an, hhg_node_t *node)
