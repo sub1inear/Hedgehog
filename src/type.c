@@ -139,10 +139,10 @@ void hhg_type_del(hhg_type_t *type)
         break;
     }
     case HHG_TYPE_CLASS: {
-        size_t len = arrlenu(type->info.class.fields);
+        size_t len = shlenu(type->info.class.fields);
         for (size_t i = 0; i < len; i++)
-            hhg_type_del(type->info.class.fields[i]);
-        arrfree(type->info.class.fields);
+            hhg_type_del(type->info.class.fields[i].value);
+        shfree(type->info.class.fields);
         break;
     }
     }

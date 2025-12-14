@@ -70,8 +70,13 @@ typedef struct hhg_type_func_info {
     hhg_type_t **params;
 } hhg_type_func_info_t;
 
+typedef struct hhg_type_class_field {
+    char *key;
+    hhg_type_t *value;
+} hhg_type_class_field_t;
+
 typedef struct hhg_type_class_info {
-    hhg_type_t **fields;
+    hhg_type_class_field_t *fields;
 } hhg_type_class_info_t;
 
 typedef union hhg_type_info {
