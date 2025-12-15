@@ -32,7 +32,7 @@ static void hhg_sem_an_add_class_func_decls(
     hhg_node_t *node,
     hhg_type_t *class_type
 );
-static void hhg_sem_an_add_class_method_params(
+static void hhg_sem_an_add_class_func_params(
     hhg_sem_an_t *sem_an,
     hhg_node_t *node,
     hhg_type_t *class_type
@@ -214,6 +214,7 @@ static void hhg_sem_an_run_func_decl(hhg_sem_an_t *sem_an, hhg_node_t *node)
 {
     hhg_sym_t *sym =
         hhg_sym_tab_lookup(sem_an->sym_tab, node->value.func_decl.id.str);
+    hhg_sym_tab_enter_scope(sem_an->sym_tab);
     if (sym == NULL) {
         hhg_type_t *func_type = hhg_type_new(HHG_TYPE_FUNC, sem_an->arena);
         func_type->info.func = (hhg_type_func_info_t) {
@@ -269,6 +270,7 @@ static void hhg_sem_an_run_func_decl(hhg_sem_an_t *sem_an, hhg_node_t *node)
         );
 
     hhg_sem_an_run(sem_an, node->value.func_decl.body);
+    hhg_sym_tab_exit_scope(sem_an->sym_tab);
 }
 
 static void hhg_sem_an_run_class_decl(hhg_sem_an_t *sem_an, hhg_node_t *node)
@@ -289,30 +291,34 @@ static void hhg_sem_an_run_class_decl(hhg_sem_an_t *sem_an, hhg_node_t *node)
             },
         };
 
-        hhg_sym_tab_enter_scope(sem_an->sym_tab);
 
         node->value_type = class_type;
         node->value.class_decl.id.sym =
             hhg_sym_tab_insert(sem_an->sym_tab, class_sym);
 
-        hhg_sym_t self_sym = {
+        hhg_sym_tab_enter_scope(sem_an->sym_tab);
+
+        hhg_sym_tab_insert(
+            sem_an->sym_tab,
+            (hhg_sym_t) {
             .key = "self",
-            .value = {
-                .sym_type = HHG_SYM_VAR,
-                .type = class_type,
-            },
-        };
-        hhg_sym_tab_insert(sem_an->sym_tab, self_sym);
+                .value = {
+                    .sym_type = HHG_SYM_VAR,
+                    .type = class_type,
+                },
+            }
+        );
 
         hhg_sem_an_add_class_var_decls(node, class_type);
         hhg_sem_an_add_class_func_decls(sem_an, node, class_type);
+
+        hhg_sym_tab_exit_scope(sem_an->sym_tab);
     } else
         hhg_fatal_error(
             "redeclaration of class \"%s\"",
             node->value.class_decl.id.str
         );
 
-    hhg_sym_tab_exit_scope(sem_an->sym_tab);
 }
 
 static void hhg_sem_an_add_class_var_decls(
@@ -361,7 +367,9 @@ static void hhg_sem_an_add_class_func_decls(
             .params = NULL,
         };
 
-        hhg_sem_an_add_class_method_params(sem_an, func_decl, func_type);
+        hhg_sym_tab_enter_scope(sem_an->sym_tab);
+
+        hhg_sem_an_add_class_func_params(sem_an, func_decl, func_type);
 
         hhg_type_class_field_t *entry =
             shgetp_null(
@@ -385,10 +393,12 @@ static void hhg_sem_an_add_class_func_decls(
         func_decl->value_type = func_type;
 
         hhg_sem_an_run(sem_an, func_decl->value.func_decl.body);
+
+        hhg_sym_tab_exit_scope(sem_an->sym_tab);
     }
 }
 
-static void hhg_sem_an_add_class_method_params(
+static void hhg_sem_an_add_class_func_params(
     hhg_sem_an_t *sem_an,
     hhg_node_t *node,
     hhg_type_t *func_type
