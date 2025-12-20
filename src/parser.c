@@ -27,8 +27,8 @@
     hhg_arena_strdup(parser->arena, str)
 
 typedef struct hhg_parser_cv_qual {
-    bool is_const : 1;
-    bool is_volatile : 1;
+    bool is_const;
+    bool is_volatile;
 } hhg_parser_cv_qual_t;
 
 static hhg_node_t *hhg_parser_parse_expr(
@@ -46,10 +46,7 @@ static hhg_node_t *hhg_parser_parse_obj_init(
 );
 static bool hhg_parser_is_type(hhg_parser_t *parser, hhg_token_t *token);
 static hhg_type_t *hhg_parser_parse_type(hhg_parser_t *parser);
-static void hhg_parser_parse_cv_qual(
-    hhg_parser_t *parser,
-    hhg_parser_cv_qual_t *cv_qual
-);
+static hhg_parser_cv_qual_t hhg_parser_parse_cv_qual(hhg_parser_t *parser);
 static hhg_type_t *hhg_parser_parse_base_type(hhg_parser_t *parser);
 static hhg_type_t *hhg_parser_parse_ref_type(
     hhg_parser_t *parser,
@@ -217,48 +214,46 @@ static bool hhg_parser_is_type(hhg_parser_t *parser, hhg_token_t *token)
 
 static hhg_type_t *hhg_parser_parse_type(hhg_parser_t *parser)
 {
-    hhg_parser_cv_qual_t cv_qual;
-    hhg_parser_parse_cv_qual(parser, &cv_qual);
-    
+    hhg_parser_cv_qual_t cv_qual = hhg_parser_parse_cv_qual(parser);
+
     hhg_type_t *type = hhg_parser_parse_base_type(parser);
 
     if (cv_qual.is_const || cv_qual.is_volatile) {
-        type = hhg_arena_malloc(parser->arena, sizeof(hhg_type_t));
-        *type = (hhg_type_t) {
-            .type = type->type,
-            .is_const = cv_qual.is_const,
-            .is_volatile = cv_qual.is_volatile,
-            .info = type->info
-        };
+        type = hhg_type_ctx_new_cv_type(
+            parser->type_ctx,
+            (hhg_cv_tab_key_t) {
+                .base = type,
+                .is_const = cv_qual.is_const,
+                .is_volatile = cv_qual.is_volatile,
+            }
+        );
     }
-    
+
     hhg_lexer_next(parser->lexer);
     return type;
 }
 
-static void hhg_parser_parse_cv_qual(
-    hhg_parser_t *parser,
-    hhg_parser_cv_qual_t *cv_qual
-)
+static hhg_parser_cv_qual_t hhg_parser_parse_cv_qual(hhg_parser_t *parser)
 {
-    *cv_qual = (hhg_parser_cv_qual_t) {
+    hhg_parser_cv_qual_t cv_qual = {
         .is_const = false,
         .is_volatile = false
     };
     while (true) {
         // not using switch to break out of loop
         if (parser->lexer->token.type == HHG_TOKEN_CONST) {
-            if (cv_qual->is_const)
+            if (cv_qual.is_const)
                 hhg_parser_error("more than one const in type");
-            cv_qual->is_const = true;
+            cv_qual.is_const = true;
         } else if (parser->lexer->token.type == HHG_TOKEN_VOLATILE) {
-            if (cv_qual->is_volatile)
+            if (cv_qual.is_volatile)
                 hhg_parser_error("more than one volatile in type");
-            cv_qual->is_volatile = true;
+            cv_qual.is_volatile = true;
         } else
             break;
         hhg_lexer_next(parser->lexer);
     }
+    return cv_qual;
 }
 
 static hhg_type_t *hhg_parser_parse_base_type(hhg_parser_t *parser)
@@ -309,20 +304,16 @@ static hhg_type_t *hhg_parser_parse_ref_type(
 )
 {
     while (parser->lexer->token.type == '&') {
+        hhg_parser_cv_qual_t cv_qual = hhg_parser_parse_cv_qual(parser);
+
         base = hhg_type_ctx_new_ref(
             parser->type_ctx,
             (hhg_ref_tab_key_t) {
                 .base = base,
-                .is_const = false,
-                .is_volatile = false,
+                .is_const = cv_qual.is_const,
+                .is_volatile = cv_qual.is_volatile,
             }
         );
-
-        hhg_parser_cv_qual_t cv_qual;
-        hhg_parser_parse_cv_qual(parser, &cv_qual);
-        
-        base->is_const = cv_qual.is_const;
-        base->is_volatile = cv_qual.is_volatile;
 
         hhg_lexer_next(parser->lexer);
     }

@@ -33,17 +33,19 @@ hhg_type_t *hhg_type_ctx_new_ref(
     hhg_ref_tab_t *entry = hmgetp_null(type_ctx->ref_tab, key);
 
     if (entry != NULL)
-        return entry->value;
+        return &entry->value;
 
-    hhg_type_t *ref = hhg_type_new(HHG_TYPE_REF, type_ctx->arena);
-
-    ref->info.ref.base = key.base;
-    ref->is_const = key.is_const;
-    ref->is_volatile = key.is_volatile;
+    hhg_type_t ref = {
+        .info.ref.base = key.base,
+        .is_const = key.is_const,
+        .is_volatile = key.is_volatile,
+    };
 
     hmput(type_ctx->ref_tab, key, ref);
     
-    return ref;
+    hhg_ref_tab_t *new_entry = hmgetp_null(type_ctx->ref_tab, key);
+    assert(new_entry != NULL);
+    return &new_entry->value;
 }
 
 hhg_type_t *hhg_type_ctx_new_arr(
@@ -53,14 +55,40 @@ hhg_type_t *hhg_type_ctx_new_arr(
 {
     hhg_arr_tab_t *entry = hmgetp_null(type_ctx->arr_tab, key);
     if (entry != NULL)
-        return entry->value;
-    hhg_type_t *arr = hhg_type_new(HHG_TYPE_ARR, type_ctx->arena);
+        return &entry->value;
 
-    arr->info.arr.elem = key.elem;
-    arr->info.arr.size = key.size;
+    hhg_type_t arr = {
+        .info.arr = {
+            .elem = key.elem,
+            .size = key.size,
+        }
+    };
 
     hmput(type_ctx->arr_tab, key, arr);
-    return arr;
+
+    hhg_arr_tab_t *new_entry = hmgetp_null(type_ctx->arr_tab, key);
+    assert(new_entry != NULL);
+    return &new_entry->value;
+}
+
+hhg_type_t *hhg_type_ctx_new_cv_type(
+    hhg_type_ctx_t *type_ctx,
+    hhg_cv_tab_key_t key
+)
+{
+    hhg_cv_tab_t *entry = hmgetp_null(type_ctx->cv_tab, key);
+    if (entry != NULL)
+        return &entry->value;
+
+    hhg_type_t cv_type = *key.base;
+    cv_type.is_const = key.is_const;
+    cv_type.is_volatile = key.is_volatile;
+
+    hmput(type_ctx->cv_tab, key, cv_type);
+
+    hhg_cv_tab_t *new_entry = hmgetp_null(type_ctx->cv_tab, key);
+    assert(new_entry != NULL);
+    return &new_entry->value;
 }
 
 void hhg_type_ctx_del(hhg_type_ctx_t *type_ctx)
