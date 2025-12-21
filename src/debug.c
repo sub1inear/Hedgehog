@@ -13,7 +13,7 @@ void hhg_debug_lexer(const char *filename)
 {
     hhg_lexer_t lexer;
     hhg_lexer_init(&lexer, filename);
-    
+
     while (lexer.token.type != EOF) {
         hhg_lexer_next(&lexer);
         hhg_token_print(&lexer.token);
@@ -70,7 +70,7 @@ bool hhg_debug_parser(const char *filename)
     // 7th stage: runtime execution
 
     // 8th stage: cleanup
-    // no cleanup for var_an needed currently
+    // no cleanup for sem_an needed currently
 cleanup:
     hhg_type_ctx_del(&type_ctx);
     hhg_arena_free(arena);

@@ -7,11 +7,17 @@
 #include "token.h"
 #include "file_pos.h"
 
+
 typedef struct hhg_lexer {
-    FILE *file;
+    char *text;
+    int32_t text_idx;
+    int32_t end_idx; // index from the end of the text
+
     const char *filename;
-    hhg_file_pos_t pos;
-    int32_t last_col;
+
+    hhg_file_pos_t pos;    
+    long *line_starts;
+
     bool newline;
     hhg_token_t token;
 } hhg_lexer_t;
