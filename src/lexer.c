@@ -411,9 +411,9 @@ static bool hhg_lexer_lex_default(hhg_lexer_t *lexer, int c)
             
             if (data->str[2] == c3)
                 ; // consumed three chars, nothing to do
-            else if (data->str[1] == c2) {
+            else if (data->str[1] == c2)
                 hhg_lexer_back_char(lexer); // consumed two chars, give back last
-            } else {
+            else {
                 // consumed one char, give back two
                 hhg_lexer_back_char(lexer);
                 hhg_lexer_back_char(lexer);
