@@ -7,7 +7,7 @@
 #include "node.h"
 #include "token.h"
 #include "mem.h"
-#include "error.h"
+#include "msg.h"
 
 #define HHG_NODE_INDENT_INC 4
 

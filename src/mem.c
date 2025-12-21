@@ -8,7 +8,7 @@
 #include <arena.h>
 
 #include "mem.h"
-#include "error.h"
+#include "msg.h"
 
 void *hhg_malloc(size_t size)
 {

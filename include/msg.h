@@ -1,5 +1,5 @@
-#ifndef HHG_ERROR_H
-#define HHG_ERROR_H
+#ifndef HHG_MSG_H
+#define HHG_MSG_H
 
 #include <stdint.h>
 

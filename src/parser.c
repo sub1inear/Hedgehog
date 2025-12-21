@@ -10,7 +10,7 @@
 #include "type_ctx.h"
 #include "sym.h"
 #include "sym_tab.h"
-#include "error.h"
+#include "msg.h"
 #include "mem.h"
 
 #define HHG_PREC_START 0

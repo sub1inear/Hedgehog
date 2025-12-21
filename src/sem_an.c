@@ -7,7 +7,7 @@
 #include "sym.h"
 #include "sym_tab.h"
 #include "node.h"
-#include "error.h"
+#include "msg.h"
 #include "type.h"
 #include "type_ctx.h"
 

@@ -3,7 +3,7 @@
 #include "token.h"
 #include "parser.h"
 #include "node.h"
-#include "error.h"
+#include "msg.h"
 #include "sym_tab.h"
 #include "mem.h"
 #include "type_ctx.h"

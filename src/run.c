@@ -3,7 +3,7 @@
 #include "run.h"
 #include "lexer.h"
 #include "parser.h"
-#include "error.h"
+#include "msg.h"
 #include "sym_tab.h"
 #include "type_ctx.h"
 #include "sem_an.h"

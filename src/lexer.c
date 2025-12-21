@@ -11,7 +11,7 @@
 
 #include "lexer.h"
 #include "file_pos.h"
-#include "error.h"
+#include "msg.h"
 #include "utils.h"
 #include "mem.h"
 

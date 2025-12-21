@@ -4,7 +4,7 @@
 #include <inttypes.h>
 #include <assert.h>
 
-#include "error.h"
+#include "msg.h"
 #include "mem.h"
 #include "file_pos.h"
 #include "str.h"

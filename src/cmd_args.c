@@ -7,7 +7,7 @@
 #include <optparse.h>
 
 #include "cmd_args.h"
-#include "error.h"
+#include "msg.h"
 
 static hhg_cmd_args_t cmd_args;
 
