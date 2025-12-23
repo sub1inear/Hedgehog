@@ -1,2 +1,2 @@
 def inc(i32 x)
-    return inc + 1
+    return x + 1

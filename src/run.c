@@ -12,8 +12,11 @@
 bool hhg_run(const char *filename)
 {
     // 0th stage: init
+    hhg_msg_ctx_t msg_ctx;
+    hhg_msg_ctx_init(&msg_ctx);
+
     hhg_lexer_t lexer;
-    hhg_lexer_init(&lexer, filename);
+    hhg_lexer_init(&lexer, &msg_ctx, filename);
 
     hhg_sym_tab_t sym_tab;
     hhg_sym_tab_init(&sym_tab);
@@ -25,13 +28,11 @@ bool hhg_run(const char *filename)
 
     // 1st stage: lexing, parsing
     hhg_parser_t parser;
-    hhg_parser_init(&parser, &lexer, &sym_tab, &type_ctx, arena);
+    hhg_parser_init(&parser, &lexer, &sym_tab, &type_ctx, &msg_ctx, arena);
 
     hhg_node_t *prog = hhg_parser_parse(&parser);
 
-    int32_t result = hhg_msgs_get_error_count();
-
-    if (result != 0)
+    if (msg_ctx.error_count != 0)
         goto cleanup;
 
     // 2nd stage: semantic analysis
@@ -56,5 +57,5 @@ cleanup:
     hhg_sym_tab_del(&sym_tab);
     hhg_lexer_del(&lexer);
 
-    return hhg_msgs_get_error_count();
+    return msg_ctx.error_count;
 }

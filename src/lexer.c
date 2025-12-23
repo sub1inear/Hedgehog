@@ -11,18 +11,26 @@
 
 #include "lexer.h"
 #include "file_pos.h"
+#include "file_range.h"
 #include "msg.h"
 #include "utils.h"
 #include "mem.h"
 
-#define hhg_lexer_error(...) hhg_error(lexer->pos, lexer->filename, __VA_ARGS__)
-#define hhg_lexer_warning(...) hhg_warning(lexer->pos, lexer->filename, __VA_ARGS__)
-#define hhg_lexer_info(...) hhg_info(lexer->pos, lexer->filename, __VA_ARGS__)
+#define hhg_lexer_msg(lexer, type, ...) \
+    hhg_msg(                            \
+        lexer->msg_ctx,                 \
+        type,                           \
+        &lexer->src,                    \
+        &lexer->token.range,            \
+        __VA_ARGS__                     \
+    )
 
-typedef struct hhg_file_pos_save {
-    hhg_file_pos_t pos;
-    long fpos;
-} hhg_file_pos_save_t;
+#define hhg_lexer_error(lexer, ...) \
+    hhg_lexer_msg(lexer, HHG_MSG_ERROR, __VA_ARGS__)
+#define hhg_lexer_warning(lexer, ...) \
+    hhg_lexer_msg(lexer, HHG_MSG_WARNING, __VA_ARGS__)
+#define hhg_lexer_info(lexer, ...) \
+    hhg_lexer_msg(lexer, HHG_MSG_INFO, __VA_ARGS__)
 
 static const hhg_op_data_t op_data[] = {                                         
     { { '<' , '<' , '='  },  HHG_TOKEN_LSHIFT_EQ, 1  },
@@ -124,11 +132,6 @@ static const hhg_keyword_data_t keyword_data[] = {
     { "volatile", HHG_TOKEN_VOLATILE },
 };
 
-static void hhg_lexer_save_pos(hhg_lexer_t *lexer,
-                               hhg_file_pos_save_t *save);
-static void hhg_lexer_restore_pos(hhg_lexer_t *lexer,
-                                  hhg_file_pos_save_t *save);
-
 static int hhg_lexer_next_char(hhg_lexer_t *lexer);
 static void hhg_lexer_back_char(hhg_lexer_t *lexer);
 static void hhg_lexer_lex_id(hhg_lexer_t *lexer, int c);
@@ -137,8 +140,13 @@ static void hhg_lexer_lex_str_literal(hhg_lexer_t *lexer, int c);
 static void hhg_lexer_lex_char_literal(hhg_lexer_t *lexer, int c);
 static bool hhg_lexer_lex_default(hhg_lexer_t *lexer, int c);
 
-void hhg_lexer_init(hhg_lexer_t *lexer, const char *filename)
+void hhg_lexer_init(
+    hhg_lexer_t *lexer,
+    hhg_msg_ctx_t *msg_ctx,
+    const char *filename
+)
 {
+    // open file in binary mode to avoid \r\n issues on Windows
     FILE *file = fopen(filename, "rb");
     if (file == NULL)
         hhg_fatal_error("%s: %s", filename, strerror(errno));
@@ -158,64 +166,75 @@ void hhg_lexer_init(hhg_lexer_t *lexer, const char *filename)
 
     rewind(file);
 
-    lexer->text = hhg_malloc(fsize + 1); // leave space for null char
-    
-    size_t read = fread(lexer->text, sizeof(char), fsize, file);
+    lexer->src.txt = hhg_malloc(fsize + 1); // leave space for null char
+
+    size_t read = fread(lexer->src.txt, sizeof(char), fsize, file);
     if (ferror(file) && read != fsize) // check for read error, not just EOF
         hhg_fatal_error("reading %s: %s", filename, strerror(errno));
 
-    lexer->text[fsize] = '\0';
+    lexer->src.txt[fsize] = '\0';
+    lexer->src.filename = filename;
 
-    lexer->text_idx = 0;
+    lexer->txt_idx = 0;
     lexer->end_idx = 0;
-
-    lexer->filename = filename;
+    
+    lexer->src.line_starts = NULL;
+    arrput(lexer->src.line_starts, 0);
 
     hhg_file_pos_init(&lexer->pos);
-    
-    lexer->line_starts = NULL;
-    arrput(lexer->line_starts, 0);
 
     lexer->newline = false;
+
+    lexer->msg_ctx = msg_ctx;
 
     hhg_token_init(&lexer->token);
 }
 
 void hhg_lexer_next(hhg_lexer_t *lexer)
 {
-    hhg_token_reset_aux(&lexer->token);
     lexer->newline = false;
+    hhg_token_reset_aux(&lexer->token);
     while (true) {
         int c = hhg_lexer_next_char(lexer);
         if (c == ' ' || c == '\t' || c == '\r')
             ;
         else if (c == '\n')
             lexer->newline = true;
-        else if (isalpha(c) || c == '_') {
-            hhg_lexer_lex_id(lexer, c);
-            return;
-        } else if (isdigit(c))  {
-            hhg_lexer_lex_num(lexer, c);
-            return;
-        } else if (c == '"') {
-            hhg_lexer_lex_str_literal(lexer, c);
-            return;
-        } else if (c == '\'') {
-            hhg_lexer_lex_char_literal(lexer, c);
-            return;
-        } else if (c == EOF) {
-            lexer->token.type = EOF;
-            return;
-        } else if (hhg_lexer_lex_default(lexer, c))
-            return;
+        else {
+            lexer->token.range.start = (hhg_file_pos_t){
+                .line = lexer->pos.line,
+                // first character has already been consumed so decrement
+                .col = lexer->pos.col - 1,
+            };
+            if (isalpha(c) || c == '_') {
+                hhg_lexer_lex_id(lexer, c);
+                break;
+            } else if (isdigit(c))  {
+                hhg_lexer_lex_num(lexer, c);
+                break;
+            } else if (c == '"') {
+                hhg_lexer_lex_str_literal(lexer, c);
+                break;
+            } else if (c == '\'') {
+                hhg_lexer_lex_char_literal(lexer, c);
+                break;
+            } else if (c == EOF) {
+                lexer->token.type = EOF;
+                break;
+            } else if (hhg_lexer_lex_default(lexer, c))
+                break;
+        }
     }
+    lexer->token.range.end = lexer->pos;
 }
 
 void hhg_lexer_match(hhg_lexer_t *lexer, hhg_token_type_t type)
 {
     if (lexer->token.type != type)
         hhg_lexer_error(
+            lexer,
             "expected \"%s\", got \"%s\"",
+            "here",
             hhg_token_type_to_str(type),
             hhg_token_type_to_str(lexer->token.type)
         );    
@@ -223,7 +242,12 @@ void hhg_lexer_match(hhg_lexer_t *lexer, hhg_token_type_t type)
     hhg_lexer_next(lexer);
 }
 
-void hhg_lexer_match_va(hhg_lexer_t *lexer, const char *summary, int32_t count, ...)
+void hhg_lexer_match_va(
+    hhg_lexer_t *lexer,
+    const char *summary,
+    int32_t count,
+    ...
+)
 {
     va_list va;
     va_start(va, count);
@@ -241,7 +265,9 @@ void hhg_lexer_match_va(hhg_lexer_t *lexer, const char *summary, int32_t count, 
 
     if (i == count) {
         hhg_lexer_error(
+            lexer,
             "expected %s, got token \"%s\"",
+            "here",
             summary,
             hhg_token_type_to_str(lexer->token.type)
         );
@@ -254,21 +280,22 @@ void hhg_lexer_match_va(hhg_lexer_t *lexer, const char *summary, int32_t count, 
 void hhg_lexer_del(hhg_lexer_t *lexer)
 {
     hhg_token_del(&lexer->token);
-    hhg_free(lexer->text);
+    arrfree(lexer->src.line_starts);
+    hhg_free(lexer->src.txt);
 }
 
 static int hhg_lexer_next_char(hhg_lexer_t *lexer)
 {
-    char c = lexer->text[lexer->text_idx];
+    char c = lexer->src.txt[lexer->txt_idx];
     if (c == '\0') {
         lexer->end_idx++;
         return EOF;
     } else {
-        lexer->text_idx++;
+        lexer->txt_idx++;
         if (c == '\n') {
-            lexer->pos.col = 1;
+            lexer->pos.col = 0;
             lexer->pos.line++;
-            arrput(lexer->line_starts, lexer->text_idx);
+            arrput(lexer->src.line_starts, lexer->txt_idx);
         } else
             lexer->pos.col++;
     }
@@ -282,12 +309,14 @@ static void hhg_lexer_back_char(hhg_lexer_t *lexer)
         return;
     }
 
-    lexer->text_idx--;
+    lexer->txt_idx--;
 
-    if (lexer->pos.col == 1) {
+    if (lexer->pos.col == 0) {
+        // if backing across newline, set col to the end of the previous line
+        lexer->pos.col = 
+            lexer->src.line_starts[lexer->pos.line] -
+            lexer->src.line_starts[lexer->pos.line - 1];
         lexer->pos.line--;
-        // line starts at 1 but array is 0-indexed so lookup after decrement
-        lexer->pos.col = lexer->line_starts[lexer->pos.line] - 1;
     } else
         lexer->pos.col--;
 }
@@ -324,8 +353,7 @@ static void hhg_lexer_lex_num(hhg_lexer_t *lexer, int c)
 
     lexer->token.type = HHG_TOKEN_INT_LITERAL;
 
-    char *decimal_pos = strchr(lexer->token.str.str, '.');
-    if (decimal_pos != NULL)
+    if (seen_decimal)
         lexer->token.type = HHG_TOKEN_FLOAT_LITERAL;
 
     return;
@@ -338,7 +366,11 @@ static void hhg_lexer_lex_str_literal(hhg_lexer_t *lexer, int c)
         c = hhg_lexer_next_char(lexer);
         // not using switch to break out of loop
         if (c == EOF) {
-            hhg_lexer_error("unexpected EOF in string literal");
+            hhg_lexer_error(
+                lexer,
+                "unexpected EOF in string literal",
+                NULL
+            );
             break;
         } else if (c == '\\') {
             hhg_str_append_char(&lexer->token.str, '\\');
@@ -371,7 +403,11 @@ static void hhg_lexer_lex_char_literal(hhg_lexer_t *lexer, int c)
     if (c == '\'')
         hhg_str_append_char(&lexer->token.str, c);
     else
-        hhg_lexer_error("character constant is too long");
+        hhg_lexer_error(
+            lexer,
+            "character constant is too long",
+            NULL
+        );
 
     lexer->token.type = HHG_TOKEN_CHAR_LITERAL;
 }
@@ -393,7 +429,11 @@ static bool hhg_lexer_lex_default(hhg_lexer_t *lexer, int c)
                 c2 = c;
                 c = hhg_lexer_next_char(lexer);
                 if (c == EOF) {
-                    hhg_lexer_error("unexpected EOF in multi-line comment");
+                    hhg_lexer_error(
+                        lexer,
+                        "unexpected EOF in multi-line comment",
+                        NULL
+                    );
                     break;
                 }
             } while (c2 != '*' || c != '/');

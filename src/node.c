@@ -8,6 +8,7 @@
 #include "token.h"
 #include "mem.h"
 #include "msg.h"
+#include "file_range.h"
 
 #define HHG_NODE_INDENT_INC 4
 
@@ -35,6 +36,8 @@ void hhg_node_print(hhg_node_t *node, int32_t indent, bool use_sym)
     hhg_node_print_indent(indent);
 
     hhg_token_type_print((hhg_token_type_t)node->type);
+    putchar(' ');
+    hhg_file_range_print(&node->range);
     putchar('\n');
 
     int32_t next_indent = indent + HHG_NODE_INDENT_INC;
@@ -143,6 +146,9 @@ void hhg_node_print(hhg_node_t *node, int32_t indent, bool use_sym)
     }
     case HHG_TOKEN_TRUE:
     case HHG_TOKEN_FALSE:
+        break;
+    case HHG_TOKEN_RETURN:
+        hhg_node_print(node->value.ret.expr, next_indent, use_sym);
         break;
     case HHG_NODE_ARR_LITERAL: {
         size_t len = arrlenu(node->value.arr_literal.elems);

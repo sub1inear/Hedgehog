@@ -5,6 +5,7 @@
 #include <limits.h>
 
 #include "str.h"
+#include "file_range.h"
 
 #define HHG_TOKEN_START UCHAR_MAX
 enum hhg_token_type {
@@ -115,6 +116,7 @@ typedef struct hhg_token {
     hhg_token_type_t type;
     hhg_str_t str;
     int32_t prec;
+    hhg_file_range_t range;
 } hhg_token_t;
 
 void hhg_token_init(hhg_token_t *token);

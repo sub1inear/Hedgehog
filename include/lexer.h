@@ -7,19 +7,27 @@
 #include "token.h"
 #include "file_pos.h"
 
+typedef struct hhg_msg_ctx hhg_msg_ctx_t;
+
+typedef struct hhg_src {
+    char *txt; // terminated with '\0' but EOF is used for tokens
+    const char *filename;
+    int32_t *line_starts;
+} hhg_src_t;
 
 typedef struct hhg_lexer {
-    char *text;
-    int32_t text_idx;
+    hhg_src_t src;
+
+    int32_t txt_idx;
     int32_t end_idx; // index from the end of the text
-
-    const char *filename;
-
-    hhg_file_pos_t pos;    
-    long *line_starts;
+    
+    hhg_file_pos_t pos;
 
     bool newline;
+
     hhg_token_t token;
+
+    hhg_msg_ctx_t *msg_ctx;
 } hhg_lexer_t;
 
 typedef struct hhg_op_data {
@@ -33,12 +41,21 @@ typedef struct hhg_keyword_data {
     hhg_token_type_t type;
 } hhg_keyword_data_t;
 
-void hhg_lexer_init(hhg_lexer_t *lexer, const char *filename);
+void hhg_lexer_init(
+    hhg_lexer_t *lexer,
+    hhg_msg_ctx_t *msg_ctx,
+    const char *filename
+);
 void hhg_lexer_del(hhg_lexer_t *lexer);
 
 void hhg_lexer_next(hhg_lexer_t *lexer);
 
 void hhg_lexer_match(hhg_lexer_t *lexer, hhg_token_type_t type);
-void hhg_lexer_match_va(hhg_lexer_t *lexer, const char *summary, int32_t count, ...);
+void hhg_lexer_match_va(
+    hhg_lexer_t *lexer,
+    const char *summary,
+    int32_t count,
+    ...
+);
 
 #endif

@@ -5,61 +5,177 @@
 #include <assert.h>
 
 #include "msg.h"
+#include "lexer.h"
 #include "mem.h"
 #include "file_pos.h"
+#include "file_range.h"
 #include "str.h"
 #include "token.h"
 
-static int32_t error_count;
+#define HHG_ANSI_COLOR_CLEAR "\x1b[0m"
+#define HHG_ANSI_COLOR_RED "\x1b[1;31m"
+#define HHG_ANSI_COLOR_YELLOW "\x1b[1;33m"
+
+/*
+Message format:
+<level>: <message>
+       --> <filename>:<line>:<col>
+ <line> | <source line>
+        | ^~~~ <note> (optional)
+(repeat for each line in range)
+*/
+
+static int32_t hhg_msg_num_digits(int32_t num);
+static void hhg_msg_print_src_line(
+    hhg_src_t *src,
+    int32_t line,
+    int32_t line_width
+);
+static void hhg_msg_print_indicator(
+    int32_t start,
+    int32_t end,
+    size_t line_width
+);
+
+void hhg_msg_ctx_init(hhg_msg_ctx_t *msg_ctx)
+{
+    msg_ctx->error_count = 0;
+}
 
 void hhg_msg(
+    hhg_msg_ctx_t *msg_ctx,
     hhg_msg_type_t type,
-    hhg_file_pos_t pos,
-    const char *filename,
-    const char *fmt,
+    hhg_src_t *src,
+    hhg_file_range_t *range,
+    const char *msg,
+    const char *note,
     ...
 )
 {
-    va_list va;
-
-    va_start(va, fmt);
+    va_list va_msg;
+    va_list va_note;
+    va_start(va_msg, note);
+    va_copy(va_note, va_msg);
 
     switch (type) {
     case HHG_MSG_ERROR:
-        error_count++;
-        fputs("\x1b[1;31m" "error: ", stderr);
+        msg_ctx->error_count++;
+        fputs(HHG_ANSI_COLOR_RED "error" HHG_ANSI_COLOR_CLEAR ": ", stderr);
         break;
     case HHG_MSG_WARNING:
-        fputs("\x1b[1;33m" "warning: ", stderr);
+        fputs(
+            HHG_ANSI_COLOR_YELLOW "warning" HHG_ANSI_COLOR_CLEAR ": ",
+            stderr
+        );
         break;
     case HHG_MSG_INFO:
         fputs("info: ", stderr);
         break;
     }
 
-    fprintf(stderr, "%s:%" PRIi32  ":%" PRIi32 ": ",
-            filename, pos.line, pos.col);
+    vfprintf(stderr, msg, va_msg);
 
-    vfprintf(stderr, fmt, va);
-    
-    fputs("\n" "\x1b[0m", stderr);
+    int32_t max_line_width = 0;
+    for (int32_t line = range->start.line; line <= range->end.line; line++) {
+        // line is 0-indexed but printed as 1-indexed so need to increment
+        int32_t line_width = hhg_msg_num_digits(line + 1);
+        if (line_width > max_line_width)
+            max_line_width = line_width;
+    }
 
-    va_end(va);
+    fputc('\n', stderr);
+
+    for (int32_t i = 0; i < max_line_width; i++)
+        fputc(' ', stderr);
+
+    fprintf(stderr, "--> %s:", src->filename);
+
+    hhg_file_pos_fprint(&range->start, stderr);
+
+    fputc('\n', stderr);
+
+    for (int32_t line = range->start.line; line <= range->end.line; line++) {
+        hhg_msg_print_src_line(src, line, max_line_width);
+
+        int32_t start_col = line == range->start.line ? range->start.col : 0;
+        int32_t end_col = line == range->end.line ? range->end.col :
+            src->line_starts[line + 1] - src->line_starts[line];
+
+        hhg_msg_print_indicator(start_col, end_col, max_line_width);
+        if (line != range->end.line)
+            fputc('\n', stderr);
+    }
+
+    if (note) {
+        fputc(' ', stderr);
+        vfprintf(stderr, note, va_note);
+    }
+
+    fputs("\n\n", stderr);
+
+    va_end(va_note);
+    va_end(va_msg);
 }
 
 void hhg_fatal_error(const char *fmt, ...) {
     va_list va;
     va_start(va, fmt);
 
-    fputs("\x1b[1;31m" "fatal error: ", stderr);
+    fputs(HHG_ANSI_COLOR_RED "fatal error" HHG_ANSI_COLOR_CLEAR ": ", stderr);
     vfprintf(stderr, fmt, va);
-    fputs("\n" "\x1b[0m", stderr);
-
+    fputc('\n', stderr);
     va_end(va);
     exit(EXIT_FAILURE);
 }
 
-int32_t hhg_msgs_get_error_count(void)
+// could be faster but simplicity is more important
+static int32_t hhg_msg_num_digits(int32_t num)
 {
-    return error_count;
+    if (num <= 0)
+        return 0;
+
+    if (num >= 1000000000) return 10;
+    if (num >= 100000000)  return 9;
+    if (num >= 10000000)   return 8;
+    if (num >= 1000000)    return 7;
+    if (num >= 100000)     return 6;
+    if (num >= 10000)      return 5;
+    if (num >= 1000)       return 4;
+    if (num >= 100)        return 3;
+    if (num >= 10)         return 2;
+    return 1;
+}
+
+static void hhg_msg_print_src_line(
+    hhg_src_t *src,
+    int32_t line,
+    int32_t line_width
+)
+{
+    fprintf(stderr, "%*" PRIi32 " | ", line_width, line + 1);
+    
+    char *ptr = &src->txt[src->line_starts[line]];
+
+    // src->txt is null-terminated
+    while (*ptr != '\n' && *ptr != '\0') {
+        fputc(*ptr, stderr);
+        ptr++;
+    }
+    fputc('\n', stderr);
+}
+
+static void hhg_msg_print_indicator(
+    int32_t start,
+    int32_t end,
+    size_t line_width
+)
+{
+    for (size_t i = 0; i < line_width; i++)
+        fputc(' ', stderr);
+    fputs(" | ", stderr);
+    for (int32_t i = 0; i < start; i++)
+        fputc(' ', stderr);
+    fputc('^', stderr);
+    for (int32_t i = start + 1; i < end; i++)
+        fputc('~', stderr);
 }

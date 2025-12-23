@@ -4,6 +4,7 @@
 #include "token.h"
 #include "sym_tab.h"
 #include "sym.h"
+#include "file_range.h"
 
 const char *const token_type_to_str[] = {
     // ASCII
@@ -143,6 +144,7 @@ void hhg_token_init(hhg_token_t *token)
 {
     token->type = HHG_TOKEN_NONE;
     hhg_str_init(&token->str);
+    hhg_file_range_init(&token->range);
 }
 
 void hhg_token_reset_aux(hhg_token_t *token)
@@ -172,6 +174,9 @@ void hhg_token_print(hhg_token_t *token)
         fputs("null", stdout);
         break;
     }
+    fputs(", range = ", stdout);
+
+    hhg_file_range_print(&token->range);
 
     fputs(" }", stdout);
 }

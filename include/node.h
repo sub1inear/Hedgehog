@@ -6,6 +6,7 @@
 #include "token.h"
 #include "sym.h"
 #include "mem.h"
+#include "file_range.h"
 
 #define HHG_NODE_INDENT_START 0
 
@@ -140,6 +141,7 @@ struct hhg_node {
     hhg_node_type_t type;
     hhg_node_value_t value;
     hhg_type_t *value_type;
+    hhg_file_range_t range;
 };
 
 hhg_node_t *hhg_node_new(hhg_arena_t *arena, hhg_node_type_t type);
