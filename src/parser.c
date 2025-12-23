@@ -149,7 +149,7 @@ hhg_node_t *hhg_parser_parse_unary(hhg_parser_t *parser)
         hhg_type_t *type = hhg_parser_parse_type(parser);
         switch (parser->lexer->token.type) {
         case HHG_TOKEN_ID:
-            return hhg_parser_parse_var_decl(parser, type);
+            return hhg_parser_parse_var_decl(parser, type); 
         case '(':
             return hhg_parser_parse_obj_init(parser, type);
         default:

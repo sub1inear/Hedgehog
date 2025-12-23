@@ -38,6 +38,7 @@ static void hhg_sem_an_add_class_func_params(
     hhg_type_t *class_type
 );
 static void hhg_sem_an_run_func_call(hhg_sem_an_t *sem_an, hhg_node_t *node);
+static void hhg_sem_an_run_return(hhg_sem_an_t *sem_an, hhg_node_t *node);
 static void hhg_sem_an_run_arr_literal(hhg_sem_an_t *sem_an, hhg_node_t *node);
 static void hhg_sem_an_run_expr(hhg_sem_an_t *sem_an, hhg_node_t *node);
 static void hhg_sem_an_run_inc_dec(hhg_sem_an_t *sem_an, hhg_node_t *node);
@@ -89,6 +90,9 @@ void hhg_sem_an_run(hhg_sem_an_t *sem_an, hhg_node_t *node)
     case HHG_NODE_FUNC_CALL:
         hhg_sem_an_run_func_call(sem_an, node);
         break;
+    case HHG_TOKEN_RETURN:
+        hhg_sem_an_run_return(sem_an, node);
+        break;
     case HHG_NODE_ARR_LITERAL:
         hhg_sem_an_run_arr_literal(sem_an, node);
         break;
@@ -126,7 +130,6 @@ void hhg_sem_an_run(hhg_sem_an_t *sem_an, hhg_node_t *node)
     case HHG_TOKEN_DEC:
         hhg_sem_an_run_inc_dec(sem_an, node);
         break;
-    case HHG_TOKEN_RETURN:
     case HHG_TOKEN_TRUE:
     case HHG_TOKEN_FALSE:
     case HHG_NODE_PARAM:
@@ -169,6 +172,7 @@ static void hhg_sem_an_run_id(hhg_sem_an_t *sem_an, hhg_node_t *node)
             "undefined variable \"%s\"",
             node->value.id.str
         );
+    node->value.id.sym = sym;
 }
 
 static void hhg_sem_an_run_if(hhg_sem_an_t *sem_an, hhg_node_t *node)
@@ -437,6 +441,11 @@ static void hhg_sem_an_add_class_func_params(
 static void hhg_sem_an_run_func_call(hhg_sem_an_t *sem_an, hhg_node_t *node)
 {
     hhg_sem_an_run_children(sem_an, node->value.func_call.args);
+}
+
+static void hhg_sem_an_run_return(hhg_sem_an_t *sem_an, hhg_node_t *node)
+{
+    hhg_sem_an_run(sem_an, node->value.ret.expr);
 }
 
 static void hhg_sem_an_run_arr_literal(hhg_sem_an_t *sem_an, hhg_node_t *node)
