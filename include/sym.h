@@ -28,7 +28,7 @@ typedef struct hhg_sym {
     hhg_sym_value_t value;
 } hhg_sym_t;
 
-// allocated by string hash map
+// allocated by sym tab
 
 void hhg_sym_print(hhg_sym_t *sym);
 

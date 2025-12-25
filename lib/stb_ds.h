@@ -448,6 +448,12 @@ CREDITS
 #define sh_new_arena  stbds_sh_new_arena
 #define sh_new_strdup stbds_sh_new_strdup
 
+#define pshput      stbds_pshput
+#define pshgeti     stbds_pshgeti
+#define pshget      stbds_pshget
+#define pshget_null stbds_pshget_null
+#define pshdel      stbds_pshdel
+
 #define stralloc    stbds_stralloc
 #define strreset    stbds_strreset
 #endif
@@ -652,7 +658,9 @@ extern void * stbds_shmode_func(size_t elemsize, int mode);
 #define stbds_shgets(t, k) (*stbds_shgetp(t,k))
 #define stbds_shget(t, k)  (stbds_shgetp(t,k)->value)
 #define stbds_shgetp_null(t,k)  (stbds_shgeti(t,k) == -1 ? NULL : &(t)[stbds_temp((t)-1)])
+#define stbds_pshget_null(t,k)  (stbds_pshgeti(t,k) == -1 ? NULL : (t)[stbds_temp((t)-1)])
 #define stbds_shlen        stbds_hmlen
+
 
 typedef struct
 {
@@ -678,6 +686,7 @@ struct stbds_string_arena
 
 #define STBDS_HM_BINARY         0
 #define STBDS_HM_STRING         1
+#define STBDS_HM_PTR_TO_STRING  2
 
 enum
 {
@@ -1202,10 +1211,16 @@ size_t stbds_hash_bytes(void *p, size_t len, size_t seed)
 
 static int stbds_is_key_equal(void *a, size_t elemsize, void *key, size_t keysize, size_t keyoffset, int mode, size_t i)
 {
-  if (mode >= STBDS_HM_STRING)
-    return 0==strcmp((char *) key, * (char **) ((char *) a + elemsize*i + keyoffset));
-  else
-    return 0==memcmp(key, (char *) a + elemsize*i + keyoffset, keysize);
+  if (mode == STBDS_HM_PTR_TO_STRING) {
+    // array element is a pointer to a struct whose key is at offset keyoffset
+    void *elem_ptr = *(void **)((char *) a + elemsize*i);
+    return 0 == strcmp((char *) key, *(char **) ((char *) elem_ptr + keyoffset));
+  } else if (mode >= STBDS_HM_STRING) {
+    // array element directly contains the key pointer at keyoffset
+    return 0 == strcmp((char *) key, *(char **) ((char *) a + elemsize*i + keyoffset));
+  } else {
+    return 0 == memcmp(key, (char *) a + elemsize*i + keyoffset, keysize);
+  }
 }
 
 #define STBDS_HASH_TO_ARR(x,elemsize) ((char*) (x) - (elemsize))
@@ -1499,19 +1514,31 @@ void * stbds_hmdel_key(void *a, size_t elemsize, void *key, size_t keysize, size
         b->hash[i] = STBDS_HASH_DELETED;
         b->index[i] = STBDS_INDEX_DELETED;
 
-        if (mode == STBDS_HM_STRING && table->string.mode == STBDS_SH_STRDUP)
+        if (mode == STBDS_HM_STRING && table->string.mode == STBDS_SH_STRDUP) {
+          // key stored directly in the array element
           STBDS_FREE(NULL, *(char**) ((char *) a+elemsize*old_index));
+        } else if (mode == STBDS_HM_PTR_TO_STRING && table->string.mode == STBDS_SH_STRDUP) {
+          // array element is a pointer to a struct; free the strdup'ed key inside the pointed struct
+          void *elem_ptr = *(void **)((char *) a + elemsize*old_index);
+          STBDS_FREE(NULL, *(char**) ((char *) elem_ptr + keyoffset));
+        }
 
-        // if indices are the same, memcpy is a no-op, but back-pointer-fixup will fail, so skip
-        if (old_index != final_index) {
-          // swap delete
-          memmove((char*) a + elemsize*old_index, (char*) a + elemsize*final_index, elemsize);
+         // if indices are the same, memcpy is a no-op, but back-pointer-fixup will fail, so skip
+         if (old_index != final_index) {
+           // swap delete
+           memmove((char*) a + elemsize*old_index, (char*) a + elemsize*final_index, elemsize);
 
-          // now find the slot for the last element
-          if (mode == STBDS_HM_STRING)
-            slot = stbds_hm_find_slot(a, elemsize, *(char**) ((char *) a+elemsize*old_index + keyoffset), keysize, keyoffset, mode);
-          else
-            slot = stbds_hm_find_slot(a, elemsize,  (char* ) a+elemsize*old_index + keyoffset, keysize, keyoffset, mode);
+           // now find the slot for the last element
+           if (mode == STBDS_HM_STRING) {
+             // key pointer is stored directly in the array element
+             slot = stbds_hm_find_slot(a, elemsize, *(char**) ((char *) a + elemsize*old_index + keyoffset), keysize, keyoffset, mode);
+           } else if (mode == STBDS_HM_PTR_TO_STRING) {
+             // array element is a pointer to a struct whose key is at offset keyoffset
+             void *elem_ptr = *(void **)((char *) a + elemsize*old_index);
+             slot = stbds_hm_find_slot(a, elemsize, *(char**) ((char *) elem_ptr + keyoffset), keysize, keyoffset, mode);
+           } else {
+             slot = stbds_hm_find_slot(a, elemsize, (char *) a + elemsize*old_index + keyoffset, keysize, keyoffset, mode);
+           }
           STBDS_ASSERT(slot >= 0);
           b = &table->storage[slot >> STBDS_BUCKET_SHIFT];
           i = slot & STBDS_BUCKET_MASK;

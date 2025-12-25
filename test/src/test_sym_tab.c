@@ -5,16 +5,17 @@
 #include "unit.h"
 #include "sym.h"
 #include "sym_tab.h"
+#include "mem.h"
 
 int main(void)
 {
+    hhg_arena_t *arena = hhg_arena_new();
 
     hhg_sym_tab_t sym_tab;
-    hhg_sym_tab_init(&sym_tab);
+    hhg_sym_tab_init(&sym_tab, arena);
 
     hhg_sym_tab_enter_scope(&sym_tab);
 
-    hhg_arena_t *arena = hhg_arena_new();
     hhg_type_t *type = hhg_type_new(HHG_TYPE_INT, arena);
 
     hhg_sym_t result_sym = {

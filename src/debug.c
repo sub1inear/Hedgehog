@@ -35,10 +35,11 @@ bool hhg_debug_parser(const char *filename)
     hhg_lexer_t lexer;
     hhg_lexer_init(&lexer, &msg_ctx, filename);
 
-    hhg_sym_tab_t sym_tab;
-    hhg_sym_tab_init(&sym_tab);
-
     hhg_arena_t *arena = hhg_arena_new();
+
+    hhg_sym_tab_t sym_tab;
+    hhg_sym_tab_init(&sym_tab, arena);
+
     
     hhg_type_ctx_t type_ctx;
     hhg_type_ctx_init(&type_ctx, arena);

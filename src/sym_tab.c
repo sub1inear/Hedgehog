@@ -11,10 +11,13 @@
 #define STBDS_FREE(context, ptr) hhg_free(ptr)
 #include <stb_ds.h>
 
-void hhg_sym_tab_init(hhg_sym_tab_t *sym_tab)
+void hhg_sym_tab_init(hhg_sym_tab_t *sym_tab, hhg_arena_t *arena)
 {
-    sym_tab->tab = NULL;
-    sym_tab->key_arr = NULL;
+    *sym_tab = (hhg_sym_tab_t) {
+        .tab = NULL,
+        .key_arr = NULL,
+        .arena = arena,
+    };
 }
 
 void hhg_sym_tab_enter_scope(hhg_sym_tab_t *sym_tab)
@@ -22,26 +25,28 @@ void hhg_sym_tab_enter_scope(hhg_sym_tab_t *sym_tab)
     arrput(sym_tab->key_arr, NULL);
 }
 
+// currently fixing all calls of hhg_sym_tab_insert to pass sym by value
 hhg_sym_t *hhg_sym_tab_insert(hhg_sym_tab_t *sym_tab, hhg_sym_t sym)
 {
+    hhg_sym_t *new_sym = hhg_arena_malloc(sym_tab->arena, sizeof(hhg_sym_t));
+    *new_sym = sym;
+
     // inserts pointer to sym into sym_tab
-    shputs(sym_tab->tab, sym);
+    pshput(sym_tab->tab, new_sym);
 
     size_t len = arrlenu(sym_tab->key_arr);
     assert(len > 0);
 
     // pushes sym str onto last entry of sym_key_arr
     size_t last = len - 1;
-    arrput(sym_tab->key_arr[last], sym.key);
+    arrput(sym_tab->key_arr[last], new_sym->key);
 
-    hhg_sym_t *p = shgetp_null(sym_tab->tab, sym.key);
-    assert(p != NULL);
-    return p;
+    return new_sym;
 }
 
 hhg_sym_t *hhg_sym_tab_lookup(hhg_sym_tab_t *sym_tab, const char *key)
 {
-    return shgetp_null(sym_tab->tab, key);
+    return pshget_null(sym_tab->tab, key);
 }
 
 void hhg_sym_tab_exit_scope(hhg_sym_tab_t *sym_tab)
@@ -52,9 +57,7 @@ void hhg_sym_tab_exit_scope(hhg_sym_tab_t *sym_tab)
         size_t last = outer_len - 1;
         size_t inner_len = arrlenu(sym_tab->key_arr[last]);
         for (size_t i = 0; i < inner_len; i++) {
-            hhg_sym_del(shgetp_null(sym_tab->tab, sym_tab->key_arr[last][i]));
-
-            ptrdiff_t result = shdel(sym_tab->tab, sym_tab->key_arr[last][i]);
+            ptrdiff_t result = pshdel(sym_tab->tab, sym_tab->key_arr[last][i]);
             assert(result); // ensure key was in table (otherwise corruption)
         }
         arrfree(sym_tab->key_arr[last]);
