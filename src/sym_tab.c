@@ -25,7 +25,6 @@ void hhg_sym_tab_enter_scope(hhg_sym_tab_t *sym_tab)
     arrput(sym_tab->key_arr, NULL);
 }
 
-// currently fixing all calls of hhg_sym_tab_insert to pass sym by value
 hhg_sym_t *hhg_sym_tab_insert(hhg_sym_tab_t *sym_tab, hhg_sym_t sym)
 {
     hhg_sym_t *new_sym = hhg_arena_malloc(sym_tab->arena, sizeof(hhg_sym_t));
