@@ -7,6 +7,7 @@
 #include "mem.h"
 
 typedef struct hhg_sym hhg_sym_t;
+typedef struct hhg_type_ctx hhg_type_ctx_t;
 
 // must have <= 32 types to fit in 5 bits in hhg_type_t
 enum hhg_base_type {
@@ -76,6 +77,7 @@ typedef struct hhg_type_class_field {
 } hhg_type_class_field_t;
 
 typedef struct hhg_type_class_info {
+    hhg_sym_t *sym;
     hhg_type_class_field_t *fields;
 } hhg_type_class_info_t;
 
@@ -93,10 +95,39 @@ struct hhg_type {
     hhg_type_info_t info;
 };
 
+typedef struct hhg_type_promote {
+    hhg_type_t *l;
+    hhg_type_t *r;
+} hhg_type_promote_t;
+
 void hhg_type_init(hhg_type_t *type, hhg_base_type_t base);
 hhg_type_t *hhg_type_new(hhg_base_type_t base, hhg_arena_t *arena);
 
 hhg_base_type_t hhg_token_type_to_base_type(hhg_token_type_t token_type);
+
+// checks type equality
+// if strict is true, const/volatile qualifiers must match
+// if strict is false, r can be more qualified than l
+// (const int = int but not vice versa)
+bool hhg_type_eq(hhg_type_t *l, hhg_type_t *r, bool strict);
+
+// promotes arithmetic (l + r)
+// returns true on failure
+// follows modified C arithmetic conversion rules
+bool hhg_type_arith_promote(
+    hhg_type_promote_t *result,
+    hhg_type_t *l,
+    hhg_type_t *r,
+    hhg_type_ctx_t *type_ctx
+);
+
+// promotes assignment (l = r, func(l, r))
+// returns NULL on failure
+hhg_type_t *hhg_type_assign_promote(
+    hhg_type_t *l,
+    hhg_type_t *r
+);
+
 void hhg_type_print(hhg_type_t *type);
 
 void hhg_type_del(hhg_type_t *type);
