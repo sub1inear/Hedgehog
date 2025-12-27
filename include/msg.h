@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#include "file_pos.h"
+#include "file_src.h"
 #include "file_range.h"
 
 typedef struct hhg_src hhg_src_t;
@@ -23,7 +23,7 @@ void hhg_msg_ctx_init(hhg_msg_ctx_t *msg_ctx);
 void hhg_msg(
     hhg_msg_ctx_t *msg_ctx,
     hhg_msg_type_t type,
-    hhg_src_t *src,
+    hhg_file_src_t *src,
     hhg_file_range_t *range,
     const char *msg, // main message
     const char *note, // additional note (can be NULL)

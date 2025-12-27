@@ -10,6 +10,7 @@
 #include <stb_ds.h>
 
 #include "lexer.h"
+#include "file_src.h"
 #include "file_pos.h"
 #include "file_range.h"
 #include "msg.h"
@@ -146,61 +147,10 @@ void hhg_lexer_init(
     const char *filename
 )
 {
-    FILE *file = fopen(filename, "r");
-    if (file == NULL)
-        hhg_fatal_error(
-            "%s: error opening file: %s",
-            filename,
-            strerror(errno)
-        );
-
-    // read file into lexer->src.txt
-    // use realloc instead of fseek+ftell to
-    // support stdin and avoid \r\n issues on Windows
-    size_t psize = 0;
-    size_t fsize = 4096;
-    lexer->src.txt = NULL;
-    while (true) {
-        // allocate more space
-        lexer->src.txt = hhg_realloc(lexer->src.txt, fsize);
-
-        // read file chunk
-        size_t to_read = fsize - psize;
-        size_t nread =
-            fread(
-                lexer->src.txt + psize,
-                sizeof(char),
-                to_read,
-                file
-            );
-        // check if end of file reached
-        if (nread < to_read) {
-            if (ferror(file))
-                hhg_fatal_error(
-                    "%s: error reading file: %s",
-                    filename,
-                    strerror(errno)
-                );
-            // shrink buffer to actual size + 1 for '\0'
-            lexer->src.txt = hhg_realloc(lexer->src.txt, psize + nread + 1);
-            lexer->src.txt[psize + nread] = '\0';
-            break;
-        }
-        // double buffer size and save previous size
-        // no need to overflow check as size_t is the size of the address space
-        psize = fsize;
-        fsize *= 2;
-    }
-
-    fclose(file);
-
-    lexer->src.filename = filename;
+    hhg_file_src_init(&lexer->src, filename);
 
     lexer->txt_idx = 0;
     lexer->end_idx = 0;
-    
-    lexer->src.line_starts = NULL;
-    arrput(lexer->src.line_starts, 0);
 
     hhg_file_pos_init(&lexer->pos);
     hhg_file_pos_init(&lexer->last_pos);
@@ -304,8 +254,7 @@ void hhg_lexer_match_va(
 void hhg_lexer_del(hhg_lexer_t *lexer)
 {
     hhg_token_del(&lexer->token);
-    arrfree(lexer->src.line_starts);
-    hhg_free(lexer->src.txt);
+    hhg_file_src_del(&lexer->src);
 }
 
 static int hhg_lexer_next_char(hhg_lexer_t *lexer)

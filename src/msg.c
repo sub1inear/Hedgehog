@@ -8,6 +8,7 @@
 #include "lexer.h"
 #include "mem.h"
 #include "file_pos.h"
+#include "file_src.h"
 #include "file_range.h"
 #include "str.h"
 #include "token.h"
@@ -27,7 +28,7 @@ Message format:
 
 static int32_t hhg_msg_num_digits(int32_t num);
 static void hhg_msg_print_src_line(
-    hhg_src_t *src,
+    hhg_file_src_t *src,
     int32_t line,
     int32_t line_width
 );
@@ -45,7 +46,7 @@ void hhg_msg_ctx_init(hhg_msg_ctx_t *msg_ctx)
 void hhg_msg(
     hhg_msg_ctx_t *msg_ctx,
     hhg_msg_type_t type,
-    hhg_src_t *src,
+    hhg_file_src_t *src,
     hhg_file_range_t *range,
     const char *msg,
     const char *note,
@@ -147,7 +148,7 @@ static int32_t hhg_msg_num_digits(int32_t num)
 }
 
 static void hhg_msg_print_src_line(
-    hhg_src_t *src,
+    hhg_file_src_t *src,
     int32_t line,
     int32_t line_width
 )

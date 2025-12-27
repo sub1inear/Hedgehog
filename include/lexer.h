@@ -5,18 +5,13 @@
 #include <stdbool.h>
 
 #include "token.h"
+#include "file_src.h"
 #include "file_pos.h"
 
 typedef struct hhg_msg_ctx hhg_msg_ctx_t;
 
-typedef struct hhg_src {
-    char *txt; // terminated with '\0' but EOF is used for tokens
-    const char *filename;
-    int32_t *line_starts;
-} hhg_src_t;
-
 typedef struct hhg_lexer {
-    hhg_src_t src;
+    hhg_file_src_t src;
 
     int32_t txt_idx;
     int32_t end_idx; // index from the end of the text
