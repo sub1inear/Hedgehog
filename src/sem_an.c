@@ -267,6 +267,8 @@ static void hhg_sem_an_run_func_decl(hhg_sem_an_t *sem_an, hhg_node_t *node)
 
         node->value.func_decl.id.sym =
             hhg_sym_tab_insert(sem_an->sym_tab, func_sym);
+
+        func_type->info.func.sym = node->value.func_decl.id.sym;
     } else
         hhg_fatal_error(
             "redeclaration of function \"%s\"",
@@ -299,6 +301,8 @@ static void hhg_sem_an_run_class_decl(hhg_sem_an_t *sem_an, hhg_node_t *node)
         node->value_type = class_type;
         node->value.class_decl.id.sym =
             hhg_sym_tab_insert(sem_an->sym_tab, class_sym);
+
+        class_type->info.class.sym = node->value.class_decl.id.sym;
 
         hhg_sym_tab_enter_scope(sem_an->sym_tab);
 

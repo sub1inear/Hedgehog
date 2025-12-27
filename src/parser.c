@@ -52,6 +52,7 @@ static hhg_node_t *hhg_parser_parse_expr(
     int32_t min_prec
 );
 static hhg_node_t *hhg_parser_parse_unary(hhg_parser_t *parser);
+static hhg_node_t *hhg_parser_parse_unary_core(hhg_parser_t *parser);
 static hhg_node_t *hhg_parser_parse_var_decl(
     hhg_parser_t *parser,
     hhg_type_t *type
@@ -104,6 +105,8 @@ hhg_node_t *hhg_parser_parse(hhg_parser_t *parser)
     hhg_sym_tab_enter_scope(parser->sym_tab);
 
     hhg_lexer_next(parser->lexer);
+    
+    hhg_file_pos_t start_pos = parser->lexer->token.range.start;
 
     while (parser->lexer->token.type != EOF) {
         arrput(
@@ -114,6 +117,11 @@ hhg_node_t *hhg_parser_parse(hhg_parser_t *parser)
             break;
     }
     hhg_lexer_match(parser->lexer, EOF);
+
+    prog->range = (hhg_file_range_t) {
+        .start = start_pos,
+        .end = parser->lexer->token.range.end
+    };
 
     hhg_sym_tab_exit_scope(parser->sym_tab);
     hhg_sym_tab_clear(parser->sym_tab);
@@ -137,14 +145,30 @@ static hhg_node_t *hhg_parser_parse_expr(
 
         new_left->value.expr.right = hhg_parser_parse_expr(parser, prec);
 
+        new_left->range = (hhg_file_range_t) {
+            .start = left->range.start,
+            .end = new_left->value.expr.right->range.end
+        };
+
         left = new_left;
+    
     }
 
     return left;
 }
 
-hhg_node_t *hhg_parser_parse_unary(hhg_parser_t *parser)
+static hhg_node_t *hhg_parser_parse_unary(hhg_parser_t *parser)
 {
+    hhg_file_pos_t start_pos = parser->lexer->token.range.start;
+    hhg_node_t *node = hhg_parser_parse_unary_core(parser);
+    node->range = (hhg_file_range_t) {
+        .start = start_pos,
+        .end = parser->lexer->last_pos
+    };
+    return node;
+}
+
+static hhg_node_t *hhg_parser_parse_unary_core(hhg_parser_t *parser) {
     if (hhg_parser_is_type(parser, &parser->lexer->token)) {
         hhg_type_t *type = hhg_parser_parse_type(parser);
         switch (parser->lexer->token.type) {
@@ -154,7 +178,7 @@ hhg_node_t *hhg_parser_parse_unary(hhg_parser_t *parser)
             return hhg_parser_parse_obj_init(parser, type);
         default:
             hhg_parser_error(parser, "invalid syntax after type", "here");
-            return NULL;
+            return hhg_parser_node_new(HHG_TOKEN_NONE);
         }
     }
     switch (parser->lexer->token.type) {
@@ -183,7 +207,7 @@ hhg_node_t *hhg_parser_parse_unary(hhg_parser_t *parser)
         return hhg_parser_parse_block(parser);
     default:
         hhg_parser_error(parser, "invalid syntax", "here");
-        return NULL;
+        return hhg_parser_node_new(HHG_TOKEN_NONE);
     }
 }
 
@@ -534,11 +558,19 @@ static hhg_node_t *hhg_parser_parse_func_decl(hhg_parser_t *parser)
            parser->lexer->token.type != EOF) {
         hhg_node_t *param = hhg_parser_node_new(HHG_NODE_PARAM);
 
+        hhg_file_pos_t start_pos = parser->lexer->token.range.start;
+
         param->value_type = hhg_parser_parse_type(parser);
 
         if (parser->lexer->token.type == HHG_TOKEN_ID)
             param->value.param.id.str =
                 hhg_parser_strdup(parser->lexer->token.str.str);
+
+        param->range = (hhg_file_range_t) {
+            .start = start_pos,
+            .end = parser->lexer->token.range.end
+        };
+
         hhg_lexer_match(parser->lexer, HHG_TOKEN_ID);
 
         arrput(func_decl->value.func_decl.params, param);

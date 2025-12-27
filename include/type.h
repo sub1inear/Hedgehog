@@ -67,6 +67,7 @@ typedef struct hhg_type_arr_info {
 } hhg_type_arr_info_t;
 
 typedef struct hhg_type_func_info {
+    hhg_sym_t *sym;
     hhg_type_t *ret;
     hhg_type_t **params;
 } hhg_type_func_info_t;

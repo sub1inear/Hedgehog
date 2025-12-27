@@ -127,23 +127,21 @@ bool hhg_type_eq(hhg_type_t *l, hhg_type_t *r, bool strict)
     if (l == r)
         return true;
 
+    // if we are being strict, exit
+    if (strict)
+        return false;
+
+    // otherwise, compare allowing qualifiers to differ
+
     // eliminate base case
     if (l->type != r->type)
         return false;
 
-    if (strict) {
-        // enforce strict const/volatile matching
-        if (l->is_const != r->is_const)
-            return false;
-        if (l->is_volatile != r->is_volatile)
-            return false;
-    } else {
-        // allow r to be more qualified than l
-        if (l->is_const && !r->is_const)
-            return false;
-        if (l->is_volatile && !r->is_volatile)
-            return false;
-    }
+    // allow r to be more qualified than l
+    if (l->is_const && !r->is_const)
+        return false;
+    if (l->is_volatile && !r->is_volatile)
+        return false;
 
     // compare type info for complex types
     switch (l->type) {
@@ -152,6 +150,8 @@ bool hhg_type_eq(hhg_type_t *l, hhg_type_t *r, bool strict)
     case HHG_TYPE_ARR:
         return l->info.arr.size == r->info.arr.size &&
             hhg_type_eq(l->info.arr.elem, r->info.arr.elem, strict);
+    case HHG_TYPE_FUNC:
+        return l->info.func.sym == r->info.func.sym;
     case HHG_TYPE_CLASS:
         return l->info.class.sym == r->info.class.sym;
     default:

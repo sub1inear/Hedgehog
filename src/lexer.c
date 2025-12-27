@@ -182,6 +182,7 @@ void hhg_lexer_init(
     arrput(lexer->src.line_starts, 0);
 
     hhg_file_pos_init(&lexer->pos);
+    hhg_file_pos_init(&lexer->last_pos);
 
     lexer->newline = false;
 
@@ -201,6 +202,7 @@ void hhg_lexer_next(hhg_lexer_t *lexer)
         else if (c == '\n')
             lexer->newline = true;
         else {
+            // past whitespace, start lexing token
             lexer->token.range.start = (hhg_file_pos_t){
                 .line = lexer->pos.line,
                 // first character has already been consumed so decrement
@@ -225,6 +227,7 @@ void hhg_lexer_next(hhg_lexer_t *lexer)
                 break;
         }
     }
+    lexer->last_pos = lexer->token.range.end;
     lexer->token.range.end = lexer->pos;
 }
 

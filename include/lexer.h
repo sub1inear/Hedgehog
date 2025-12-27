@@ -22,6 +22,7 @@ typedef struct hhg_lexer {
     int32_t end_idx; // index from the end of the text
     
     hhg_file_pos_t pos;
+    hhg_file_pos_t last_pos;
 
     bool newline;
 
@@ -46,7 +47,6 @@ void hhg_lexer_init(
     hhg_msg_ctx_t *msg_ctx,
     const char *filename
 );
-void hhg_lexer_del(hhg_lexer_t *lexer);
 
 void hhg_lexer_next(hhg_lexer_t *lexer);
 
@@ -57,5 +57,7 @@ void hhg_lexer_match_va(
     int32_t count,
     ...
 );
+
+void hhg_lexer_del(hhg_lexer_t *lexer);
 
 #endif
