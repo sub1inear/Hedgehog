@@ -146,33 +146,54 @@ void hhg_lexer_init(
     const char *filename
 )
 {
-    // open file in binary mode to avoid \r\n issues on Windows
-    FILE *file = fopen(filename, "rb");
+    FILE *file = fopen(filename, "r");
     if (file == NULL)
-        hhg_fatal_error("%s: %s", filename, strerror(errno));
-
-    // read file into lexer->text
-    int seek = fseek(file, 0, SEEK_END);
-    if (seek != 0)
-        hhg_fatal_error("seeking in %s: %s", filename, strerror(errno));
-    
-    long fsize = ftell(file);
-    if (fsize == -1)
         hhg_fatal_error(
-            "getting file position in %s: %s",
+            "%s: error opening file: %s",
             filename,
             strerror(errno)
         );
 
-    rewind(file);
+    // read file into lexer->src.txt
+    // use realloc instead of fseek+ftell to
+    // support stdin and avoid \r\n issues on Windows
+    size_t psize = 0;
+    size_t fsize = 4096;
+    lexer->src.txt = NULL;
+    while (true) {
+        // allocate more space
+        lexer->src.txt = hhg_realloc(lexer->src.txt, fsize);
 
-    lexer->src.txt = hhg_malloc(fsize + 1); // leave space for null char
+        // read file chunk
+        size_t to_read = fsize - psize;
+        size_t nread =
+            fread(
+                lexer->src.txt + psize,
+                sizeof(char),
+                to_read,
+                file
+            );
+        // check if end of file reached
+        if (nread < to_read) {
+            if (ferror(file))
+                hhg_fatal_error(
+                    "%s: error reading file: %s",
+                    filename,
+                    strerror(errno)
+                );
+            // shrink buffer to actual size + 1 for '\0'
+            lexer->src.txt = hhg_realloc(lexer->src.txt, psize + nread + 1);
+            lexer->src.txt[psize + nread] = '\0';
+            break;
+        }
+        // double buffer size and save previous size
+        // no need to overflow check as size_t is the size of the address space
+        psize = fsize;
+        fsize *= 2;
+    }
 
-    size_t read = fread(lexer->src.txt, sizeof(char), fsize, file);
-    if (ferror(file) && read != fsize) // check for read error, not just EOF
-        hhg_fatal_error("reading %s: %s", filename, strerror(errno));
+    fclose(file);
 
-    lexer->src.txt[fsize] = '\0';
     lexer->src.filename = filename;
 
     lexer->txt_idx = 0;
