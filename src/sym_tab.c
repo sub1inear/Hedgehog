@@ -2,11 +2,12 @@
 #include <stddef.h>
 #include <assert.h>
 
+#include <stb_ds.h>
+
 #include "sym_tab.h"
 #include "sym.h"
 #include "mem.h"
-
-#include <stb_ds.h>
+#include "utils.h"
 
 void hhg_sym_tab_init(hhg_sym_tab_t *sym_tab, hhg_arena_t *arena)
 {
@@ -57,7 +58,7 @@ void hhg_sym_tab_exit_scope(hhg_sym_tab_t *sym_tab)
             assert(result); // ensure key was in table (otherwise corruption)
         }
         arrfree(sym_tab->key_arr[last]);
-        (void)arrpop(sym_tab->key_arr);
+        HHG_UNUSED(arrpop(sym_tab->key_arr));
     }
 }
 
