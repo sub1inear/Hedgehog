@@ -619,10 +619,11 @@ static hhg_node_t *hhg_parser_parse_class_decl(hhg_parser_t *parser)
         if (parser->lexer->token.type == HHG_TOKEN_DEF)
             arrput(
                 class_decl->value.class_decl.func_decls,
-                hhg_parser_parse_func_decl(parser)
+                hhg_parser_parse_unary(parser) // use parse_unary to get range
             );
         else {
             hhg_node_t *var_decl = hhg_parser_node_new('=');
+            var_decl->range.start = parser->lexer->token.range.start;
             var_decl->value_type = hhg_parser_parse_type(parser);
             
             if (var_decl->value_type == NULL)
@@ -635,6 +636,8 @@ static hhg_node_t *hhg_parser_parse_class_decl(hhg_parser_t *parser)
             if (parser->lexer->token.type == HHG_TOKEN_ID)
                 var_decl->value.var_decl.id.str =
                     hhg_parser_strdup(parser->lexer->token.str.str);
+
+            var_decl->range.end = parser->lexer->token.range.end;
 
             hhg_lexer_match(parser->lexer, HHG_TOKEN_ID);
             arrput(class_decl->value.class_decl.var_decls, var_decl);
