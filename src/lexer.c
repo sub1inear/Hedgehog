@@ -177,7 +177,8 @@ void hhg_lexer_next(hhg_lexer_t *lexer)
             lexer->token.range.start = (hhg_file_pos_t){
                 .line = lexer->pos.line,
                 // first character has already been consumed so decrement
-                .col = lexer->pos.col - 1,
+                // exception: EOF is not consumed
+                .col = c == EOF ? lexer->pos.col : lexer->pos.col - 1,
             };
             if (isalpha(c) || c == '_') {
                 hhg_lexer_lex_id(lexer, c);
@@ -288,8 +289,9 @@ static void hhg_lexer_back_char(hhg_lexer_t *lexer)
         // if backing across newline, set col to the end of the previous line
         lexer->pos.col = 
             lexer->src.line_starts[lexer->pos.line] -
-            lexer->src.line_starts[lexer->pos.line - 1];
+            lexer->src.line_starts[lexer->pos.line - 1] - 1;
         lexer->pos.line--;
+        HHG_UNUSED(arrpop(lexer->src.line_starts));
     } else
         lexer->pos.col--;
 }

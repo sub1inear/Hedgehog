@@ -18,7 +18,7 @@ int main(int argc, char **argv)
     bool result = false;
 
     if (cmd_args->filename != NULL)
-        result = hhg_run(cmd_args->filename);
+        result = hhg_debug_parser(cmd_args->filename);
 
     hhg_mem_print_summary();
 
