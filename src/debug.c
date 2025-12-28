@@ -8,6 +8,7 @@
 #include "mem.h"
 #include "type_ctx.h"
 #include "sem_an.h"
+#include "run.h"
 
 void hhg_debug_lexer(const char *filename)
 {
@@ -50,8 +51,10 @@ bool hhg_debug_parser(const char *filename)
 
     hhg_node_t *prog = hhg_parser_parse(&parser);
 
-    if (msg_ctx.error_count != 0)
-        goto cleanup;
+    if (msg_ctx.error_count != 0) {
+        hhg_run_cleanup(&type_ctx, arena, &sym_tab, &lexer);
+        return msg_ctx.error_count;
+    }
 
     // 2nd stage: semantic analysis
     hhg_sem_an_t sem_an;
@@ -62,21 +65,9 @@ bool hhg_debug_parser(const char *filename)
     if (msg_ctx.error_count == 0)
         hhg_node_print(prog, HHG_NODE_INDENT_START, true);
 
-    // 3th stage: memory analysis
-
-    // 4th stage: optimization
-
-    // 5th stage: code generation
-
-    // 6th stage: runtime execution
+    // ...
 
     // 7th stage: cleanup
-cleanup:
-    // no cleanup for sem_an needed currently
-    hhg_type_ctx_del(&type_ctx);
-    hhg_arena_free(arena);
-    hhg_sym_tab_del(&sym_tab);
-    hhg_lexer_del(&lexer);
-
+    hhg_run_cleanup(&type_ctx, arena, &sym_tab, &lexer);
     return msg_ctx.error_count;
 }

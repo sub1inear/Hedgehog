@@ -32,8 +32,10 @@ bool hhg_run(const char *filename)
 
     hhg_node_t *prog = hhg_parser_parse(&parser);
 
-    if (msg_ctx.error_count != 0)
-        goto cleanup;
+    if (msg_ctx.error_count != 0) {
+        hhg_run_cleanup(&type_ctx, arena, &sym_tab, &lexer);
+        return msg_ctx.error_count;
+    }
 
     // 2nd stage: semantic analysis
     hhg_sem_an_t sem_an;
@@ -50,12 +52,19 @@ bool hhg_run(const char *filename)
     // 6th stage: runtime execution
 
     // 7th stage: cleanup
-    // no cleanup for sem_an needed currently
-cleanup:
-    hhg_type_ctx_del(&type_ctx);
-    hhg_arena_free(arena);
-    hhg_sym_tab_del(&sym_tab);
-    hhg_lexer_del(&lexer);
-
+    hhg_run_cleanup(&type_ctx, arena, &sym_tab, &lexer);
     return msg_ctx.error_count;
+}
+
+void hhg_run_cleanup(
+    hhg_type_ctx_t *type_ctx,
+    hhg_arena_t *arena,
+    hhg_sym_tab_t *sym_tab,
+    hhg_lexer_t *lexer
+)
+{
+    hhg_type_ctx_del(type_ctx);
+    hhg_arena_free(arena);
+    hhg_sym_tab_del(sym_tab);
+    hhg_lexer_del(lexer);
 }
