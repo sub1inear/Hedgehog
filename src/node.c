@@ -23,8 +23,6 @@ hhg_node_t *hhg_node_new(hhg_arena_t *arena, hhg_node_type_t type)
     // initialize type and set other fields to NULL portably
     *node = (hhg_node_t) { .type = type };
 
-    node->value_type = hhg_type_new(HHG_TYPE_NONE, arena);
-
     return node;
 }
 
@@ -36,8 +34,11 @@ void hhg_node_print(hhg_node_t *node, int32_t indent, bool use_sym)
     hhg_node_print_indent(indent);
 
     hhg_token_type_print((hhg_token_type_t)node->type);
-    putchar(' ');
-    hhg_file_range_print(&node->range);
+    
+    if (node->value_type) {
+        putchar(' ');
+        hhg_type_print(node->value_type);
+    }
     putchar('\n');
 
     int32_t next_indent = indent + HHG_NODE_INDENT_INC;

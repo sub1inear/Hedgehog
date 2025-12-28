@@ -251,6 +251,11 @@ hhg_type_t *hhg_type_assign_promote(
 
 void hhg_type_print(hhg_type_t *type)
 {
+    if (type == NULL) {
+        fputs("none", stdout);
+        return;
+    }
+
     if (type->is_const)
         fputs("const ", stdout);
     

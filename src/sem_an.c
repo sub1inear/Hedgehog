@@ -1,4 +1,6 @@
 #include <stdbool.h>
+#include <inttypes.h>
+#include <stdio.h>
 #include <string.h>
 
 #include <stb_ds.h>
@@ -10,6 +12,22 @@
 #include "msg.h"
 #include "type.h"
 #include "type_ctx.h"
+#include "utils.h"
+
+static hhg_base_type_t int_literal_base_types[] = {
+    HHG_TYPE_I32,
+    HHG_TYPE_U32,
+    HHG_TYPE_I64,
+    HHG_TYPE_U64
+};
+
+static uint64_t int_literal_base_maxes[] = {
+    INT32_MAX,
+    UINT32_MAX,
+    INT64_MAX,
+    UINT64_MAX
+};
+
 
 static void hhg_sem_an_run_children(
     hhg_sem_an_t *sem_an,
@@ -42,6 +60,16 @@ static void hhg_sem_an_run_return(hhg_sem_an_t *sem_an, hhg_node_t *node);
 static void hhg_sem_an_run_arr_literal(hhg_sem_an_t *sem_an, hhg_node_t *node);
 static void hhg_sem_an_run_expr(hhg_sem_an_t *sem_an, hhg_node_t *node);
 static void hhg_sem_an_run_inc_dec(hhg_sem_an_t *sem_an, hhg_node_t *node);
+static void hhg_sem_an_run_bool_literal(hhg_sem_an_t *sem_an, hhg_node_t *node);
+static void hhg_sem_an_run_string_literal(
+    hhg_sem_an_t *sem_an,
+    hhg_node_t *node
+);
+static void hhg_sem_an_run_int_literal(hhg_sem_an_t *sem_an, hhg_node_t *node);
+static void hhg_sem_an_run_float_literal(
+    hhg_sem_an_t *sem_an,
+    hhg_node_t *node
+);
 
 void hhg_sem_an_init(
     hhg_sem_an_t *sem_an,
@@ -132,10 +160,18 @@ void hhg_sem_an_run(hhg_sem_an_t *sem_an, hhg_node_t *node)
         break;
     case HHG_TOKEN_TRUE:
     case HHG_TOKEN_FALSE:
-    case HHG_NODE_PARAM:
+        hhg_sem_an_run_bool_literal(sem_an, node);
+        break;
     case HHG_TOKEN_STRING_LITERAL:
+        hhg_sem_an_run_string_literal(sem_an, node);
+        break;
     case HHG_TOKEN_INT_LITERAL:
+        hhg_sem_an_run_int_literal(sem_an, node);
+        break;
     case HHG_TOKEN_FLOAT_LITERAL:
+        hhg_sem_an_run_float_literal(sem_an, node);
+        break;
+    case HHG_NODE_PARAM:
         break;
     default:
         hhg_fatal_error(
@@ -466,4 +502,49 @@ static void hhg_sem_an_run_expr(hhg_sem_an_t *sem_an, hhg_node_t *node)
 static void hhg_sem_an_run_inc_dec(hhg_sem_an_t *sem_an, hhg_node_t *node)
 {
     hhg_sem_an_run(sem_an, node->value.expr.left);
+}
+
+static void hhg_sem_an_run_bool_literal(hhg_sem_an_t *sem_an, hhg_node_t *node)
+{
+    node->value_type = hhg_type_ctx_get_builtin(
+        sem_an->type_ctx,
+        HHG_TYPE_BOOL
+    );
+}
+
+static void hhg_sem_an_run_string_literal(
+    hhg_sem_an_t *sem_an,
+    hhg_node_t *node
+)
+{
+    node->value_type = hhg_type_ctx_new_arr(
+        sem_an->type_ctx,
+        (hhg_arr_tab_key_t) {
+            .elem = hhg_type_ctx_get_builtin(sem_an->type_ctx, HHG_TYPE_CHAR),
+            .size = strlen(node->value.literal.str) + 1 /* null char */,
+        }
+    );
+}
+
+static void hhg_sem_an_run_int_literal(hhg_sem_an_t *sem_an, hhg_node_t *node)
+{
+    uint64_t val = 0;
+    sscanf(node->value.literal.str, "%" SCNu64, &val);
+
+    for (size_t i = 0; i < HHG_ARR_SIZE(int_literal_base_maxes); i++) {
+        if (val <= int_literal_base_maxes[i]) {
+            node->value_type = hhg_type_ctx_get_builtin(sem_an->type_ctx, int_literal_base_types[i]);
+            return;
+        }
+    }
+
+    hhg_fatal_error("integer literal \"%s\" is too large", node->value.literal.str);
+}
+
+static void hhg_sem_an_run_float_literal(
+    hhg_sem_an_t *sem_an,
+    hhg_node_t *node
+)
+{
+    node->value_type = hhg_type_ctx_get_builtin(sem_an->type_ctx, HHG_TYPE_F32);
 }
