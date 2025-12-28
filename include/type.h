@@ -106,28 +106,10 @@ hhg_type_t *hhg_type_new(hhg_base_type_t base, hhg_arena_t *arena);
 
 hhg_base_type_t hhg_token_type_to_base_type(hhg_token_type_t token_type);
 
-// checks type equality
-// if strict is true, const/volatile qualifiers must match
-// if strict is false, r can be more qualified than l
-// (const int = int but not vice versa)
-bool hhg_type_eq(hhg_type_t *l, hhg_type_t *r, bool strict);
+bool hhg_base_type_is_arith(hhg_token_type_t token_type);
 
-// promotes arithmetic (l + r)
-// returns true on failure
-// follows modified C arithmetic conversion rules
-bool hhg_type_arith_promote(
-    hhg_type_promote_t *result,
-    hhg_type_t *l,
-    hhg_type_t *r,
-    hhg_type_ctx_t *type_ctx
-);
-
-// promotes assignment (l = r, func(l, r))
-// returns NULL on failure
-hhg_type_t *hhg_type_assign_promote(
-    hhg_type_t *l,
-    hhg_type_t *r
-);
+// checks type equality (regardless of const/volatile qualifiers)
+bool hhg_type_eq(hhg_type_t *l, hhg_type_t *r);
 
 void hhg_type_print(hhg_type_t *type);
 

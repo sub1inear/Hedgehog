@@ -538,6 +538,42 @@ static void hhg_sem_an_run_expr(hhg_sem_an_t *sem_an, hhg_node_t *node)
 {
     hhg_sem_an_run(sem_an, node->value.expr.left);
     hhg_sem_an_run(sem_an, node->value.expr.right);
+
+    hhg_type_t *left_type = node->value.expr.left->value_type;
+    hhg_type_t *right_type = node->value.expr.right->value_type;
+
+    if (!hhg_base_type_is_arith(left_type->type)) {
+        hhg_sem_an_error(
+            sem_an,
+            node->value.expr.left,
+            "left operand of \"%s\" must be an arithmetic type",
+            "here",
+            hhg_token_type_to_str(node->type)
+        );
+        return;
+    }
+    
+    if (!hhg_base_type_is_arith(right_type->type)) {
+        hhg_sem_an_error(
+            sem_an,
+            node->value.expr.right,
+            "right operand of \"%s\" must be an arithmetic type",
+            "here",
+            hhg_token_type_to_str(node->type)
+        );
+        return;
+    }
+
+    if (hhg_type_eq(left_type, right_type))
+        node->value_type = left_type;
+    else
+        hhg_sem_an_error(
+            sem_an,
+            node,
+            "type mismatch between operands of \"%s\"",
+            "here",
+            hhg_token_type_to_str(node->type)
+        );        
 }
 
 static void hhg_sem_an_run_inc_dec(hhg_sem_an_t *sem_an, hhg_node_t *node)
