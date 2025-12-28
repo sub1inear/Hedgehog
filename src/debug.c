@@ -58,7 +58,7 @@ bool hhg_debug_parser(const char *filename)
 
     // 2nd stage: semantic analysis
     hhg_sem_an_t sem_an;
-    hhg_sem_an_init(&sem_an, &sym_tab, &type_ctx, arena);
+    hhg_sem_an_init(&sem_an, &sym_tab, &type_ctx, &msg_ctx, arena);
 
     hhg_sem_an_run(&sem_an, prog);
 

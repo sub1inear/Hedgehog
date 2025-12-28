@@ -8,6 +8,8 @@
 #include "mem.h"
 #include "file_range.h"
 
+typedef struct hhg_file_src hhg_file_src_t;
+
 #define HHG_NODE_INDENT_START 0
 
 #define HHG_NODE_START HHG_TOKEN_END
@@ -138,13 +140,18 @@ typedef union hhg_node_value  {
 } hhg_node_value_t;
 
 struct hhg_node {
-    hhg_node_type_t type;
-    hhg_node_value_t value;
     hhg_type_t *value_type;
+    hhg_file_src_t *src;
+    hhg_node_value_t value;
     hhg_file_range_t range;
+    hhg_node_type_t type;
 };
 
-hhg_node_t *hhg_node_new(hhg_arena_t *arena, hhg_node_type_t type);
+hhg_node_t *hhg_node_new(
+    hhg_arena_t *arena,
+    hhg_node_type_t type,
+    hhg_file_src_t *src
+);
 
 void hhg_node_print(hhg_node_t *node, int32_t indent, bool use_sym);
 

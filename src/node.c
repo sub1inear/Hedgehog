@@ -8,6 +8,7 @@
 #include "token.h"
 #include "mem.h"
 #include "msg.h"
+#include "file_src.h"
 #include "file_range.h"
 
 #define HHG_NODE_INDENT_INC 4
@@ -16,12 +17,16 @@ static void hhg_node_print_indent(int32_t indent);
 static void hhg_node_print_str(const char *str, int32_t indent);
 static void hhg_node_print_id(hhg_id_t id, int32_t indent, bool use_sym);
 
-hhg_node_t *hhg_node_new(hhg_arena_t *arena, hhg_node_type_t type)
+hhg_node_t *hhg_node_new(
+    hhg_arena_t *arena,
+    hhg_node_type_t type,
+    hhg_file_src_t *src
+)
 {
     hhg_node_t *node = hhg_arena_malloc(arena, sizeof(hhg_node_t));
 
-    // initialize type and set other fields to NULL portably
-    *node = (hhg_node_t) { .type = type };
+    // initialize type and src, setting other fields to NULL portably
+    *node = (hhg_node_t) { .type = type, .src = src };
 
     return node;
 }
@@ -35,10 +40,8 @@ void hhg_node_print(hhg_node_t *node, int32_t indent, bool use_sym)
 
     hhg_token_type_print((hhg_token_type_t)node->type);
     
-    if (node->value_type) {
-        putchar(' ');
-        hhg_type_print(node->value_type);
-    }
+    putchar(' ');
+    hhg_type_print(node->value_type);
     putchar('\n');
 
     int32_t next_indent = indent + HHG_NODE_INDENT_INC;

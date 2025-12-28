@@ -37,7 +37,7 @@
     hhg_parser_msg(parser, HHG_MSG_INFO, range, __VA_ARGS__)
 
 #define hhg_parser_node_new(type) \
-    hhg_node_new(parser->arena, type)
+    hhg_node_new(parser->arena, type, &parser->lexer->src)
 
 #define hhg_parser_strdup(str) \
     hhg_arena_strdup(parser->arena, str)

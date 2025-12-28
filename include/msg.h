@@ -3,10 +3,9 @@
 
 #include <stdint.h>
 
-#include "file_src.h"
 #include "file_range.h"
 
-typedef struct hhg_src hhg_src_t;
+typedef struct hhg_file_src hhg_file_src_t;
 
 typedef struct hhg_msg_ctx {
     int32_t error_count;

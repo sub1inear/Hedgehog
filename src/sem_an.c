@@ -1,5 +1,4 @@
 #include <stdbool.h>
-#include <inttypes.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -13,6 +12,24 @@
 #include "type.h"
 #include "type_ctx.h"
 #include "utils.h"
+
+#define hhg_sem_an_msg(sem_an, type, node, ...) \
+    hhg_msg(                                    \
+        sem_an->msg_ctx,                        \
+        type,                                   \
+        node->src,                              \
+        &node->range,                           \
+        __VA_ARGS__                             \
+    )
+
+#define hhg_sem_an_error(sem_an, node, ...) \
+    hhg_sem_an_msg(sem_an, HHG_MSG_ERROR, node, __VA_ARGS__)
+
+#define hhg_sem_an_warning(sem_an, node, ...) \
+    hhg_sem_an_msg(sem_an, HHG_MSG_WARNING, node, __VA_ARGS__)
+
+#define hhg_sem_an_info(sem_an, node, ...) \
+    hhg_sem_an_msg(sem_an, HHG_MSG_INFO, node, __VA_ARGS__)
 
 static hhg_base_type_t int_literal_base_types[] = {
     HHG_TYPE_I32,
@@ -28,7 +45,6 @@ static uint64_t int_literal_base_maxes[] = {
     UINT64_MAX
 };
 
-
 static void hhg_sem_an_run_children(
     hhg_sem_an_t *sem_an,
     hhg_node_t **children
@@ -42,6 +58,7 @@ static void hhg_sem_an_run_obj_init(hhg_sem_an_t *sem_an, hhg_node_t *node);
 static void hhg_sem_an_run_func_decl(hhg_sem_an_t *sem_an, hhg_node_t *node);
 static void hhg_sem_an_run_class_decl(hhg_sem_an_t *sem_an, hhg_node_t *node);
 static void hhg_sem_an_add_class_var_decls(
+    hhg_sem_an_t *sem_an,
     hhg_node_t *node,
     hhg_type_t *class_type
 );
@@ -75,12 +92,14 @@ void hhg_sem_an_init(
     hhg_sem_an_t *sem_an,
     hhg_sym_tab_t *sym_tab,
     hhg_type_ctx_t *type_ctx,
+    hhg_msg_ctx_t *msg_ctx,
     hhg_arena_t *arena
 )
 {
     *sem_an = (hhg_sem_an_t) {
         .sym_tab = sym_tab,
         .type_ctx = type_ctx,
+        .msg_ctx = msg_ctx,
         .arena = arena,
     };
 }
@@ -204,8 +223,11 @@ static void hhg_sem_an_run_id(hhg_sem_an_t *sem_an, hhg_node_t *node)
     hhg_sym_t *sym =
         hhg_sym_tab_lookup(sem_an->sym_tab, node->value.id.str);
     if (sym == NULL)
-        hhg_fatal_error(
+        hhg_sem_an_error(
+            sem_an,
+            node,
             "undefined variable \"%s\"",
+            "\"%s\" used here",
             node->value.id.str
         );
     node->value.id.sym = sym;
@@ -287,8 +309,11 @@ static void hhg_sem_an_run_func_decl(hhg_sem_an_t *sem_an, hhg_node_t *node)
                     }
                 );
             } else
-                hhg_fatal_error(
+                hhg_sem_an_error(
+                    sem_an,
+                    param,
                     "redeclaration of parameter \"%s\"",
+                    "\"%s\" declared here",
                     param->value.param.id.str
                 );
         }
@@ -306,8 +331,11 @@ static void hhg_sem_an_run_func_decl(hhg_sem_an_t *sem_an, hhg_node_t *node)
 
         func_type->info.func.sym = node->value.func_decl.id.sym;
     } else
-        hhg_fatal_error(
+        hhg_sem_an_error(
+            sem_an,
+            node,
             "redeclaration of function \"%s\"",
+            "\"%s\" declared here",
             node->value.func_decl.id.str
         );
 
@@ -353,19 +381,23 @@ static void hhg_sem_an_run_class_decl(hhg_sem_an_t *sem_an, hhg_node_t *node)
             }
         );
 
-        hhg_sem_an_add_class_var_decls(node, class_type);
+        hhg_sem_an_add_class_var_decls(sem_an, node, class_type);
         hhg_sem_an_add_class_func_decls(sem_an, node, class_type);
 
         hhg_sym_tab_exit_scope(sem_an->sym_tab);
     } else
-        hhg_fatal_error(
+        hhg_sem_an_error(
+            sem_an,
+            node,
             "redeclaration of class \"%s\"",
-            node->value.class_decl.id.str
+            "\"%s\" declared here",
+            node->value.class_decl.id.str // sym has not been set yet
         );
 
 }
 
 static void hhg_sem_an_add_class_var_decls(
+    hhg_sem_an_t *sem_an,
     hhg_node_t *node,
     hhg_type_t *class_type
 )
@@ -387,10 +419,13 @@ static void hhg_sem_an_add_class_var_decls(
                 var_decl->value_type
             );
         else
-            hhg_fatal_error(
+            hhg_sem_an_error(
+                sem_an,
+                node,
                 "redeclaration of field \"%s\" in class \"%s\"",
+                "\"%s\" declared here",
                 var_decl->value.var_decl.id.str,
-                node->value.class_decl.id.str
+                node->value.class_decl.id.sym->key
             );
     }
 }
@@ -427,10 +462,13 @@ static void hhg_sem_an_add_class_func_decls(
                 func_type
             );
         else
-            hhg_fatal_error(
+            hhg_sem_an_error(
+                sem_an,
+                func_decl,
                 "redeclaration of method \"%s\" in class \"%s\"",
+                "\"%s\" redeclared here",
                 func_decl->value.func_decl.id.str,
-                node->value.class_decl.id.str
+                node->value.class_decl.id.sym->key
             );
 
         // update func decl node with func type
@@ -471,8 +509,11 @@ static void hhg_sem_an_add_class_func_params(
                 }
             );
         } else
-            hhg_fatal_error(
+            hhg_sem_an_error(
+                sem_an,
+                param,
                 "redeclaration of parameter \"%s\"",
+                "\"%s\" declared here",
                 param->value.param.id.str
             );
     }
@@ -528,17 +569,37 @@ static void hhg_sem_an_run_string_literal(
 
 static void hhg_sem_an_run_int_literal(hhg_sem_an_t *sem_an, hhg_node_t *node)
 {
-    uint64_t val = 0;
-    sscanf(node->value.literal.str, "%" SCNu64, &val);
+    uint64_t x = 0;
+    char *p = node->value.literal.str;
+    while (*p >= '0' && *p <= '9') {
+        uint8_t digit = *p - '0';
+        if (x > (UINT64_MAX - digit) / 10) {
+            hhg_sem_an_error(
+                sem_an,
+                node,
+                // manually format UINT64_MAX to ensure it is in decimal
+                "integer literal \"%s\" is too large, max is \"18446744073709551615\"",
+                "here",
+                node->value.literal.str
+            );
+            return;
+        }
+        x *= 10;
+        x += digit;
+        p++;
+    }
 
     for (size_t i = 0; i < HHG_ARR_SIZE(int_literal_base_maxes); i++) {
-        if (val <= int_literal_base_maxes[i]) {
-            node->value_type = hhg_type_ctx_get_builtin(sem_an->type_ctx, int_literal_base_types[i]);
+        if (x < int_literal_base_maxes[i]) {
+            node->value_type = hhg_type_ctx_get_builtin(
+                sem_an->type_ctx,
+                int_literal_base_types[i]
+            );
             return;
         }
     }
-
-    hhg_fatal_error("integer literal \"%s\" is too large", node->value.literal.str);
+    // unreachable
+    hhg_fatal_error("int literal type inference failed");
 }
 
 static void hhg_sem_an_run_float_literal(
