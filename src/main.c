@@ -2,13 +2,15 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-#include "debug.h"
 #include "run.h"
+#include "debug.h"
 #include "cmd_args.h"
+#include "mem.h"
+#include "utils.h"
 
 int main(int argc, char **argv)
 {
-    (void)argc;
+    HHG_UNUSED(argc);
     hhg_cmd_args_parse(argv);
 
     hhg_cmd_args_t *cmd_args = hhg_cmd_args_get();
@@ -16,6 +18,9 @@ int main(int argc, char **argv)
     bool result = false;
 
     if (cmd_args->filename != NULL)
-        result = hhg_debug_parser(cmd_args->filename);
+        result = hhg_run(cmd_args->filename);
+
+    hhg_mem_print_summary();
+
     return result ? EXIT_FAILURE : EXIT_SUCCESS;
 }

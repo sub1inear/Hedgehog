@@ -305,7 +305,7 @@ static void hhg_lexer_lex_id(hhg_lexer_t *lexer, int c)
 
     lexer->token.type = HHG_TOKEN_ID;
 
-    for (size_t i = 0; i < ARR_SIZE(keyword_data); i++)
+    for (size_t i = 0; i < HHG_ARR_SIZE(keyword_data); i++)
         if (!strcmp(keyword_data[i].str, lexer->token.str.str)) {
             lexer->token.type = keyword_data[i].type;
             return;
@@ -416,7 +416,7 @@ static bool hhg_lexer_lex_default(hhg_lexer_t *lexer, int c)
 
     int c3 = hhg_lexer_next_char(lexer);
 
-    for (size_t i = 0; i < ARR_SIZE(op_data); i++) {
+    for (size_t i = 0; i < HHG_ARR_SIZE(op_data); i++) {
         const hhg_op_data_t *data = &op_data[i];
         if (data->str[0] == c && 
             (data->str[1] == c2 || data->str[1] == '\0') &&

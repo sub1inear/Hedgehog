@@ -371,6 +371,7 @@ CREDITS
   Per Vognsen  -- idea for hash table API/implementation
   Rafael Sachetto -- arrpop()
   github:HeroicKatora -- arraddn() reworking
+  github:sub1inear -- psh implementation 
 
   Bugfixes:
     Andy Durdin
@@ -1215,7 +1216,7 @@ static int stbds_is_key_equal(void *a, size_t elemsize, void *key, size_t keysiz
     // array element is a pointer to a struct whose key is at offset keyoffset
     void *elem_ptr = *(void **)((char *) a + elemsize*i);
     return 0 == strcmp((char *) key, *(char **) ((char *) elem_ptr + keyoffset));
-  } else if (mode >= STBDS_HM_STRING) {
+  } else if (mode == STBDS_HM_STRING) {
     // array element directly contains the key pointer at keyoffset
     return 0 == strcmp((char *) key, *(char **) ((char *) a + elemsize*i + keyoffset));
   } else {
@@ -1248,7 +1249,7 @@ static ptrdiff_t stbds_hm_find_slot(void *a, size_t elemsize, void *key, size_t 
 {
   void *raw_a = STBDS_HASH_TO_ARR(a,elemsize);
   stbds_hash_index *table = stbds_hash_table(raw_a);
-  size_t hash = mode >= STBDS_HM_STRING ? stbds_hash_string((char*)key,table->seed) : stbds_hash_bytes(key, keysize,table->seed);
+  size_t hash = mode == STBDS_HM_STRING || mode == STBDS_HM_PTR_TO_STRING ? stbds_hash_string((char*)key,table->seed) : stbds_hash_bytes(key, keysize,table->seed);
   size_t step = STBDS_BUCKET_LENGTH;
   size_t limit,i;
   size_t pos;
@@ -1378,14 +1379,14 @@ void *stbds_hmput_key(void *a, size_t elemsize, void *key, size_t keysize, int m
     if (table)
       STBDS_FREE(NULL, table);
     else
-      nt->string.mode = mode >= STBDS_HM_STRING ? STBDS_SH_DEFAULT : 0;
+      nt->string.mode = mode == STBDS_HM_STRING || mode == STBDS_HM_PTR_TO_STRING ? STBDS_SH_DEFAULT : 0;
     stbds_header(a)->hash_table = table = nt;
     STBDS_STATS(++stbds_hash_grow);
   }
 
   // we iterate hash table explicitly because we want to track if we saw a tombstone
   {
-    size_t hash = mode >= STBDS_HM_STRING ? stbds_hash_string((char*)key,table->seed) : stbds_hash_bytes(key, keysize,table->seed);
+    size_t hash = mode == STBDS_HM_STRING || mode == STBDS_HM_PTR_TO_STRING ? stbds_hash_string((char*)key,table->seed) : stbds_hash_bytes(key, keysize,table->seed);
     size_t step = STBDS_BUCKET_LENGTH;
     size_t pos;
     ptrdiff_t tombstone = -1;
@@ -1406,8 +1407,12 @@ void *stbds_hmput_key(void *a, size_t elemsize, void *key, size_t keysize, int m
         if (bucket->hash[i] == hash) {
           if (stbds_is_key_equal(raw_a, elemsize, key, keysize, keyoffset, mode, bucket->index[i])) {
             stbds_temp(a) = bucket->index[i];
-            if (mode >= STBDS_HM_STRING)
+            if (mode == STBDS_HM_STRING)
               stbds_temp_key(a) = * (char **) ((char *) raw_a + elemsize*bucket->index[i] + keyoffset);
+            else if (mode == STBDS_HM_PTR_TO_STRING) {
+              void *elem_ptr = *(void **)((char *) raw_a + elemsize*bucket->index[i]);
+              stbds_temp_key(a) = *(char **) ((char *) elem_ptr + keyoffset);
+            }
             return STBDS_ARR_TO_HASH(a,elemsize);
           }
         } else if (bucket->hash[i] == 0) {
