@@ -208,7 +208,7 @@ void hhg_lexer_match(hhg_lexer_t *lexer, hhg_token_type_t type)
     if (lexer->token.type != type)
         hhg_lexer_error(
             lexer,
-            "expected \"%t\", got \"%t\"",
+            "expected `%t`, got `%t`",
             "here",
             type,
             lexer->token.type
@@ -241,7 +241,7 @@ void hhg_lexer_match_va(
     if (i == count) {
         hhg_lexer_error(
             lexer,
-            "expected %s, got token \"%t\"",
+            "expected %s, got token `%t`",
             "here",
             summary,
             lexer->token.type

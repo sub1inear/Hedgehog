@@ -317,8 +317,8 @@ static hhg_type_t *hhg_parser_parse_base_type(hhg_parser_t *parser)
         if (sym == NULL) {
             hhg_parser_error(
                 parser,
-                "unknown type \"%s\"",
-                "\"%s\" used here",
+                "unknown type `%s`",
+                "`%s` used here",
                 parser->lexer->token.str.str
             );
             return NULL;
@@ -328,8 +328,8 @@ static hhg_type_t *hhg_parser_parse_base_type(hhg_parser_t *parser)
             sym->value.sym_type != HHG_SYM_ENUM) {
             hhg_parser_error(
                 parser,
-                "\"%s\" must be a type",
-                "\"%s\" used here",
+                "`%s` must be a type",
+                "`%s` used here",
                 parser->lexer->token.str.str
             );
             return NULL;
@@ -343,7 +343,7 @@ static hhg_type_t *hhg_parser_parse_base_type(hhg_parser_t *parser)
         if (base == HHG_TYPE_NONE) {
             hhg_parser_error(
                 parser,
-                "expected type, got \"%s\"",
+                "expected type, got `%s`",
                 "here",
                 parser->lexer->token.str.str
             );

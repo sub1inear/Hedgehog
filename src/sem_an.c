@@ -194,7 +194,7 @@ void hhg_sem_an_run(hhg_sem_an_t *sem_an, hhg_node_t *node)
         break;
     default:
         hhg_fatal_error(
-            "unhandled node type %n in hhg_sem_an_run",
+            "unhandled node type `%n` in hhg_sem_an_run",
             node->type
         );
         break;
@@ -226,8 +226,8 @@ static void hhg_sem_an_run_id(hhg_sem_an_t *sem_an, hhg_node_t *node)
         hhg_sem_an_error(
             sem_an,
             node,
-            "undefined variable \"%s\"",
-            "\"%s\" used here",
+            "undefined variable `%s`",
+            "`%s` used here",
             node->value.id.str
         );
     node->value.id.sym = sym;
@@ -312,8 +312,8 @@ static void hhg_sem_an_run_func_decl(hhg_sem_an_t *sem_an, hhg_node_t *node)
                 hhg_sem_an_error(
                     sem_an,
                     param,
-                    "redeclaration of parameter \"%s\"",
-                    "\"%s\" declared here",
+                    "redeclaration of parameter `%s`",
+                    "`%s` declared here",
                     param->value.param.id.str
                 );
         }
@@ -334,8 +334,8 @@ static void hhg_sem_an_run_func_decl(hhg_sem_an_t *sem_an, hhg_node_t *node)
         hhg_sem_an_error(
             sem_an,
             node,
-            "redeclaration of function \"%s\"",
-            "\"%s\" declared here",
+            "redeclaration of function `%s`",
+            "`%s` declared here",
             node->value.func_decl.id.str
         );
 
@@ -389,8 +389,8 @@ static void hhg_sem_an_run_class_decl(hhg_sem_an_t *sem_an, hhg_node_t *node)
         hhg_sem_an_error(
             sem_an,
             node,
-            "redeclaration of class \"%s\"",
-            "\"%s\" declared here",
+            "redeclaration of class `%s`",
+            "`%s` declared here",
             node->value.class_decl.id.str // sym has not been set yet
         );
 
@@ -422,8 +422,8 @@ static void hhg_sem_an_add_class_var_decls(
             hhg_sem_an_error(
                 sem_an,
                 node,
-                "redeclaration of field \"%s\" in class \"%s\"",
-                "\"%s\" declared here",
+                "redeclaration of field `%s` in class `%s`",
+                "`%s` declared here",
                 var_decl->value.var_decl.id.str,
                 node->value.class_decl.id.sym->key
             );
@@ -465,8 +465,8 @@ static void hhg_sem_an_add_class_func_decls(
             hhg_sem_an_error(
                 sem_an,
                 func_decl,
-                "redeclaration of method \"%s\" in class \"%s\"",
-                "\"%s\" redeclared here",
+                "redeclaration of method `%s` in class `%s`",
+                "`%s` redeclared here",
                 func_decl->value.func_decl.id.str,
                 node->value.class_decl.id.sym->key
             );
@@ -512,8 +512,8 @@ static void hhg_sem_an_add_class_func_params(
             hhg_sem_an_error(
                 sem_an,
                 param,
-                "redeclaration of parameter \"%s\"",
-                "\"%s\" declared here",
+                "redeclaration of parameter `%s`",
+                "`%s` declared here",
                 param->value.param.id.str
             );
     }
@@ -546,7 +546,7 @@ static void hhg_sem_an_run_expr(hhg_sem_an_t *sem_an, hhg_node_t *node)
         hhg_sem_an_error(
             sem_an,
             node->value.expr.left,
-            "left operand of \"%n\" must be an arithmetic type",
+            "left operand of `%n` must be an arithmetic type",
             "here",
             node->type
         );
@@ -557,7 +557,7 @@ static void hhg_sem_an_run_expr(hhg_sem_an_t *sem_an, hhg_node_t *node)
         hhg_sem_an_error(
             sem_an,
             node->value.expr.right,
-            "right operand of \"%n\" must be an arithmetic type",
+            "right operand of `%n` must be an arithmetic type",
             "here",
             node->type
         );
@@ -570,7 +570,7 @@ static void hhg_sem_an_run_expr(hhg_sem_an_t *sem_an, hhg_node_t *node)
         hhg_sem_an_error(
             sem_an,
             node,
-            "type mismatch between \"%T\" and \"%T\"",
+            "type mismatch between `%T` and `%T`",
             "here",
             left_type,
             right_type
@@ -615,7 +615,7 @@ static void hhg_sem_an_run_int_literal(hhg_sem_an_t *sem_an, hhg_node_t *node)
                 sem_an,
                 node,
                 // manually format UINT64_MAX to ensure it is in decimal
-                "integer literal \"%s\" is too large, max is \"18446744073709551615\"",
+                "integer literal `%s` is too large, max is `18446744073709551615`",
                 "here",
                 node->value.literal.str
             );
