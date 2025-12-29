@@ -158,26 +158,31 @@ bool hhg_type_eq(hhg_type_t *l, hhg_type_t *r)
 
 void hhg_type_print(hhg_type_t *type)
 {
+    hhg_type_fprint(type, stdout);
+}
+
+void hhg_type_fprint(hhg_type_t *type, FILE *stream)
+{
     if (type == NULL) {
-        fputs("none", stdout);
+        fputs("none", stream);
         return;
     }
 
     if (type->is_const)
-        fputs("const ", stdout);
+        fputs("const ", stream);
     
     if (type->is_volatile)
-        fputs("volatile ", stdout);
+        fputs("volatile ", stream);
 
-    fputs(base_type_to_str[type->type], stdout);
+    fputs(base_type_to_str[type->type], stream);
 
     switch (type->type) {
     case HHG_TYPE_REF:
-        hhg_type_print(type->info.ref.base);
+        hhg_type_fprint(type->info.ref.base, stream);
         break;
     case HHG_TYPE_ARR:
-        printf("[%zd] of ", type->info.arr.size);
-        hhg_type_print(type->info.arr.elem);
+        fprintf(stream, "[%zd] of ", type->info.arr.size);
+        hhg_type_fprint(type->info.arr.elem, stream);
         break;
     default:
         break;

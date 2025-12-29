@@ -194,8 +194,8 @@ void hhg_sem_an_run(hhg_sem_an_t *sem_an, hhg_node_t *node)
         break;
     default:
         hhg_fatal_error(
-            "unhandled node type %s in hhg_sem_an_run",
-            hhg_token_type_to_str(node->type)
+            "unhandled node type %n in hhg_sem_an_run",
+            node->type
         );
         break;
     }
@@ -546,9 +546,9 @@ static void hhg_sem_an_run_expr(hhg_sem_an_t *sem_an, hhg_node_t *node)
         hhg_sem_an_error(
             sem_an,
             node->value.expr.left,
-            "left operand of \"%s\" must be an arithmetic type",
+            "left operand of \"%n\" must be an arithmetic type",
             "here",
-            hhg_token_type_to_str(node->type)
+            node->type
         );
         return;
     }
@@ -557,9 +557,9 @@ static void hhg_sem_an_run_expr(hhg_sem_an_t *sem_an, hhg_node_t *node)
         hhg_sem_an_error(
             sem_an,
             node->value.expr.right,
-            "right operand of \"%s\" must be an arithmetic type",
+            "right operand of \"%n\" must be an arithmetic type",
             "here",
-            hhg_token_type_to_str(node->type)
+            node->type
         );
         return;
     }
@@ -570,10 +570,11 @@ static void hhg_sem_an_run_expr(hhg_sem_an_t *sem_an, hhg_node_t *node)
         hhg_sem_an_error(
             sem_an,
             node,
-            "type mismatch between operands of \"%s\"",
+            "type mismatch between \"%T\" and \"%T\"",
             "here",
-            hhg_token_type_to_str(node->type)
-        );        
+            left_type,
+            right_type
+        );
 }
 
 static void hhg_sem_an_run_inc_dec(hhg_sem_an_t *sem_an, hhg_node_t *node)

@@ -12,6 +12,7 @@
 #include "file_range.h"
 #include "str.h"
 #include "token.h"
+#include "type.h"
 
 #define HHG_ANSI_COLOR_CLEAR "\x1b[0m"
 #define HHG_ANSI_COLOR_RED "\x1b[1;31m"
@@ -37,6 +38,21 @@ static void hhg_msg_print_indicator(
     int32_t end,
     size_t line_width
 );
+
+/*
+simplified vfprintf with support for hhg-specific types
+
+supported format specifiers:
+%s - string
+%d - int32_t
+%c - char
+%b - bool
+%% - %
+%t - hhg_token_type_t
+%n - hhg_node_type_t 
+%T - hhg_type_t *
+*/
+static void hhg_vfprintf(FILE *stream, const char *fmt, va_list va);
 
 void hhg_msg_ctx_init(hhg_msg_ctx_t *msg_ctx)
 {
@@ -74,7 +90,7 @@ void hhg_msg(
         break;
     }
 
-    vfprintf(stderr, msg, va_msg);
+    hhg_vfprintf(stderr, msg, va_msg);
 
     int32_t max_line_width = 0;
     for (int32_t line = range->start.line; line <= range->end.line; line++) {
@@ -109,7 +125,7 @@ void hhg_msg(
 
     if (note) {
         fputc(' ', stderr);
-        vfprintf(stderr, note, va_note);
+        hhg_vfprintf(stderr, note, va_note);
     }
 
     fputs("\n\n", stderr);
@@ -123,7 +139,7 @@ void hhg_fatal_error(const char *fmt, ...) {
     va_start(va, fmt);
 
     fputs(HHG_ANSI_COLOR_RED "fatal error" HHG_ANSI_COLOR_CLEAR ": ", stderr);
-    vfprintf(stderr, fmt, va);
+    hhg_vfprintf(stderr, fmt, va);
     fputc('\n', stderr);
     va_end(va);
     exit(EXIT_FAILURE);
@@ -179,4 +195,78 @@ static void hhg_msg_print_indicator(
     fputc('^', stderr);
     for (int32_t i = start + 1; i < end; i++)
         fputc('~', stderr);
+}
+
+static void hhg_vfprintf(FILE *stream, const char *fmt, va_list va)
+{
+    char c;
+    // (()) to avoid warning about assignment in condition
+    while ((c = *fmt++)) {
+        if (c == '%')
+            switch (c = *fmt++) {
+            case 's': {
+                const char *str_arg = va_arg(va, const char *);
+                if (str_arg)
+                    fputs(str_arg, stream);
+                else
+                    fputs("(null)", stream); 
+                break;
+            }
+            case 'd': {
+                int32_t int_arg = va_arg(va, int32_t);
+                uint32_t uint_arg;
+
+                if (int_arg < 0) {
+                    fputc('-', stream);                    
+                    uint_arg = (uint32_t)(-(int64_t)int_arg);
+                } else
+                    uint_arg = (uint32_t)int_arg;
+
+                uint32_t div = 1;
+                while (uint_arg / div >= 10)
+                    div *= 10;
+
+                while (div) {
+                    fputc('0' + uint_arg / div, stream);
+                    uint_arg %= div;
+                    div /= 10;
+                }
+                break;
+            }
+            case 'c': {
+                char char_arg = (char)va_arg(va, int);
+                fputc(char_arg, stream);
+                break;
+            }
+            case 'b': {
+                bool bool_arg = (bool)va_arg(va, int);
+                if (bool_arg)
+                    fputs("true", stream);
+                else
+                    fputs("false", stream);
+                break;
+            }
+            case '%':
+                fputc('%', stream);
+                break;
+            case 'n': // same as 't'
+            case 't': {
+                hhg_token_type_t token_type_arg =
+                    va_arg(va, hhg_token_type_t);
+                const char *token_type_str =
+                     hhg_token_type_to_str(token_type_arg);
+                fputs(token_type_str, stream);
+                break;
+            }
+            case 'T': {
+                hhg_type_t *type_arg = va_arg(va, hhg_type_t *);
+                hhg_type_fprint(type_arg, stream);
+                break;
+            }
+            default:
+                break;
+            }
+        else
+            fputc(c, stream);
+    }
 }

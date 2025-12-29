@@ -113,6 +113,8 @@ bool hhg_type_eq(hhg_type_t *l, hhg_type_t *r);
 
 void hhg_type_print(hhg_type_t *type);
 
+void hhg_type_fprint(hhg_type_t *type, FILE *stream);
+
 void hhg_type_del(hhg_type_t *type);
 
 #endif

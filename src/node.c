@@ -199,8 +199,8 @@ void hhg_node_print(hhg_node_t *node, int32_t indent, bool use_sym)
         break;
     default:
         hhg_fatal_error(
-            "unhandled node type %s in hhg_node_print",
-            hhg_token_type_to_str(node->type)
+            "unhandled node type %t in hhg_node_print",
+            node->type
         );
         break;
     }
