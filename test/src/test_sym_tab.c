@@ -37,7 +37,9 @@ int main(void)
     hhg_unit_assert_msg(sym != NULL, "symbol lookup");
 
     hhg_unit_assert_msg(
-        memcmp(sym, &result_sym, sizeof(hhg_sym_t)) == 0,
+        sym->key == result_sym.key &&
+        sym->value.sym_type == result_sym.value.sym_type &&
+        sym->value.type == result_sym.value.type,
         "restore symbol"
     );
     
@@ -47,6 +49,7 @@ int main(void)
     hhg_unit_assert_msg(sym == NULL, "exit scope");
 
     hhg_sym_tab_del(&sym_tab);
+    hhg_arena_free(arena);
 
     return EXIT_SUCCESS;
 }
