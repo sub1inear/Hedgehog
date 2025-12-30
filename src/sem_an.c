@@ -253,19 +253,18 @@ static void hhg_sem_an_run_var_decl(hhg_sem_an_t *sem_an, hhg_node_t *node)
     // insert variable into symbol table if not done already
     hhg_sym_t *sym =
         hhg_sym_tab_lookup(sem_an->sym_tab, node->value.var_decl.id.str);
+
+    // keep track of name of node
+    char *name = node->value.var_decl.id.str;
+
+    hhg_type_t *expr_type = node->value.var_decl.expr->value_type;
+    assert(expr_type != NULL);
+
     if (sym == NULL) {
-        if (node->value_type == NULL) {
-            if (node->value.var_decl.expr->value_type == NULL)
-                hhg_sem_an_error(
-                    sem_an,
-                    node,
-                    "could not infer type of variable `%s`",
-                    "declared here",
-                    node->value.var_decl.id.str
-                );
-            else
-                node->value_type = node->value.var_decl.expr->value_type;
-        }
+        // automatic type inference from expr if no type specified
+        if (node->value_type == NULL)
+            node->value_type = node->value.var_decl.expr->value_type;
+
         node->value.var_decl.id.sym = hhg_sym_tab_insert(
             sem_an->sym_tab,
             (hhg_sym_t) {
@@ -276,8 +275,24 @@ static void hhg_sem_an_run_var_decl(hhg_sem_an_t *sem_an, hhg_node_t *node)
                 },
             }
         );
-        
-    }
+
+        name = node->value.var_decl.id.sym->key;
+    } else
+        node->value_type = sym->value.type;
+
+    assert(node->value_type != NULL);
+
+    if (!hhg_type_eq(expr_type, node->value_type))
+        hhg_sem_an_error(
+            sem_an,
+            node,
+            "type mismatch: variable `%s` has type `%T` but expression has type `%T`",
+            NULL,
+            name,
+            node->value_type,
+            expr_type
+        );
+
 }
 
 static void hhg_sem_an_run_obj_init(hhg_sem_an_t *sem_an, hhg_node_t *node)

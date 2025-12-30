@@ -202,8 +202,8 @@ static void hhg_vfprintf(FILE *stream, const char *fmt, va_list va)
     char c;
     // (()) to avoid warning about assignment in condition
     while ((c = *fmt++)) {
-        if (c == '%')
-            switch (c = *fmt++) {
+        if (c == '%') {
+            switch (c = *fmt) {
             case 's': {
                 const char *str_arg = va_arg(va, const char *);
                 if (str_arg)
@@ -266,7 +266,9 @@ static void hhg_vfprintf(FILE *stream, const char *fmt, va_list va)
             default:
                 break;
             }
-        else
+            if (c != '\0')
+                fmt++;
+        } else
             fputc(c, stream);
     }
 }
