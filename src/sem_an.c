@@ -230,7 +230,11 @@ static void hhg_sem_an_run_id(hhg_sem_an_t *sem_an, hhg_node_t *node)
             "`%s` used here",
             node->value.id.str
         );
+    else
+        node->value_type = sym->value.type;
+
     node->value.id.sym = sym;
+
 }
 
 static void hhg_sem_an_run_if(hhg_sem_an_t *sem_an, hhg_node_t *node)
