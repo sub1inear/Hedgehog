@@ -121,7 +121,7 @@ const char *const token_type_to_str[] = {
     
     // node types
     "block",
-    "arg",
+    "param",
     "func call",
     "arr literal",
     "obj init",
