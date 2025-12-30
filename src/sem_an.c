@@ -254,6 +254,18 @@ static void hhg_sem_an_run_var_decl(hhg_sem_an_t *sem_an, hhg_node_t *node)
     hhg_sym_t *sym =
         hhg_sym_tab_lookup(sem_an->sym_tab, node->value.var_decl.id.str);
     if (sym == NULL) {
+        if (node->value_type == NULL) {
+            if (node->value.var_decl.expr->value_type == NULL)
+                hhg_sem_an_error(
+                    sem_an,
+                    node,
+                    "could not infer type of variable `%s`",
+                    "declared here",
+                    node->value.var_decl.id.str
+                );
+            else
+                node->value_type = node->value.var_decl.expr->value_type;
+        }
         node->value.var_decl.id.sym = hhg_sym_tab_insert(
             sem_an->sym_tab,
             (hhg_sym_t) {
@@ -264,6 +276,7 @@ static void hhg_sem_an_run_var_decl(hhg_sem_an_t *sem_an, hhg_node_t *node)
                 },
             }
         );
+        
     }
 }
 
