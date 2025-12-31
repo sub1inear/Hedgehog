@@ -1,5 +1,6 @@
 #include <stddef.h> // for NULL
 #include <stdbool.h>
+#include <assert.h>
 
 #include <stb_ds.h>
 
@@ -260,7 +261,7 @@ static hhg_type_t *hhg_parser_parse_type(hhg_parser_t *parser)
 
     hhg_type_t *type = hhg_parser_parse_base_type(parser);
 
-    if (cv_qual.is_const || cv_qual.is_volatile) {
+    if ((cv_qual.is_const || cv_qual.is_volatile) && type != NULL) {
         type = hhg_type_ctx_new_cv_type(
             parser->type_ctx,
             (hhg_cv_tab_key_t) {
@@ -314,6 +315,7 @@ static hhg_type_t *hhg_parser_parse_base_type(hhg_parser_t *parser)
             parser->sym_tab,
             parser->lexer->token.str.str
         );
+
         if (sym == NULL) {
             hhg_parser_error(
                 parser,
@@ -323,7 +325,7 @@ static hhg_type_t *hhg_parser_parse_base_type(hhg_parser_t *parser)
             );
             return NULL;
         }
-            
+        
         if (sym->value.sym_type != HHG_SYM_CLASS &&
             sym->value.sym_type != HHG_SYM_ENUM) {
             hhg_parser_error(
@@ -334,7 +336,6 @@ static hhg_type_t *hhg_parser_parse_base_type(hhg_parser_t *parser)
             );
             return NULL;
         }
-
         type = sym->value.type;
     } else {
         hhg_base_type_t base =
@@ -355,6 +356,7 @@ static hhg_type_t *hhg_parser_parse_base_type(hhg_parser_t *parser)
             base
         );
     }
+    assert(type != NULL);
     return type;
 }
 static hhg_type_t *hhg_parser_parse_ref_type(
@@ -600,12 +602,18 @@ static hhg_node_t *hhg_parser_parse_class_decl(hhg_parser_t *parser)
     if (parser->lexer->token.type == HHG_TOKEN_ID) {
         class_decl->value.class_decl.id.str =
             hhg_parser_strdup(parser->lexer->token.str.str);
+        
+        hhg_type_t *class_type = hhg_type_new(HHG_TYPE_ID, parser->arena);
+
+        class_type->info.id = class_decl->value.class_decl.id.str;
+
         hhg_sym_tab_insert(
             parser->sym_tab, 
             (hhg_sym_t) {
                 .key = class_decl->value.class_decl.id.str,
                 .value = (hhg_sym_value_t) {
                     .sym_type = HHG_SYM_CLASS,
+                    .type = class_type,
                 },
             }
         );

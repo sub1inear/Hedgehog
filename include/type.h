@@ -46,6 +46,9 @@ enum hhg_base_type {
     HHG_TYPE_FUNC,
     HHG_TYPE_CLASS,
     HHG_TYPE_ENUM,
+
+    // used for placeholder types in the parser
+    HHG_TYPE_ID,
 };
 
 #define HHG_BUILTIN_TYPE_START HHG_TYPE_I8
@@ -79,7 +82,7 @@ typedef struct hhg_type_class_field {
 
 typedef struct hhg_type_class_info {
     hhg_sym_t *sym;
-    hhg_type_class_field_t *fields;
+    hhg_type_class_field_t *fields; // string hash map
 } hhg_type_class_info_t;
 
 typedef union hhg_type_info {
@@ -87,6 +90,7 @@ typedef union hhg_type_info {
     hhg_type_arr_info_t arr; // HHG_TYPE_ARR
     hhg_type_func_info_t func; // HHG_TYPE_FUNC
     hhg_type_class_info_t class; // HHG_TYPE_CLASS
+    char *id; // HHG_TYPE_ID
 } hhg_type_info_t;
 
 struct hhg_type {
@@ -96,10 +100,6 @@ struct hhg_type {
     hhg_type_info_t info;
 };
 
-typedef struct hhg_type_promote {
-    hhg_type_t *l;
-    hhg_type_t *r;
-} hhg_type_promote_t;
 
 void hhg_type_init(hhg_type_t *type, hhg_base_type_t base);
 hhg_type_t *hhg_type_new(hhg_base_type_t base, hhg_arena_t *arena);

@@ -47,6 +47,8 @@ static const char *const base_type_to_str[] = {
     "func",
     "class",
     "enum",
+
+    "id",
 };
 
 void hhg_type_init(hhg_type_t *type, hhg_base_type_t base)
@@ -178,11 +180,23 @@ void hhg_type_fprint(hhg_type_t *type, FILE *stream)
 
     switch (type->type) {
     case HHG_TYPE_REF:
+        fputc(' ', stream);
         hhg_type_fprint(type->info.ref.base, stream);
         break;
     case HHG_TYPE_ARR:
-        fprintf(stream, "[%zd] of ", type->info.arr.size);
+        fprintf(stream, " [%zd] of ", type->info.arr.size);
         hhg_type_fprint(type->info.arr.elem, stream);
+        break;
+    case HHG_TYPE_FUNC:
+        // methods have no symbol
+        if (type->info.func.sym != NULL)
+            fprintf(stream, " %s", type->info.func.sym->key);
+        break;
+    case HHG_TYPE_CLASS:
+        fprintf(stream, " %s", type->info.class.sym->key);
+        break;
+    case HHG_TYPE_ID:
+        fprintf(stream, " %s", type->info.id);
         break;
     default:
         break;

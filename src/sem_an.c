@@ -301,7 +301,27 @@ static void hhg_sem_an_run_var_decl(hhg_sem_an_t *sem_an, hhg_node_t *node)
 
 static void hhg_sem_an_run_obj_init(hhg_sem_an_t *sem_an, hhg_node_t *node)
 {
+    // resolve ID type (used as placeholder in parser)
+    if (node->value_type->type == HHG_TYPE_ID) {
+        hhg_sym_t *sym =
+            hhg_sym_tab_lookup(sem_an->sym_tab, node->value_type->info.id);
+        assert(sym != NULL); // should have been caught in parser
+        node->value_type = sym->value.type;
+    }
+
+    size_t len = arrlenu(node->value.obj_init.args);
+    if (len == 0) {
+        hhg_sem_an_error(
+            sem_an,
+            node,
+            "object initialization requires at least one argument",
+            "here"
+        );
+        return;
+    }
+
     hhg_sem_an_run_children(sem_an, node->value.obj_init.args);
+
 }
 
 static void hhg_sem_an_run_func_decl(hhg_sem_an_t *sem_an, hhg_node_t *node)
@@ -382,7 +402,7 @@ static void hhg_sem_an_run_class_decl(hhg_sem_an_t *sem_an, hhg_node_t *node)
 {
     hhg_sym_t *sym =
         hhg_sym_tab_lookup(sem_an->sym_tab, node->value.class_decl.id.str);
-    if (sym == NULL)
+    if (sym != NULL)
         hhg_sem_an_error(
             sem_an,
             node,
