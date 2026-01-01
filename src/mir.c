@@ -4,6 +4,7 @@
 
 #include "mir.h"
 #include "mem.h"
+#include "utils.h"
 
 
 void hhg_mir_init(hhg_mir_gen_t *gen, hhg_arena_t *arena)
@@ -28,12 +29,12 @@ hhg_mir_instr_t *hhg_mir_gen_instr_new(hhg_mir_gen_t *gen, hhg_mir_op_t op)
 
 void hhg_mir_gen_run(hhg_mir_gen_t *gen, hhg_node_t *node)
 {
-
+    HHG_UNUSED(gen, node);
 }
 
 void hhg_mir_print(hhg_mir_gen_t *gen)
 {
-
+    HHG_UNUSED(gen);
 }
 
 void hhg_mir_del(hhg_mir_gen_t *gen)
