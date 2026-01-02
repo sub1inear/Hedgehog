@@ -3,7 +3,13 @@
 
 #include <stdbool.h>
 
-void hhg_debug_lexer(const char *filename);
-bool hhg_debug_parser(const char *filename);
+typedef enum hhg_stage {
+    HHG_STAGE_LEXER,
+    HHG_STAGE_PARSER,
+    HHG_STAGE_SEM_AN,
+    HHG_STAGE_RUN,
+} hhg_stage_t;
+
+bool hhg_debug(const char *filename, hhg_stage_t stage);
 
 #endif

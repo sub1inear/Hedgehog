@@ -10,24 +10,11 @@
 #include "sem_an.h"
 #include "run.h"
 
-void hhg_debug_lexer(const char *filename)
-{
-    hhg_msg_ctx_t msg_ctx;
-    hhg_msg_ctx_init(&msg_ctx);
+static void hhg_debug_print_lexer(hhg_lexer_t *lexer);
+static void hhg_debug_print_parser(hhg_node_t *prog);
+static void hhg_debug_print_sem_an(hhg_node_t *prog);
 
-    hhg_lexer_t lexer;
-    hhg_lexer_init(&lexer, &msg_ctx, filename);
-
-    while (lexer.token.type != EOF) {
-        hhg_lexer_next(&lexer);
-        hhg_token_print(&lexer.token);
-        putchar('\n');
-    }
-
-    hhg_lexer_del(&lexer);
-}
-
-bool hhg_debug_parser(const char *filename)
+bool hhg_debug(const char *filename, hhg_stage_t stage)
 {
     // 0th stage: init
     hhg_msg_ctx_t msg_ctx;
@@ -36,11 +23,18 @@ bool hhg_debug_parser(const char *filename)
     hhg_lexer_t lexer;
     hhg_lexer_init(&lexer, &msg_ctx, filename);
 
+    if (stage == HHG_STAGE_LEXER) {
+        if (msg_ctx.error_count == 0)
+            hhg_debug_print_lexer(&lexer);
+
+        hhg_run_cleanup(&lexer, NULL, NULL, NULL);
+        return true;
+    }
+
     hhg_arena_t *arena = hhg_arena_new();
 
     hhg_sym_tab_t sym_tab;
     hhg_sym_tab_init(&sym_tab, arena);
-
     
     hhg_type_ctx_t type_ctx;
     hhg_type_ctx_init(&type_ctx, arena);
@@ -51,8 +45,11 @@ bool hhg_debug_parser(const char *filename)
 
     hhg_node_t *prog = hhg_parser_parse(&parser);
 
-    if (msg_ctx.error_count != 0) {
-        hhg_run_cleanup(&type_ctx, arena, &sym_tab, &lexer);
+    if (stage == HHG_STAGE_PARSER) {
+        if (msg_ctx.error_count == 0)
+            hhg_debug_print_parser(prog);
+
+        hhg_run_cleanup(&lexer, &sym_tab, arena, &type_ctx);
         return msg_ctx.error_count;
     }
 
@@ -62,12 +59,36 @@ bool hhg_debug_parser(const char *filename)
 
     hhg_sem_an_run(&sem_an, prog);
 
-    if (msg_ctx.error_count == 0)
-        hhg_node_print(prog, HHG_NODE_INDENT_START, true);
+    if (stage == HHG_STAGE_SEM_AN) {
+        if (msg_ctx.error_count == 0)
+            hhg_debug_print_sem_an(prog);
+
+        hhg_run_cleanup(&lexer, &sym_tab, arena, &type_ctx);
+        return msg_ctx.error_count;
+    }
 
     // ...
 
     // 7th stage: cleanup
-    hhg_run_cleanup(&type_ctx, arena, &sym_tab, &lexer);
+    hhg_run_cleanup(&lexer, &sym_tab, arena, &type_ctx);
     return msg_ctx.error_count;
+}
+
+static void hhg_debug_print_lexer(hhg_lexer_t *lexer)
+{
+    // lexer.token.type is initially set to HHG_TOKEN_NONE
+    while (lexer->token.type != EOF) {
+        hhg_lexer_next(lexer);
+        hhg_token_print(&lexer->token);
+        putchar('\n');
+    }
+}
+static void hhg_debug_print_parser(hhg_node_t *prog)
+{
+    hhg_node_print(prog, HHG_NODE_INDENT_START, false /* no symbols */);
+}
+
+static void hhg_debug_print_sem_an(hhg_node_t *prog)
+{
+    hhg_node_print(prog, HHG_NODE_INDENT_START, true /* print symbols */);
 }

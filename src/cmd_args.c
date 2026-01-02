@@ -26,7 +26,7 @@ void hhg_cmd_args_parse(char **argv)
 {
     struct optparse options;
     optparse_init(&options, argv);
-
+    
     int option;
 
     char *prog_name = argv[0][0] == '\0' ? "hedgehog" : argv[0];

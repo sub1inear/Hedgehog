@@ -11,10 +11,9 @@ typedef struct hhg_lexer hhg_lexer_t;
 bool hhg_run(const char *filename);
 
 void hhg_run_cleanup(
-    hhg_type_ctx_t *type_ctx,
-    hhg_arena_t *arena,
-    hhg_sym_tab_t *sym_tab,
-    hhg_lexer_t *lexer
+    hhg_lexer_t *lexer, // required
+    hhg_sym_tab_t *sym_tab, // can be NULL
+    hhg_arena_t *arena, // can be NULL
+    hhg_type_ctx_t *type_ctx // can be NULL
 );
-
 #endif
