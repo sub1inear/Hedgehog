@@ -13,10 +13,7 @@
 #include "str.h"
 #include "token.h"
 #include "type.h"
-
-#define HHG_ANSI_COLOR_CLEAR "\x1b[0m"
-#define HHG_ANSI_COLOR_RED "\x1b[1;31m"
-#define HHG_ANSI_COLOR_YELLOW "\x1b[1;33m"
+#include "utils.h"
 
 /*
 Message format:
