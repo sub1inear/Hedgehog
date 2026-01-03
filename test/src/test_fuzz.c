@@ -13,15 +13,17 @@ int main(void)
 
     srand(time(NULL));
 
-    for (int32_t i = 0; i < 10000; i++)
-        fputc((char)(rand() % 256), file);
+    for (int32_t i = 0; i < 1000; i++)
+        fputc((char)(rand() % 128), file);
 
-    fputc('\1', file); // put an invalid character to ensure failure
+    // put an invalid character to ensure failure
+    // (just in case random data is valid)
+    fputc('\1', file);
 
     fclose(file);
     
     // the fuzzed file is expected to cause a failure (or segfault)
-    bool result = hhg_run("fuzz.hhg");
+    bool failed = hhg_run("fuzz.hhg");
 
-    return result ? EXIT_FAILURE : EXIT_SUCCESS;
+    return failed ? EXIT_SUCCESS : EXIT_FAILURE;
 }

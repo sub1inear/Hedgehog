@@ -66,11 +66,11 @@ int main(int argc, char **argv)
     if (filename == NULL)
         hhg_fatal_error("no input file specified");
 
-    bool result = hhg_debug(
+    bool failed = hhg_debug(
         filename,
         stage
     );
 
-    if (result) return expect_fail ? EXIT_SUCCESS : EXIT_FAILURE;
+    if (failed) return expect_fail ? EXIT_SUCCESS : EXIT_FAILURE;
     else        return expect_fail ? EXIT_FAILURE : EXIT_SUCCESS;
 }
