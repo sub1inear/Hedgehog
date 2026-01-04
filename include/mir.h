@@ -74,47 +74,62 @@ typedef enum hhg_mir_cmp {
     HHG_MIR_GTE,
 } hhg_mir_cmp_t;
 
+typedef union hhg_mir_cnst_value {
+    int64_t si;
+    uint64_t ui;
+    float f;
+    double d;
+    char *str;
+} hhg_mir_cnst_value_t;
+
 typedef struct hhg_mir_cnst {
-    union {
-        int64_t si;
-        uint64_t ui;
-        float f;
-        double d;
-        char *str;
-    };
+    hhg_mir_cnst_value_t value;
     hhg_base_type_t type;
 } hhg_mir_cnst_t;
 
+typedef union hhg_mir_opnd_value {
+    int64_t lbl;
+    int64_t reg;
+    hhg_mir_cnst_t cnst;
+    hhg_mir_cmp_t cmp;
+} hhg_mir_opnd_value_t;
+
 typedef struct hhg_mir_opnd {
-    union {
-        uint64_t lbl;
-        uint64_t reg;
-        hhg_mir_cnst_t cnst;
-        hhg_mir_cmp_t cmp;
-    };
     hhg_type_t *type;
+    hhg_mir_opnd_value_t value;
 } hhg_mir_opnd_t;
 
 typedef struct hhg_mir_instr {
     hhg_mir_op_t op;
-    hhg_mir_opnd_t **opnds;
+    hhg_mir_opnd_t *opnds;
     hhg_file_src_t *src;
     hhg_file_range_t *range;
 } hhg_mir_instr_t;
 
+typedef struct hhg_mir_ctx {
+    int x; // placeholder
+} hhg_mir_ctx_t;
+
 typedef struct hhg_mir_gen {
-    hhg_mir_instr_t *instrs;
+    hhg_mir_ctx_t *ctx;
     hhg_arena_t *arena;
 } hhg_mir_gen_t;
 
-void hhg_mir_init(hhg_mir_gen_t *ir, hhg_arena_t *arena);
+void hhg_mir_gen_init(hhg_mir_gen_t *gen, hhg_arena_t *arena);
 
-hhg_mir_instr_t *hhg_mir_instr_new(hhg_arena_t *arena, hhg_mir_op_t op);
+hhg_mir_instr_t *hhg_mir_instr_new(hhg_mir_gen_t *gen, hhg_mir_op_t op);
+hhg_mir_instr_t *hhg_mir_instr_new_opnd(
+    hhg_mir_gen_t *gen,
+    hhg_mir_op_t op,
+    hhg_mir_opnd_t opnd
+);
 
-void hhg_mir_gen_run(hhg_mir_gen_t *gen, hhg_node_t *node);
+hhg_mir_instr_t *hhg_mir_gen_run(hhg_mir_gen_t *gen, hhg_node_t *prog);
 
-void hhg_mir_print(hhg_mir_gen_t *ir);
+void hhg_mir_gen_print(hhg_mir_gen_t *gen);
 
-void hhg_mir_del(hhg_mir_gen_t *ir);
+void hhg_mir_gen_del(hhg_mir_gen_t *gen);
+
+void hhg_mir_instr_free(hhg_mir_instr_t *instr);
 
 #endif
