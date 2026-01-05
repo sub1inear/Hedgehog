@@ -217,41 +217,6 @@ void hhg_lexer_match(hhg_lexer_t *lexer, hhg_token_type_t type)
     hhg_lexer_next(lexer);
 }
 
-void hhg_lexer_match_va(
-    hhg_lexer_t *lexer,
-    const char *summary,
-    int32_t count,
-    ...
-)
-{
-    va_list va;
-    va_start(va, count);
-
-    int32_t i;
-
-    for (i = 0; i < count; i++) {
-        hhg_token_type_t type = va_arg(va, hhg_token_type_t);
-        
-        if (lexer->token.type == type)
-            break;
-    }
-
-    va_end(va);
-
-    if (i == count) {
-        hhg_lexer_error(
-            lexer,
-            "expected %s, got token `%t`",
-            "here",
-            summary,
-            lexer->token.type
-        );
-        return;
-    }
-
-    hhg_lexer_next(lexer);
-}
-
 void hhg_lexer_del(hhg_lexer_t *lexer)
 {
     hhg_token_del(&lexer->token);
