@@ -42,6 +42,7 @@ typedef union hhg_id {
 } hhg_id_t;
 
 typedef struct hhg_var_decl {
+    bool first;
     hhg_id_t id;
     hhg_node_t *expr;
 } hhg_var_decl_t;

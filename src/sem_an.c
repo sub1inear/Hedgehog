@@ -265,6 +265,7 @@ static void hhg_sem_an_run_var_decl(hhg_sem_an_t *sem_an, hhg_node_t *node)
     assert(expr_type != NULL);
 
     if (sym == NULL) {
+        node->value.var_decl.first = true;
         // automatic type inference from expr if no type specified
         if (node->value_type == NULL)
             node->value_type = node->value.var_decl.expr->value_type;

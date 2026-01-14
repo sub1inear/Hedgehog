@@ -7,75 +7,103 @@
 #include "msg.h"
 #include "utils.h"
 
-static hhg_mir_instr_t *hhg_mir_gen_run_block(
+#define hhg_mir_gen_new_instr_value(gen, instr_type) \
+    (instr_type *)hhg_arena_malloc(                  \
+        gen->arena,                                  \
+        sizeof(instr_type)                           \
+    )
+
+static void hhg_mir_gen_add_instr(
+    hhg_mir_gen_t *gen,
+    hhg_node_t *node,
+    hhg_mir_op_t op,
+    void *value
+);
+static void hhg_mir_gen_new_global(hhg_mir_gen_t *gen, hhg_sym_t *sym);
+static void hhg_mir_gen_new_local(hhg_mir_gen_t *gen, hhg_sym_t *sym);
+static hhg_mir_reg_t hhg_mir_gen_new_tmp(hhg_mir_gen_t *gen, hhg_type_t *type);
+static hhg_mir_lbl_t hhg_mir_gen_new_lbl(hhg_mir_gen_t *gen);
+
+static hhg_mir_reg_t hhg_mir_gen_get_global(hhg_mir_gen_t *gen, hhg_sym_t *sym, hhg_node_t *node);
+static hhg_mir_lbl_t hhg_mir_gen_get_local(hhg_mir_gen_t *gen, hhg_sym_t *sym);
+static hhg_type_t *hhg_mir_gen_get_tmp(hhg_mir_gen_t *gen, hhg_mir_reg_t tmp);
+
+static void hhg_mir_gen_push_ctx(hhg_mir_gen_t *gen, hhg_mir_ctx_t ctx);
+static void hhg_mir_gen_pop_ctx(hhg_mir_gen_t *gen);
+
+static void hhg_mir_gen_run_children(
+    hhg_mir_gen_t *gen,
+    hhg_node_t **children
+);
+static hhg_mir_reg_t hhg_mir_gen_run_block(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 );
-static hhg_mir_instr_t *hhg_mir_gen_run_id(
+static hhg_mir_reg_t hhg_mir_gen_run_id(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 );
-static hhg_mir_instr_t *hhg_mir_gen_run_if(
+static hhg_mir_reg_t hhg_mir_gen_run_if(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 );
-static hhg_mir_instr_t *hhg_mir_gen_run_while(
+static hhg_mir_reg_t hhg_mir_gen_run_while(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 );
-static hhg_mir_instr_t *hhg_mir_gen_run_var_decl(
+static hhg_mir_reg_t hhg_mir_gen_run_var_decl(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 );
-static hhg_mir_instr_t *hhg_mir_gen_run_obj_init(
+static hhg_mir_reg_t hhg_mir_gen_run_obj_init(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 );
-static hhg_mir_instr_t *hhg_mir_gen_run_func_decl(
+static hhg_mir_reg_t hhg_mir_gen_run_func_decl(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 );
-static hhg_mir_instr_t *hhg_mir_gen_run_class_decl(
+static hhg_mir_reg_t hhg_mir_gen_run_class_decl(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 );
-static hhg_mir_instr_t *hhg_mir_gen_run_func_call(
+static hhg_mir_reg_t hhg_mir_gen_run_func_call(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 );
-static hhg_mir_instr_t *hhg_mir_gen_run_return(
+static hhg_mir_reg_t hhg_mir_gen_run_return(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 );
-static hhg_mir_instr_t *hhg_mir_gen_run_arr_literal(
+static hhg_mir_reg_t hhg_mir_gen_run_arr_literal(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 );
-static hhg_mir_instr_t *hhg_mir_gen_run_expr(
+static hhg_mir_reg_t hhg_mir_gen_run_expr(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 );
-static hhg_mir_instr_t *hhg_mir_gen_run_inc_dec(
+static hhg_mir_reg_t hhg_mir_gen_run_inc_dec(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 );
-static hhg_mir_instr_t *hhg_mir_gen_run_bool_literal(
+static hhg_mir_reg_t hhg_mir_gen_run_bool_literal(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 );
-static hhg_mir_instr_t *hhg_mir_gen_run_string_literal(
+static hhg_mir_reg_t hhg_mir_gen_run_string_literal(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 );
-static hhg_mir_instr_t *hhg_mir_gen_run_int_literal(
+static hhg_mir_reg_t hhg_mir_gen_run_int_literal(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 );
-static hhg_mir_instr_t *hhg_mir_gen_run_float_literal(
+static hhg_mir_reg_t hhg_mir_gen_run_float_literal(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 );
-static hhg_mir_instr_t *hhg_mir_gen_run_core(
+static hhg_mir_reg_t hhg_mir_gen_run_core(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 );
@@ -83,41 +111,20 @@ static hhg_mir_instr_t *hhg_mir_gen_run_core(
 void hhg_mir_gen_init(hhg_mir_gen_t *gen, hhg_arena_t *arena)
 {
     *gen = (hhg_mir_gen_t) {
+        .instrs = NULL,
         .ctx = NULL,
+        .global_arr = NULL,
+        .tmp_arr = NULL,
+        .reg_count = 0,
+        .lbl_count = 0,
         .arena = arena,
     };
 }
 
-hhg_mir_instr_t *hhg_mir_instr_new(hhg_mir_gen_t *gen, hhg_mir_op_t op)
-{
-    hhg_mir_instr_t *instr = hhg_arena_malloc(
-        gen->arena,
-        sizeof(hhg_mir_instr_t)
-    );
-    *instr = (hhg_mir_instr_t) {
-        .op = op,
-        .opnds = NULL,
-        .src = NULL,
-        .range = NULL,
-    };
-    return instr;
-}
-hhg_mir_instr_t *hhg_mir_instr_new_opnd(
-    hhg_mir_gen_t *gen,
-    hhg_mir_op_t op,
-    hhg_mir_opnd_t opnd
-)
-{
-    hhg_mir_instr_t *instr = hhg_mir_instr_new(gen, op);
-    arrpush(instr->opnds, opnd);
-    return instr;
-}
-
-
-hhg_mir_instr_t *hhg_mir_gen_run(hhg_mir_gen_t *gen, hhg_node_t *prog)
+void hhg_mir_gen_run(hhg_mir_gen_t *gen, hhg_node_t *prog)
 {
     assert(prog->type == HHG_NODE_BLOCK);
-    return hhg_mir_gen_run_block(gen, prog);
+    hhg_mir_gen_run_block(gen, prog);
 }
 
 void hhg_mir_gen_print(hhg_mir_gen_t *gen)
@@ -128,21 +135,41 @@ void hhg_mir_gen_print(hhg_mir_gen_t *gen)
 void hhg_mir_gen_del(hhg_mir_gen_t *gen)
 {
     arrfree(gen->ctx);
+    for (size_t i = 0; i < arrlenu(gen->instrs); i++) {
+        hhg_mir_instr_free(&gen->instrs[i]);
+    }
+    arrfree(gen->instrs);
 }
 
 void hhg_mir_instr_free(hhg_mir_instr_t *instr)
 {
-    arrfree(instr->opnds);
+    switch (instr->op) {
+    case HHG_MIR_CALL:
+        arrfree(instr->value->call.args);
+        break;
+    case HHG_MIR_FUNC:
+        arrfree(instr->value->func.params);
+        break;
+    case HHG_MIR_STRUCT_INIT:
+        arrfree(instr->value->struct_init.fields);
+        break;
+    case HHG_MIR_ARR_INIT:
+        arrfree(instr->value->arr_init.elems);
+        break;
+    }
 }
 
-static hhg_mir_instr_t *hhg_mir_gen_run_core(
+static hhg_mir_reg_t hhg_mir_gen_run_core(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 )
 {
     switch (node->type) {
     case HHG_NODE_BLOCK:
-        return hhg_mir_gen_run_block(gen, node);
+        hhg_mir_gen_push_ctx(gen, (hhg_mir_ctx_t) { .in_global_scope = false });
+        hhg_mir_reg_t reg = hhg_mir_gen_run_block(gen, node);
+        hhg_mir_gen_pop_ctx(gen);
+        return reg;
     case HHG_TOKEN_ID:
         return hhg_mir_gen_run_id(gen, node);
     case HHG_TOKEN_IF:
@@ -206,166 +233,278 @@ static hhg_mir_instr_t *hhg_mir_gen_run_core(
         return hhg_mir_gen_run_float_literal(gen, node);
     case '.':
     case HHG_NODE_PARAM:
-        return NULL;
+        return -1;
     default:
         hhg_fatal_error(
             "unhandled node type `%n` in hhg_mir_gen_run_core",
             node->type
         );
-        return NULL;
+        return -1;
     }
 }
 
-
-static hhg_mir_instr_t *hhg_mir_gen_run_block(
+static void hhg_mir_gen_add_instr(
     hhg_mir_gen_t *gen,
-    hhg_node_t *node
+    hhg_node_t *node,
+    hhg_mir_op_t op,
+    void *value
 )
 {
-    HHG_UNUSED(gen, node);
-    return NULL;
+    hhg_mir_instr_t instr = {
+        .op = op,
+        .value = value,
+        .node = node,
+    };
+    arrput(gen->instrs, instr);
 }
 
-static hhg_mir_instr_t *hhg_mir_gen_run_id(
-    hhg_mir_gen_t *gen,
-    hhg_node_t *node
-)
+static void hhg_mir_gen_new_global(hhg_mir_gen_t *gen, hhg_sym_t *sym)
 {
-    HHG_UNUSED(gen, node);
-    return NULL;
+    arrput(gen->global_arr, sym);
+    gen->reg_count++;
 }
 
-static hhg_mir_instr_t *hhg_mir_gen_run_if(
-    hhg_mir_gen_t *gen,
-    hhg_node_t *node
-)
+static void hhg_mir_gen_new_local(hhg_mir_gen_t *gen, hhg_sym_t *sym)
 {
-    HHG_UNUSED(gen, node);
-    return NULL;
+    hhg_mir_ctx_t *ctx = &arrlast(gen->ctx);
+    // local should not already exist
+    assert(hmgetp_null(ctx->local_tab, sym) == NULL);
+    hmput(ctx->local_tab, sym, gen->reg_count);
+    gen->reg_count++;
 }
 
-static hhg_mir_instr_t *hhg_mir_gen_run_while(
-    hhg_mir_gen_t *gen,
-    hhg_node_t *node
-)
+static hhg_mir_reg_t hhg_mir_gen_new_tmp(hhg_mir_gen_t *gen, hhg_type_t *type)
 {
-    HHG_UNUSED(gen, node);
-    return NULL;
+    arrput(gen->tmp_arr, type);
+    return gen->reg_count++;
 }
 
-static hhg_mir_instr_t *hhg_mir_gen_run_var_decl(
-    hhg_mir_gen_t *gen,
-    hhg_node_t *node
-)
+static hhg_mir_lbl_t hhg_mir_gen_new_lbl(hhg_mir_gen_t *gen)
 {
-    HHG_UNUSED(gen, node);
-    return NULL;
+    return gen->lbl_count++;
 }
 
-static hhg_mir_instr_t *hhg_mir_gen_run_obj_init(
-    hhg_mir_gen_t *gen,
-    hhg_node_t *node
-)
+static hhg_mir_reg_t hhg_mir_gen_get_global(hhg_mir_gen_t *gen, hhg_sym_t *sym, hhg_node_t *node)
 {
-    HHG_UNUSED(gen, node);
-    return NULL;
+    hhg_mir_reg_t tmp_reg = hhg_mir_gen_new_tmp(gen, sym->value.type);
+
+    hhg_mir_load_t *load_value = hhg_mir_gen_new_instr_value(gen, hhg_mir_load_t);
+    load_value->dest = tmp_reg;
+    load_value->sym = sym;
+    hhg_mir_gen_add_instr(gen, node, HHG_MIR_LOAD, load_value);
+
+    return tmp_reg;
 }
 
-static hhg_mir_instr_t *hhg_mir_gen_run_func_decl(
-    hhg_mir_gen_t *gen,
-    hhg_node_t *node
-)
+static hhg_mir_reg_t hhg_mir_gen_get_local(hhg_mir_gen_t *gen, hhg_sym_t *sym)
 {
-    HHG_UNUSED(gen, node);
-    return NULL;
+    hhg_mir_ctx_t *ctx = &arrlast(gen->ctx);
+    hhg_mir_local_t *entry = hmgetp_null(ctx->local_tab, sym);
+    return entry == NULL ? -1 : entry->value;
 }
 
-static hhg_mir_instr_t *hhg_mir_gen_run_class_decl(
-    hhg_mir_gen_t *gen,
-    hhg_node_t *node
-)
+static hhg_type_t *hhg_mir_gen_get_tmp(hhg_mir_gen_t *gen, hhg_mir_reg_t tmp)
 {
-    HHG_UNUSED(gen, node);
-    return NULL;
+    assert(tmp > 0);
+    return gen->tmp_arr[tmp];
 }
 
-static hhg_mir_instr_t *hhg_mir_gen_run_func_call(
-    hhg_mir_gen_t *gen,
-    hhg_node_t *node
-)
+static void hhg_mir_gen_push_ctx(hhg_mir_gen_t *gen, hhg_mir_ctx_t ctx)
 {
-    HHG_UNUSED(gen, node);
-    return NULL;
+    arrput(gen->ctx, ctx);
 }
 
-static hhg_mir_instr_t *hhg_mir_gen_run_return(
-    hhg_mir_gen_t *gen,
-    hhg_node_t *node
-)
+static void hhg_mir_gen_pop_ctx(hhg_mir_gen_t *gen)
 {
-    HHG_UNUSED(gen, node);
-    return NULL;
+    (void)arrpop(gen->ctx);
 }
 
-static hhg_mir_instr_t *hhg_mir_gen_run_arr_literal(
+static void hhg_mir_gen_run_children(
     hhg_mir_gen_t *gen,
-    hhg_node_t *node
+    hhg_node_t **children
 )
 {
-    HHG_UNUSED(gen, node);
-    return NULL;
+    size_t size = arrlenu(children);
+    for (size_t i = 0; i < size; i++)
+        hhg_mir_gen_run_core(gen, children[i]);
 }
 
-static hhg_mir_instr_t *hhg_mir_gen_run_expr(
+static hhg_mir_reg_t hhg_mir_gen_run_block(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 )
 {
-    HHG_UNUSED(gen, node);
-    return NULL;
+    hhg_mir_gen_run_children(gen, node->value.block.body);
+    return -1;
 }
 
-static hhg_mir_instr_t *hhg_mir_gen_run_inc_dec(
+static hhg_mir_reg_t hhg_mir_gen_run_id(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 )
 {
-    HHG_UNUSED(gen, node);
-    return NULL;
+    if (arrlast(gen->ctx).in_global_scope)
+        return hhg_mir_gen_get_global(gen, node->value.id.sym, node);
+    hhg_mir_reg_t reg = hhg_mir_gen_get_local(gen, node->value.id.sym);
+    assert(reg != -1);
+    return reg;
 }
 
-static hhg_mir_instr_t *hhg_mir_gen_run_bool_literal(
+static hhg_mir_reg_t hhg_mir_gen_run_if(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 )
 {
     HHG_UNUSED(gen, node);
-    return NULL;
+    return 0;
 }
 
-static hhg_mir_instr_t *hhg_mir_gen_run_string_literal(
+static hhg_mir_reg_t hhg_mir_gen_run_while(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 )
 {
     HHG_UNUSED(gen, node);
-    return NULL;
+    return 0;
 }
 
-static hhg_mir_instr_t *hhg_mir_gen_run_int_literal(
+static hhg_mir_reg_t hhg_mir_gen_run_var_decl(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 )
 {
-    HHG_UNUSED(gen, node);
-    return NULL;
+    hhg_mir_reg_t expr_reg = hhg_mir_gen_run_core(gen, node->value.var_decl.expr);
+
+    if (node->value.var_decl.first) {
+        if (arrlast(gen->ctx).in_global_scope)
+            hhg_mir_gen_new_global(gen, node->value.var_decl.id.sym);
+        else
+            hhg_mir_gen_new_local(gen, node->value.var_decl.id.sym);
+    }
+
+    if (arrlast(gen->ctx).in_global_scope) {
+        hhg_mir_store_t *store_value =
+            hhg_mir_gen_new_instr_value(gen, hhg_mir_store_t);
+        store_value->sym = node->value.var_decl.id.sym;
+        store_value->src = expr_reg;
+        hhg_mir_gen_add_instr(gen, node, HHG_MIR_STORE, store_value);
+    } else {
+        hhg_mir_reg_t local_reg =
+            hhg_mir_gen_get_local(gen, node->value.var_decl.id.sym);
+        hhg_mir_move_t *move_value =
+            hhg_mir_gen_new_instr_value(gen, hhg_mir_move_t);
+        move_value->dest = local_reg;
+        move_value->src = expr_reg;
+        hhg_mir_gen_add_instr(gen, node, HHG_MIR_MOVE, move_value);
+    }
+
+    return expr_reg;
 }
 
-static hhg_mir_instr_t *hhg_mir_gen_run_float_literal(
+static hhg_mir_reg_t hhg_mir_gen_run_obj_init(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 )
 {
     HHG_UNUSED(gen, node);
-    return NULL;
+    return 0;
+}
+
+static hhg_mir_reg_t hhg_mir_gen_run_func_decl(
+    hhg_mir_gen_t *gen,
+    hhg_node_t *node
+)
+{
+    HHG_UNUSED(gen, node);
+    return 0;
+}
+
+static hhg_mir_reg_t hhg_mir_gen_run_class_decl(
+    hhg_mir_gen_t *gen,
+    hhg_node_t *node
+)
+{
+    HHG_UNUSED(gen, node);
+    return 0;
+}
+
+static hhg_mir_reg_t hhg_mir_gen_run_func_call(
+    hhg_mir_gen_t *gen,
+    hhg_node_t *node
+)
+{
+    HHG_UNUSED(gen, node);
+    return 0;
+}
+
+static hhg_mir_reg_t hhg_mir_gen_run_return(
+    hhg_mir_gen_t *gen,
+    hhg_node_t *node
+)
+{
+    HHG_UNUSED(gen, node);
+    return 0;
+}
+
+static hhg_mir_reg_t hhg_mir_gen_run_arr_literal(
+    hhg_mir_gen_t *gen,
+    hhg_node_t *node
+)
+{
+    HHG_UNUSED(gen, node);
+    return 0;
+}
+
+static hhg_mir_reg_t hhg_mir_gen_run_expr(
+    hhg_mir_gen_t *gen,
+    hhg_node_t *node
+)
+{
+    HHG_UNUSED(gen, node);
+    return 0;
+}
+
+static hhg_mir_reg_t hhg_mir_gen_run_inc_dec(
+    hhg_mir_gen_t *gen,
+    hhg_node_t *node
+)
+{
+    HHG_UNUSED(gen, node);
+    return 0;
+}
+
+static hhg_mir_reg_t hhg_mir_gen_run_bool_literal(
+    hhg_mir_gen_t *gen,
+    hhg_node_t *node
+)
+{
+    HHG_UNUSED(gen, node);
+    return 0;
+}
+
+static hhg_mir_reg_t hhg_mir_gen_run_string_literal(
+    hhg_mir_gen_t *gen,
+    hhg_node_t *node
+)
+{
+    HHG_UNUSED(gen, node);
+    return 0;
+}
+
+static hhg_mir_reg_t hhg_mir_gen_run_int_literal(
+    hhg_mir_gen_t *gen,
+    hhg_node_t *node
+)
+{
+    HHG_UNUSED(gen, node);
+    return 0;
+}
+
+static hhg_mir_reg_t hhg_mir_gen_run_float_literal(
+    hhg_mir_gen_t *gen,
+    hhg_node_t *node
+)
+{
+    HHG_UNUSED(gen, node);
+    return 0;
 }
