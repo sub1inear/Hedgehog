@@ -18,7 +18,7 @@ int main(int argc, char **argv)
     bool result = false;
 
     if (cmd_args->filename != NULL)
-        result = hhg_debug(cmd_args->filename, HHG_STAGE_SEM_AN);
+        result = hhg_debug(cmd_args->filename, HHG_STAGE_MIR);
 
     hhg_mem_print_summary();
 

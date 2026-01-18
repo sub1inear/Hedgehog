@@ -7,6 +7,7 @@
 #include "sym_tab.h"
 #include "type_ctx.h"
 #include "sem_an.h"
+#include "mir.h"
 #include "mem.h"
 
 bool hhg_run(const char *filename)
@@ -33,7 +34,7 @@ bool hhg_run(const char *filename)
     hhg_node_t *prog = hhg_parser_parse(&parser);
 
     if (msg_ctx.error_count != 0) {
-        hhg_run_cleanup(&lexer, &sym_tab, arena, &type_ctx);
+        hhg_run_cleanup(&lexer, &sym_tab, arena, &type_ctx, NULL);
         return msg_ctx.error_count;
     }
 
@@ -43,7 +44,15 @@ bool hhg_run(const char *filename)
 
     hhg_sem_an_run(&sem_an, prog);
 
-    // 3rd stage: memory analysis
+    if (msg_ctx.error_count != 0) {
+        hhg_run_cleanup(&lexer, &sym_tab, arena, &type_ctx, NULL);
+        return msg_ctx.error_count;
+    }
+
+    // 3rd stage: MIR generation
+    hhg_mir_gen_t mir_gen;
+    hhg_mir_gen_init(&mir_gen, arena);
+    hhg_mir_gen_run(&mir_gen, prog);
 
     // 4th stage: optimization
 
@@ -52,7 +61,7 @@ bool hhg_run(const char *filename)
     // 6th stage: runtime execution
 
     // 7th stage: cleanup
-    hhg_run_cleanup(&lexer, &sym_tab, arena, &type_ctx);
+    hhg_run_cleanup(&lexer, &sym_tab, arena, &type_ctx, &mir_gen);
     return msg_ctx.error_count;
 }
 
@@ -60,9 +69,11 @@ void hhg_run_cleanup(
     hhg_lexer_t *lexer,
     hhg_sym_tab_t *sym_tab,
     hhg_arena_t *arena,
-    hhg_type_ctx_t *type_ctx
+    hhg_type_ctx_t *type_ctx,
+    hhg_mir_gen_t *mir_gen
 )
 {
+    if (mir_gen) hhg_mir_gen_del(mir_gen);
     if (type_ctx) hhg_type_ctx_del(type_ctx);
     if (arena) hhg_arena_free(arena);
     if (sym_tab) hhg_sym_tab_del(sym_tab);

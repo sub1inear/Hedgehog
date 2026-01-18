@@ -24,11 +24,16 @@ typedef struct hhg_sym_value_t {
 } hhg_sym_value_t;
 
 typedef struct hhg_sym {
-    char *key;
+    const char *key;
     hhg_sym_value_t value;
 } hhg_sym_t;
 
-// allocated by sym tab
+// mainly allocated in hhg_sym_tab_insert but temporary symbols too
+hhg_sym_t *hhg_sym_new(
+    hhg_arena_t *arena,
+    const char *key,
+    hhg_sym_value_t value
+);
 
 void hhg_sym_print(hhg_sym_t *sym);
 

@@ -259,7 +259,7 @@ static void hhg_sem_an_run_var_decl(hhg_sem_an_t *sem_an, hhg_node_t *node)
         hhg_sym_tab_lookup(sem_an->sym_tab, node->value.var_decl.id.str);
 
     // keep track of name of node
-    char *name = node->value.var_decl.id.str;
+    const char *name = node->value.var_decl.id.str;
 
     hhg_type_t *expr_type = node->value.var_decl.expr->value_type;
     assert(expr_type != NULL);

@@ -7,6 +7,7 @@ typedef enum hhg_stage {
     HHG_STAGE_LEXER,
     HHG_STAGE_PARSER,
     HHG_STAGE_SEM_AN,
+    HHG_STAGE_MIR,
     HHG_STAGE_RUN,
 } hhg_stage_t;
 

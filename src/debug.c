@@ -8,11 +8,13 @@
 #include "mem.h"
 #include "type_ctx.h"
 #include "sem_an.h"
+#include "mir.h"
 #include "run.h"
 
 static void hhg_debug_print_lexer(hhg_lexer_t *lexer);
 static void hhg_debug_print_parser(hhg_node_t *prog);
 static void hhg_debug_print_sem_an(hhg_node_t *prog);
+static void hhg_debug_print_mir_gen(hhg_mir_gen_t *mir_gen);
 
 bool hhg_debug(const char *filename, hhg_stage_t stage)
 {
@@ -27,7 +29,7 @@ bool hhg_debug(const char *filename, hhg_stage_t stage)
         if (msg_ctx.error_count == 0)
             hhg_debug_print_lexer(&lexer);
 
-        hhg_run_cleanup(&lexer, NULL, NULL, NULL);
+        hhg_run_cleanup(&lexer, NULL, NULL, NULL, NULL);
         return true;
     }
 
@@ -49,7 +51,7 @@ bool hhg_debug(const char *filename, hhg_stage_t stage)
         if (msg_ctx.error_count == 0)
             hhg_debug_print_parser(prog);
 
-        hhg_run_cleanup(&lexer, &sym_tab, arena, &type_ctx);
+        hhg_run_cleanup(&lexer, &sym_tab, arena, &type_ctx, NULL);
         return msg_ctx.error_count;
     }
 
@@ -63,14 +65,23 @@ bool hhg_debug(const char *filename, hhg_stage_t stage)
         if (msg_ctx.error_count == 0)
             hhg_debug_print_sem_an(prog);
 
-        hhg_run_cleanup(&lexer, &sym_tab, arena, &type_ctx);
+        hhg_run_cleanup(&lexer, &sym_tab, arena, &type_ctx, NULL);
         return msg_ctx.error_count;
     }
 
-    // ...
+    // 3rd stage: MIR generation
+    hhg_mir_gen_t mir_gen;
+    hhg_mir_gen_init(&mir_gen, arena);
+    hhg_mir_gen_run(&mir_gen, prog);
+    if (stage == HHG_STAGE_MIR) {
+        if (msg_ctx.error_count == 0)
+            hhg_mir_gen_print(&mir_gen);
+        hhg_run_cleanup(&lexer, &sym_tab, arena, &type_ctx, &mir_gen);
+        return msg_ctx.error_count;
+    }
 
     // 7th stage: cleanup
-    hhg_run_cleanup(&lexer, &sym_tab, arena, &type_ctx);
+    hhg_run_cleanup(&lexer, &sym_tab, arena, &type_ctx, &mir_gen);
     return msg_ctx.error_count;
 }
 
@@ -91,4 +102,9 @@ static void hhg_debug_print_parser(hhg_node_t *prog)
 static void hhg_debug_print_sem_an(hhg_node_t *prog)
 {
     hhg_node_print(prog, HHG_NODE_INDENT_START, true /* print symbols */);
+}
+
+static void hhg_debug_print_mir_gen(hhg_mir_gen_t *mir_gen)
+{
+    hhg_mir_gen_print(mir_gen);
 }
