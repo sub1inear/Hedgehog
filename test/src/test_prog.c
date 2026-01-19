@@ -6,7 +6,7 @@
 #include <optparse.h>
 
 #include "unit.h"
-#include "debug.h"
+#include "build.h"
 #include "msg.h"
 
 static const struct optparse_long longopts[] = {
@@ -23,7 +23,7 @@ int main(int argc, char **argv)
     optparse_init(&options, argv);
 
     int option;
-    hhg_stage_t stage = HHG_STAGE_LEXER;
+    hhg_build_stage_t stage = HHG_BUILD_STAGE_LEXER;
     bool expect_fail = false;
     
     char *prog_name = argv[0][0] == '\0' ? "test_prog" : argv[0];
@@ -43,13 +43,13 @@ int main(int argc, char **argv)
             return EXIT_SUCCESS;
             break;
         case 'l':
-            stage = HHG_STAGE_LEXER;
+            stage = HHG_BUILD_STAGE_LEXER;
             break;
         case 'p':
-            stage = HHG_STAGE_PARSER;
+            stage = HHG_BUILD_STAGE_PARSER;
             break;
         case 's':
-            stage = HHG_STAGE_SEM_AN;
+            stage = HHG_BUILD_STAGE_SEM_AN;
             break;
         case 'f':
             expect_fail = true;
