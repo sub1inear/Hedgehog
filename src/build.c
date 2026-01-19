@@ -17,6 +17,11 @@ static void hhg_build_debug_print_parser(hhg_node_t *prog);
 static void hhg_build_debug_print_sem_an(hhg_node_t *prog);
 static void hhg_build_debug_print_mir_gen(hhg_mir_gen_t *mir_gen);
 
+bool hhg_build(const char *filename)
+{
+    return hhg_build_debug(filename, HHG_BUILD_STAGE_BUILD);
+}
+
 bool hhg_build_debug(const char *filename, hhg_build_stage_t stage)
 {
     // 0th stage: init

@@ -66,7 +66,7 @@ int main(int argc, char **argv)
     if (filename == NULL)
         hhg_fatal_error("no input file specified");
 
-    bool failed = hhg_debug(
+    bool failed = hhg_build_debug(
         filename,
         stage
     );

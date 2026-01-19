@@ -3,7 +3,7 @@
 #include <time.h>
 
 #include "unit.h"
-#include "run.h"
+#include "build.h"
 
 int main(void)
 {
@@ -23,7 +23,7 @@ int main(void)
     fclose(file);
     
     // the fuzzed file is expected to cause a failure (or segfault)
-    bool failed = hhg_run("fuzz.hhg");
+    bool failed = hhg_build("fuzz.hhg");
 
     return failed ? EXIT_SUCCESS : EXIT_FAILURE;
 }
