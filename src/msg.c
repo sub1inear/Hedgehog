@@ -41,7 +41,7 @@ simplified vfprintf with support for hhg-specific types
 
 supported format specifiers:
 %s - string
-%d - int32_t
+%d - int
 %c - char
 %b - bool
 %% - %
@@ -210,24 +210,8 @@ static void hhg_vfprintf(FILE *stream, const char *fmt, va_list va)
                 break;
             }
             case 'd': {
-                int32_t int_arg = va_arg(va, int32_t);
-                uint32_t uint_arg;
-
-                if (int_arg < 0) {
-                    fputc('-', stream);                    
-                    uint_arg = (uint32_t)(-(int64_t)int_arg);
-                } else
-                    uint_arg = (uint32_t)int_arg;
-
-                uint32_t div = 1;
-                while (uint_arg / div >= 10)
-                    div *= 10;
-
-                while (div) {
-                    fputc('0' + uint_arg / div, stream);
-                    uint_arg %= div;
-                    div /= 10;
-                }
+                int int_arg = va_arg(va, int);
+                fprintf(stream, "%d", int_arg);
                 break;
             }
             case 'c': {
