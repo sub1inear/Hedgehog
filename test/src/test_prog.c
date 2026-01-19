@@ -26,8 +26,6 @@ int main(int argc, char **argv)
     hhg_build_stage_t stage = HHG_BUILD_STAGE_LEXER;
     bool expect_fail = false;
     
-    char *prog_name = argv[0][0] == '\0' ? "test_prog" : argv[0];
-
     while ((option = optparse_long(&options, longopts, NULL)) != -1) {
         switch (option) {
         case 'h':
@@ -38,7 +36,7 @@ int main(int argc, char **argv)
                 "-p --parser   : debug parser stage\n"
                 "-s --sem_an   : debug semantic analysis stage\n"
                 "-f --fail     : expect the input file to fail\n",
-                prog_name
+                argv[0]
             );
             return EXIT_SUCCESS;
             break;

@@ -29,8 +29,6 @@ void hhg_cmd_args_parse(char **argv)
     
     int option;
 
-    char *prog_name = argv[0][0] == '\0' ? "hedgehog" : argv[0];
-
     while ((option = optparse_long(&options, longopts, NULL)) != -1) {
         switch (option) {
         case 'h':
@@ -46,12 +44,12 @@ void hhg_cmd_args_parse(char **argv)
                 "file          : file to compile\n"
                 "-             : use stdin as file to compile\n"
                 "...           : args to pass to --run\n",
-                prog_name
+                argv[0]
             );
             exit(EXIT_SUCCESS);
             break;
         case 'v':
-            printf("%s version 0.1\n", prog_name);
+            printf("%s version 0.1\n", argv[0]);
             exit(EXIT_SUCCESS);
             break;
         case 'W':
