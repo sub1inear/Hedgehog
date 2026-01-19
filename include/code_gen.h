@@ -7,6 +7,7 @@
 
 typedef struct hhg_sym hhg_sym_t;
 typedef struct hhg_mir_instr hhg_mir_instr_t;
+typedef struct hhg_mir_gen hhg_mir_gen_t;
 
 typedef struct hhg_code_gen hhg_code_gen_t;
 
@@ -28,8 +29,13 @@ typedef struct hhg_code_gen_backend {
 } hhg_code_gen_backend_t;
 
 struct hhg_code_gen {
+    // uses layout trick to simulate inheritance
+    // first member of all backends must be hhg_code_gen_backend_t
+    // so that backend can be accessed
+    // both as a hhg_code_gen_backend_t *
+    // and as its actual type(with extended data)
     hhg_code_gen_backend_t *backend;
-    FILE *out;
+    FILE *file;
     hhg_arena_t *arena;
 };
 
@@ -38,13 +44,12 @@ hhg_code_gen_backend_t *hhg_code_gen_backend_new(
     hhg_code_gen_backend_type_t type
 );
 
-void hhg_code_gen_init(
-    hhg_code_gen_t *gen,
-    hhg_code_gen_backend_t *backend,
-    const char *filename
-);
+void hhg_code_gen_init(hhg_code_gen_t *gen, hhg_code_gen_backend_t *backend);
 
-void hhg_code_gen_run(hhg_code_gen_t *gen);
+// must be called after hhg_code_gen_init
+void hhg_code_gen_set_file(hhg_code_gen_t *gen, const char *filename);
+
+void hhg_code_gen_run(hhg_code_gen_t *code_gen, hhg_mir_gen_t *mir_gen);
 
 void hhg_code_gen_backend_free(hhg_code_gen_backend_t *backend);
 

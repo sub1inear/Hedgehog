@@ -3,6 +3,7 @@
 #include "code_gen.h"
 #include "cpp_gen.h"
 #include "qbe_gen.h"
+#include "mir.h"
 #include "msg.h"
 #include "utils.h"
 
@@ -22,25 +23,24 @@ hhg_code_gen_backend_t *hhg_code_gen_backend_new(
     }
 }
 
-void hhg_code_gen_init(
-    hhg_code_gen_t *gen,
-    hhg_code_gen_backend_t *backend,
-    const char *filename
-)
+void hhg_code_gen_init(hhg_code_gen_t *gen, hhg_code_gen_backend_t *backend)
+{
+    *gen = (hhg_code_gen_t) {
+        .backend = backend,
+    };
+}
+
+void hhg_code_gen_set_file(hhg_code_gen_t *gen, const char *filename)
 {
     FILE *file = fopen(filename, "w");
     if (file == NULL)
         hhg_fatal_error("failed to open output file: %s", filename);
-
-    *gen = (hhg_code_gen_t) {
-        .backend = backend,
-        .out = file,
-    };
+    gen->file = file;
 }
 
-void hhg_code_gen_run(hhg_code_gen_t *gen)
+void hhg_code_gen_run(hhg_code_gen_t *code_gen, hhg_mir_gen_t *mir_gen)
 {
-    HHG_UNUSED(gen);
+    HHG_UNUSED(code_gen, mir_gen);
 }
 
 void hhg_code_gen_backend_free(hhg_code_gen_backend_t *backend)
@@ -60,5 +60,5 @@ void hhg_code_gen_backend_free(hhg_code_gen_backend_t *backend)
 
 void hhg_code_gen_del(hhg_code_gen_t *gen)
 {
-    fclose(gen->out);
+    fclose(gen->file);
 }
