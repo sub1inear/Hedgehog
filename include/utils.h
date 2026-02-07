@@ -8,4 +8,11 @@
 #define HHG_ANSI_COLOR_RED "\x1b[1;31m"
 #define HHG_ANSI_COLOR_YELLOW "\x1b[1;33m"
 
+// truncate path to filename, separated by / or \
+// returns path if no separator found
+char *hhg_utils_path_trunc(char *path);
+inline const char *hhg_utils_path_trunc_const(const char *path) {
+    return hhg_utils_path_trunc((char *)path);
+}
+
 #endif

@@ -88,6 +88,8 @@ void hhg_arena_free(hhg_arena_t *arena)
 #include <string.h>
 #include <assert.h>
 
+#include "utils.h"
+
 typedef struct hhg_mem_alloc {
     void *key;
     hhg_mem_alloc_loc_t *value; // dynamic array of (re)allocations                  
@@ -183,9 +185,6 @@ static void hhg_debug_arena_free_core(
     size_t size,
     hhg_mem_alloc_loc_t loc
 );
-// truncate path to filename, separated by / or \
-// returns path if no separator found
-static const char *hhg_path_trunc(const char *path);
 
 void *hhg_debug_malloc(size_t size, hhg_mem_alloc_loc_t loc)
 {
@@ -412,7 +411,7 @@ static void *hhg_debug_mem_run_func(
     mem_debug = true;
 
     // truncate file path (affects downstream printing)
-    loc.file = hhg_path_trunc(loc.file);
+    loc.file = hhg_utils_path_trunc_const(loc.file);
 
     (*func_counter)++;
 
@@ -553,14 +552,6 @@ static void hhg_debug_arena_free_core(
 {
     HHG_UNUSED(null, size, loc);
     hmdel(mem_arena_alloc_tab, (hhg_arena_t *)arena);
-}
-
-static const char *hhg_path_trunc(const char *path)
-{
-    const char *trunc = strrchr(path, '/');
-    if (trunc == NULL) trunc = strrchr(path, '\\');
-    return trunc == NULL ? path : trunc + 1;
-
 }
 
 #endif
