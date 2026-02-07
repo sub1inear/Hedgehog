@@ -142,7 +142,7 @@ bool hhg_type_eq(hhg_type_t *l, hhg_type_t *r)
     if (l->type != r->type)
         return false;
 
-    // compare type info for complex types
+    // recursively compare type info for complex types
     switch (l->type) {
     case HHG_TYPE_REF:
         return hhg_type_eq(l->info.ref.base, r->info.ref.base);

@@ -227,6 +227,8 @@ static int hhg_lexer_next_char(hhg_lexer_t *lexer)
 {
     char c = lexer->src.txt[lexer->txt_idx];
     if (c == '\0') {
+        // '\0' (returns EOF) should not be consumed
+        // end_idx allows backing up from EOF to get the last character
         lexer->end_idx++;
         return EOF;
     } else {
@@ -234,6 +236,7 @@ static int hhg_lexer_next_char(hhg_lexer_t *lexer)
         if (c == '\n') {
             lexer->pos.col = 0;
             lexer->pos.line++;
+            // store the line start for errors and hhg_lexer_back_char
             arrput(lexer->src.line_starts, lexer->txt_idx);
         } else
             lexer->pos.col++;
@@ -243,6 +246,8 @@ static int hhg_lexer_next_char(hhg_lexer_t *lexer)
 
 static void hhg_lexer_back_char(hhg_lexer_t *lexer)
 {
+    // end_idx counts characters past EOF
+    // if end_idx > 0, back up from EOF without changing pos or txt_idx
     if (lexer->end_idx > 0) {
         lexer->end_idx--;
         return;
@@ -251,7 +256,8 @@ static void hhg_lexer_back_char(hhg_lexer_t *lexer)
     lexer->txt_idx--;
 
     if (lexer->pos.col == 0) {
-        // if backing across newline, set col to the end of the previous line
+        // backing up from the start of a line
+        // set col to the end of the previous line
         lexer->pos.col = 
             lexer->src.line_starts[lexer->pos.line] -
             lexer->src.line_starts[lexer->pos.line - 1] - 1;

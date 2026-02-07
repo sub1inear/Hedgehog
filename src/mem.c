@@ -122,6 +122,10 @@ static size_t mem_arena_frees = 0;
 
 static void hhg_mem_alloc_loc_print(hhg_mem_alloc_loc_t loc);
 
+// runs func with mem_debug enabled
+// func should print allocation info and
+// update mem_alloc_tab/mem_arena_alloc_tab as needed
+// returns ptr1 for convenience of wrapping allocation functions
 static void *hhg_debug_mem_run_func(
     void (*func)(
         void *ptr1,

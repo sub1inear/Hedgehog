@@ -74,6 +74,10 @@ hhg_cmd_args_t hhg_cmd_args_parse(int argc, char **argv)
     struct optparse global_opts;
     optparse_init(&global_opts, argv);
     
+    // disables permutation of non-option arguments
+    // so only global options before the subcommand are parsed here
+    // e.g. `hhg --help build` will show global help then exit,
+    // while `hhg build --help` will parse `build` as subcommand then show build help
     global_opts.permute = 0;
 
     static const struct optparse_long global_longopts[] = {

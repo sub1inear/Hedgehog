@@ -129,6 +129,10 @@ hhg_node_t *hhg_parser_parse(hhg_parser_t *parser)
     return prog;
 }
 
+// Pratt Parser implementation
+// hard to understand from code,
+// see https://martin.janiczek.cz/2023/07/03/demystifying-pratt-parsers.html
+// to step through the algorithm
 static hhg_node_t *hhg_parser_parse_expr(
     hhg_parser_t *parser,
     int32_t min_prec

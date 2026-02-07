@@ -48,7 +48,11 @@ hhg_sym_t *hhg_sym_tab_lookup(hhg_sym_tab_t *sym_tab, const char *key)
 
 void hhg_sym_tab_exit_scope(hhg_sym_tab_t *sym_tab)
 {
-    // remove all strs from last entry of sym_key_arr
+    // sym_tab->key_arr stores keys in each scope
+    // when exiting a scope, all entries in sym_tab->key_arr[last]
+    // are deleted from sym_tab->tab,
+    // then sym_tab->key_arr[last] is freed and popped
+    
     size_t outer_len = arrlenu(sym_tab->key_arr);
     if (outer_len > 0) {
         size_t last = outer_len - 1;
