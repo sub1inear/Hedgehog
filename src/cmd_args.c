@@ -517,7 +517,7 @@ static void hhg_cmd_args_print_repl_usage(char *prog_name)
         "    --help                 -h    show help\n"
         "    --tmp-dir <dir>        -d    set temporary directory for repl\n"
         "    --target <triple|auto> -t    set cross-target triple\n"
-        "    --backend <cpp|asm>    -b    set backend format\n",
+        "    --backend <cpp|qbe>    -b    set backend format\n",
         prog_name
     );
 }
