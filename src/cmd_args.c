@@ -415,8 +415,8 @@ static void hhg_cmd_args_parse_test(
     static const struct optparse_long longopts[] = {
         { "help",      'h', OPTPARSE_NONE,     },
         { "test-dir",  'd', OPTPARSE_REQUIRED, },
-        { "list",      'l', OPTPARSE_NONE,     },
-        { "fail-fast", 'f', OPTPARSE_NONE,     },
+        { "list",      'l', OPTPARSE_OPTIONAL, },
+        { "fail-fast", 'f', OPTPARSE_OPTIONAL, },
         { "threads",   'j', OPTPARSE_REQUIRED, },
         { "filter",    'p', OPTPARSE_REQUIRED, },
         { NULL,                                },
