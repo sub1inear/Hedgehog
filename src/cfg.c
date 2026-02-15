@@ -129,6 +129,7 @@ void hhg_cfg_parse(hhg_cfg_t *cfg, const char *filename) {
                         "config: expected array of strings for key `%s`",
                         data->str
                     );
+                // don't need to free original string (owned by toml_result_t)
                 arr[j] = hhg_arena_strdup(cfg->arena, elem->u.s);
             }
             hhg_cfg_set_var(cfg, char **, data->offset, arr);
