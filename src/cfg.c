@@ -241,7 +241,7 @@ static toml_datum_t hhg_cfg_match(
         hhg_fatal_error("config: missing key `%s`", key);
     if (datum.type != type)
         hhg_fatal_error(
-            "config: expected type %d for key `%s`, got %d",
+            "config: expected type %d for key `%s`, got %s",
             type,
             key,
             toml_type_to_str(datum.type)
