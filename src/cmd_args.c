@@ -164,7 +164,7 @@ hhg_cmd_args_subcmd_t hhg_cmd_args_parse(
         hhg_cmd_args_parse_repl(cfg, argv, prog_name);
         break;
     default:
-        hhg_fatal_error("unknown subcommand: `%s`", subcmd);
+        hhg_fatal_error("unknown subcommand: `%s`", subcmd_str);
         break;
     }
 
