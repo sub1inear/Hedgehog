@@ -462,7 +462,7 @@ static void hhg_cmd_args_print_clean_usage(char *prog_name)
         "    --help                 -h    show help\n"
         "    --mode <all|build|gen> -m    clean mode\n"
         "    --force [true|false]   -f    force clean without confirmation\n"
-        "    --dry-run [true|false] -r    print files to be deleted without deleting them\n",
+        "    --dry-run [true|false] -n    print files to be deleted without deleting them\n",
         prog_name
     );
 }
@@ -479,7 +479,7 @@ static void hhg_cmd_args_parse_clean(
         { "help",    'h', OPTPARSE_NONE,     },
         { "mode",    'm', OPTPARSE_REQUIRED, },
         { "force",   'f', OPTPARSE_OPTIONAL, },
-        { "dry-run", 'r', OPTPARSE_OPTIONAL, },
+        { "dry-run", 'n', OPTPARSE_OPTIONAL, },
         { NULL,                              },
     };
     int opt;
@@ -496,7 +496,7 @@ static void hhg_cmd_args_parse_clean(
             cfg->clean.force =
                 hhg_cmd_args_parse_true_false(opts.optarg, "--force");
             break;
-        case 'r':
+        case 'n':
             cfg->clean.dry_run =
                 hhg_cmd_args_parse_true_false(opts.optarg, "--dry-run");
             break;
