@@ -374,6 +374,9 @@ static void hhg_cmd_args_parse_run(
             exit(EXIT_SUCCESS);
             break;
         case 'O':
+            // arrfree sets cfg->run.args to NULL
+            // so double free is safe
+            // even if --override is passed multiple times
             arrfree(cfg->run.args);
             break;
         case '?':
