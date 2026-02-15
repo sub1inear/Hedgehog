@@ -59,6 +59,7 @@ static const hhg_cfg_data_t cfg_data[] = {
     { "test.filter",          offsetof(hhg_cfg_t, test.filter),          TOML_STRING,  NULL },
     { "clean.mode",           offsetof(hhg_cfg_t, clean.mode),           TOML_STRING,  hhg_cfg_parse_clean_mode },
     { "clean.force",          offsetof(hhg_cfg_t, clean.force),          TOML_BOOLEAN, NULL },
+    { "clean.dry-run",        offsetof(hhg_cfg_t, clean.dry_run),        TOML_BOOLEAN, NULL },
     { "repl.tmp-dir",         offsetof(hhg_cfg_t, repl.tmp_dir),         TOML_STRING,  NULL },
     { "repl.target",          offsetof(hhg_cfg_t, repl.target),          TOML_STRING,  NULL },
     { "repl.backend",         offsetof(hhg_cfg_t, repl.backend),         TOML_STRING,  hhg_cfg_parse_repl_backend },
