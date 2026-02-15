@@ -14,8 +14,8 @@ out-dir = "out" # output directory for build artifacts
 
 mode = "debug" # debug | release
 
-stage = "none" # stop after specified stage: none | lexer | parser | sem_an | ir-gen | code_gen | ext-build
-debug-stage = "none" # debug specified stage: none | lexer | parser | sem_an | ir-gen | code_gen | ext-build
+stage = "none" # stop after specified stage: none | lexer | parser | sem_an | mir-gen | code_gen | ext-build
+debug-stage = "none" # debug specified stage: none | lexer | parser | sem_an | mir-gen | code_gen | ext-build
 
 target = "auto" # cross-target triple: triple | auto
 backend = "cpp" # backend format: cpp | qbe
