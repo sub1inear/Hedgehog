@@ -12,7 +12,7 @@ int main(int argc, char **argv)
 
     hhg_cfg_t cfg;
     hhg_cfg_init(&cfg, arena);
-    hhg_cfg_parse(&cfg, "../hhg.toml");
+    hhg_cfg_parse(&cfg, "hhg.toml");
     hhg_cmd_args_parse(&cfg, argc, argv);
 
     // hhg_driver_run(&cfg, arena);

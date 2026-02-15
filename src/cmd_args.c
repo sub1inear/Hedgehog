@@ -105,7 +105,7 @@ hhg_cmd_args_subcmd_t hhg_cmd_args_parse(
             break;
         case 'v':
             puts(
-                "hhg compiler v0.1\n"
+                "hhg compiler v0.1.0\n"
                 "copyright (c) 2026- sub1inear"
             );
             exit(EXIT_SUCCESS);
@@ -178,7 +178,7 @@ static void hhg_cmd_args_print_global_usage(char *prog_name)
         "global options:\n"
         "    --help                 -h    show help\n"
         "    --version              -v    print compiler version\n"
-        "    --color [true|false]   -c    enable or disable colored output\n"
+        "    --color [true|false]   -c    enable or disable color in output\n"
         "subcommands:\n"
         "    init                         create a new Hedgehog project\n"
         "    build                        compile the current project\n"
@@ -201,8 +201,8 @@ static void hhg_cmd_args_print_init_usage(char *prog_name)
         "    name                   project name (defaults to current directory)\n"
         "options:\n"
         "    --help    -h           show help\n"
-        "    --version -v <version> set project version\n"
-        "    --std     -s <version> set project standard\n",
+        "    --version -v <version> set project version in semver\n"
+        "    --std     -s <version> set project standard in semver\n",
         prog_name
     );
 }
@@ -252,15 +252,19 @@ static void hhg_cmd_args_print_build_usage(char *prog_name)
     printf(
         "usage: %s build [options]\n"
         "options:\n"
-        "    --help                                                                          -h    show help\n"
-        "    --out-dir <dir>                                                                 -o    set output directory\n"
-        "    --mode <debug|release>                                                          -m    set build mode\n"
-        "    --stage <none|lexer|parser|sem-an|mir-gen|mem-an|code-gen|ext-build>            -s    stop after specified stage\n"
-        "    --debug-stage <none|lexer|parser|sem-an|mir-gen|mem-an|code-gen|ext_build>      -S    debug specified stage\n"
-        "    --target <triple|auto>                                                          -t    cross-target triple\n"
-        "    --backend <cpp|asm>                                                             -b    backend format\n"    
-        "    --warnings <none|default|all|pedantic>                                          -W    warnings settings\n"
-        "    --error-warnings [true|false]                                                   -E    treat warnings as errors\n",
+        "    --help                                    -h    show help\n"
+        "    --entry <file>                            -e    set entry point\n"
+        "    --out-dir <dir>                           -o    set output directory\n"
+        "    --mode <debug|release>                    -m    set build mode\n"
+        "    --stage <stage>                           -s    stop after specified stage\n"
+        "    --debug-stage <stage>                     -S    debug specified stage\n"
+        "    --target <triple|auto>                    -t    cross-target triple\n"
+        "    --backend <cpp|asm>                       -b    backend format\n"    
+        "    --incremental [true|false]                -i    set incremental compilation (only with cpp backend)\n"
+        "    --warnings <default|all|none|pedantic>    -W    warnings settings\n"
+        "    --error-warnings [true|false]             -E    treat warnings as errors\n"
+        "stage:\n"
+        "    none|lexer|parser|sem-an|mir-gen|mem-an|code-gen|ext-build\n",
         prog_name
     );
 }
@@ -275,12 +279,14 @@ static void hhg_cmd_args_parse_build(
     optparse_init(&opts, argv);
     static const struct optparse_long longopts[] = {
         { "help",           'h', OPTPARSE_NONE,     },
+        { "entry",          'e', OPTPARSE_REQUIRED, },
         { "out-dir",        'o', OPTPARSE_REQUIRED, },
         { "mode",           'm', OPTPARSE_REQUIRED, },
         { "stage",          's', OPTPARSE_REQUIRED, },
         { "debug-stage",    'S', OPTPARSE_REQUIRED, },
         { "target",         't', OPTPARSE_REQUIRED, },
         { "backend",        'b', OPTPARSE_REQUIRED, },
+        { "incremental",    'i', OPTPARSE_OPTIONAL, },
         { "warnings",       'W', OPTPARSE_REQUIRED, },
         { "error-warnings", 'E', OPTPARSE_OPTIONAL, },
         { NULL,                                     },
@@ -292,6 +298,9 @@ static void hhg_cmd_args_parse_build(
         case 'h':
             hhg_cmd_args_print_build_usage(prog_name);
             exit(EXIT_SUCCESS);
+            break;
+        case 'e':
+            cfg->build.entry = opts.optarg;
             break;
         case 'o':
             cfg->build.out_dir = opts.optarg;
@@ -310,6 +319,10 @@ static void hhg_cmd_args_parse_build(
             break;
         case 'b':
             cfg->build.backend = hhg_cfg_parse_build_backend(opts.optarg);
+            break;
+        case 'i':
+            cfg->build.incremental =
+                hhg_cmd_args_parse_true_false(opts.optarg, "--incremental");
             break;
         case 'W':
             cfg->build.warnings = hhg_cfg_parse_build_warnings(opts.optarg);
@@ -332,7 +345,7 @@ static void hhg_cmd_args_print_run_usage(char *prog_name)
     printf(
         "usage: %s run [options] [--] [args]\n"
         "args:\n"
-        "    args             arguments to pass to the program being run\n"
+        "    args             arguments to pass to the program\n"
         "options:\n"
         "    --help     -h    show help\n"
         "    --override -O    override config values\n",
@@ -382,11 +395,11 @@ static void hhg_cmd_args_print_test_usage(char *prog_name)
         "usage: %s test [options]\n"
         "options:\n"
         "    --help                   -h    show help\n"
-        "    --test-dir <dir>         -d    set test directory\n"
-        "    --list [true|false]      -l    list available tests without running\n"
+        "    --test-dir <dir>         -d    set directory with test cases\n"
+        "    --list [true|false]      -l    list test cases without running them\n"
         "    --fail-fast [true|false] -f    stop on first failure\n"
         "    --threads <n>            -j    number of parallel test workers (-1 => auto)\n"
-        "    --filter <pattern>       -p    run tests matching pattern (repeatable)\n",
+        "    --filter <pattern>       -p    filter test cases (regex)\n",
         prog_name
     );
 }
@@ -449,7 +462,7 @@ static void hhg_cmd_args_print_clean_usage(char *prog_name)
         "    --help                 -h    show help\n"
         "    --mode <all|build|gen> -m    clean mode\n"
         "    --force [true|false]   -f    force clean without confirmation\n"
-        "    --dry-run [true|false] -r    show what would be cleaned without actually deleting files\n",
+        "    --dry-run [true|false] -r    print files to be deleted without deleting them\n",
         prog_name
     );
 }
@@ -502,9 +515,9 @@ static void hhg_cmd_args_print_repl_usage(char *prog_name)
         "usage: %s repl [options]\n"
         "options:\n"
         "    --help                 -h    show help\n"
-        "    --tmp-dir <dir>        -d    temporary directory for repl\n"
-        "    --target <triple|auto> -t    cross-target triple\n"
-        "    --backend <cpp|asm>    -b    backend type\n",
+        "    --tmp-dir <dir>        -d    set temporary directory for repl\n"
+        "    --target <triple|auto> -t    set cross-target triple\n"
+        "    --backend <cpp|asm>    -b    set backend format\n",
         prog_name
     );
 }

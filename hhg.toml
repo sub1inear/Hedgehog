@@ -2,11 +2,11 @@
 
 [project]
 name = "test"
-version = "1.0.0"
-std = "0.1.0"
+version = "1.0.0" # project version in semver
+std = "0.1.0" # standard version in semver
 
 [global]
-color = true
+color = true # enable or disable color in output
 
 [build]
 entry = "main.hhg" # entry point of the program/compiler
@@ -14,35 +14,35 @@ out-dir = "out" # output directory for build artifacts
 
 mode = "debug" # debug | release
 
-stage = "none" # none | lexer | parser | sem_an | ir-gen | code_gen | ext-build
-debug-stage = "none" # none | lexer | parser | sem_an | ir-gen | code_gen | ext-build
+stage = "none" # stop after specified stage: none | lexer | parser | sem_an | ir-gen | code_gen | ext-build
+debug-stage = "none" # debug specified stage: none | lexer | parser | sem_an | ir-gen | code_gen | ext-build
 
-target = "auto" # target triple | auto
-backend = "cpp" # cpp | qbe
-incremental = false # incremental compilation (with cpp backend)
+target = "auto" # cross-target triple: triple | auto
+backend = "cpp" # backend format: cpp | qbe
+incremental = false # incremental compilation (only with cpp backend)
 
-warnings = "default" # default | all | none | pedantic
-error-warnings = false
+warnings = "default" # warnings settings: default | all | none | pedantic
+error-warnings = false # treat warnings as errors
 
 [run]
 
-args = [] # args to pass to program
+args = [] # arguments to pass to program
 
 [test]
 
 test-dir = "test" # directory with test cases
 list = false # list test cases without running them
-fail-fast = false # stop after first failed test case
-threads = -1 # number of threads to use (-1 for auto)
+fail-fast = false # stop on first failure
+threads = -1 # number of threads to use (-1 => auto)
 filter = "" # filter test cases (regex)
 
 [clean]
-mode = "all" # all | build | gen
+mode = "all" # clean mode: all | build | gen
 
-force = false # ignore warnings
+force = false # force clean without confirmation
 dry-run = false # print files to be deleted without deleting them
 
 [repl]
 tmp-dir = "tmp" # temporary directory for repl
-target = "auto" # target triple | auto
-backend = "cpp" # cpp | qbe
+target = "auto" # cross-target triple: triple | auto
+backend = "cpp" # backend format: cpp | qbe
