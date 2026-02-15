@@ -155,6 +155,8 @@ hhg_cfg_build_stage_t hhg_cfg_parse_build_stage(const char *str)
         return HHG_CFG_BUILD_STAGE_SEM_AN;
     if (strcmp(str, "mir-gen") == 0)
         return HHG_CFG_BUILD_STAGE_MIR_GEN;
+    if (strcmp(str, "code-gen") == 0)
+        return HHG_CFG_BUILD_STAGE_CODE_GEN;
     if (strcmp(str, "ext-build") == 0)
         return HHG_CFG_BUILD_STAGE_EXT_BUILD;
     hhg_fatal_error("invalid build stage: %s", str);
