@@ -45,6 +45,9 @@ static const hhg_cfg_data_t cfg_data[] = {
     { "build.out-dir",        offsetof(hhg_cfg_t, build.out_dir),        TOML_STRING,  NULL },
     { "build.mode",           offsetof(hhg_cfg_t, build.mode),           TOML_STRING,  hhg_cfg_parse_build_mode },
     { "build.stage",          offsetof(hhg_cfg_t, build.stage),          TOML_STRING,  hhg_cfg_parse_build_stage },
+    { "build.debug-stage",    offsetof(hhg_cfg_t, build.debug_stage),    TOML_STRING,  hhg_cfg_parse_build_stage },
+    { "build.target",         offsetof(hhg_cfg_t, build.target),         TOML_STRING,  NULL },
+    { "build.backend",        offsetof(hhg_cfg_t, build.backend),        TOML_STRING,  hhg_cfg_parse_build_backend },
     { "build.incremental",    offsetof(hhg_cfg_t, build.incremental),    TOML_BOOLEAN, NULL },
     { "build.warnings",       offsetof(hhg_cfg_t, build.warnings),       TOML_STRING,  hhg_cfg_parse_build_warnings },
     { "build.error-warnings", offsetof(hhg_cfg_t, build.error_warnings), TOML_BOOLEAN, NULL },
@@ -56,6 +59,9 @@ static const hhg_cfg_data_t cfg_data[] = {
     { "test.filter",          offsetof(hhg_cfg_t, test.filter),          TOML_STRING,  NULL },
     { "clean.mode",           offsetof(hhg_cfg_t, clean.mode),           TOML_STRING,  hhg_cfg_parse_clean_mode },
     { "clean.force",          offsetof(hhg_cfg_t, clean.force),          TOML_BOOLEAN, NULL },
+    { "repl.tmp-dir",         offsetof(hhg_cfg_t, repl.tmp_dir),         TOML_STRING,  NULL },
+    { "repl.target",          offsetof(hhg_cfg_t, repl.target),          TOML_STRING,  NULL },
+    { "repl.backend",         offsetof(hhg_cfg_t, repl.backend),         TOML_STRING,  hhg_cfg_parse_repl_backend },
 };
 
 void hhg_cfg_init(hhg_cfg_t *cfg, hhg_arena_t *arena) {

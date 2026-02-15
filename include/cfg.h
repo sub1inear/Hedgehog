@@ -65,6 +65,7 @@ typedef struct hhg_cfg_build {
     const char *out_dir;
     hhg_cfg_build_mode_t mode;
     hhg_cfg_build_stage_t stage;
+    hhg_cfg_build_stage_t debug_stage;
     char *target;
     hhg_cfg_build_backend_t backend;
     bool incremental;
