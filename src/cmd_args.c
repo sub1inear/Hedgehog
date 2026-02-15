@@ -312,7 +312,7 @@ static void hhg_cmd_args_parse_build(
             cfg->build.stage = hhg_cfg_parse_build_stage(opts.optarg);
             break;
         case 'S':
-            cfg->build.stage = hhg_cfg_parse_build_stage(opts.optarg);
+            cfg->build.debug_stage = hhg_cfg_parse_build_stage(opts.optarg);
             break;
         case 't':
             cfg->build.target = opts.optarg;
