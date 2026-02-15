@@ -9,16 +9,8 @@ typedef struct hhg_sym_tab hhg_sym_tab_t;
 typedef struct hhg_lexer hhg_lexer_t;
 typedef struct hhg_mir_gen hhg_mir_gen_t;
 
-typedef enum hhg_build_stage {
-    HHG_BUILD_STAGE_LEXER,
-    HHG_BUILD_STAGE_PARSER,
-    HHG_BUILD_STAGE_SEM_AN,
-    HHG_BUILD_STAGE_MIR,
-    HHG_BUILD_STAGE_BUILD,
-} hhg_build_stage_t;
-
-bool hhg_build(const char *filename);
-bool hhg_build_debug(const char *filename, hhg_build_stage_t stage);
+// bool hhg_build(const char *filename);
+// bool hhg_build_debug(const char *filename, hhg_build_stage_t stage);
 
 void hhg_build_cleanup(
     hhg_lexer_t *lexer, // required

@@ -198,7 +198,7 @@ static void hhg_vfprintf(FILE *stream, const char *fmt, va_list va)
 {
     char c;
     // (()) to avoid warning about assignment in condition
-    while ((c = *fmt++)) {
+    while ((c = *fmt++) != '\0') {
         if (c == '%') {
             switch (c = *fmt) {
             case 's': {
@@ -234,9 +234,7 @@ static void hhg_vfprintf(FILE *stream, const char *fmt, va_list va)
             case 't': {
                 hhg_token_type_t token_type_arg =
                     va_arg(va, hhg_token_type_t);
-                const char *token_type_str =
-                     hhg_token_type_to_str(token_type_arg);
-                fputs(token_type_str, stream);
+                fputs(hhg_token_type_to_str(token_type_arg), stream);
                 break;
             }
             case 'T': {

@@ -1,5 +1,6 @@
 #include "cpp_gen.h"
 #include "code_gen.h"
+#include "cfg.h"
 #include "mem.h"
 #include "utils.h"
 
@@ -12,7 +13,7 @@ hhg_code_gen_backend_t *hhg_cpp_gen_backend_new(hhg_arena_t *arena)
 {
     hhg_cpp_gen_backend_t *backend = hhg_arena_malloc(arena, sizeof(hhg_cpp_gen_backend_t));
     *backend = (hhg_cpp_gen_backend_t) {
-        .base.type = HHG_CODE_GEN_CPP,
+        .base.type = HHG_CFG_BUILD_BACKEND_CPP,
     };
     return (hhg_code_gen_backend_t *)backend;
 }

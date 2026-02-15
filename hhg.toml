@@ -1,0 +1,48 @@
+# Hegehog Configuration File
+
+[project]
+name = "test"
+version = "1.0.0"
+std = "0.1.0"
+
+[global]
+color = true
+
+[build]
+entry = "main.hhg" # entry point of the program/compiler
+out-dir = "out" # output directory for build artifacts
+
+mode = "debug" # debug | release
+
+stage = "none" # none | lexer | parser | sem_an | ir-gen | code_gen | ext-build
+debug-stage = "none" # none | lexer | parser | sem_an | ir-gen | code_gen | ext-build
+
+target = "auto" # target triple | auto
+backend = "cpp" # cpp | qbe
+incremental = false # incremental compilation (with cpp backend)
+
+warnings = "default" # default | all | none | pedantic
+error-warnings = false
+
+[run]
+
+args = [] # args to pass to program
+
+[test]
+
+test-dir = "test" # directory with test cases
+list = false # list test cases without running them
+fail-fast = false # stop after first failed test case
+threads = -1 # number of threads to use (-1 for auto)
+filter = "" # filter test cases (regex)
+
+[clean]
+mode = "all" # all | build | gen
+
+force = false # ignore warnings
+dry-run = false # print files to be deleted without deleting them
+
+[repl]
+tmp-dir = "tmp" # temporary directory for repl
+target = "auto" # target triple | auto
+backend = "cpp" # cpp | qbe

@@ -4,10 +4,11 @@
 #include <stdbool.h>
 
 #include "code_gen.h"
+#include "cfg.h"
 
 bool hhg_ext_build_run(
     const char **filenames,
-    hhg_code_gen_backend_type_t backend
+    hhg_cfg_build_backend_t backend
 );
 
 #endif

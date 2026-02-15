@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.16)
 project(hedgehog LANGUAGES C)
 set(EXECUTABLE_NAME hhg)
 
-set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD 99)
 
 # enable testing
 enable_testing()

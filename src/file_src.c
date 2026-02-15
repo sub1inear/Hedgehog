@@ -7,23 +7,18 @@
 #include "file_src.h"
 #include "msg.h"
 #include "mem.h"
+#include "utils.h"
 
 void hhg_file_src_init(hhg_file_src_t *src, const char *filename)
 {
-    FILE *file = fopen(filename, "r");
-    if (file == NULL)
-        hhg_fatal_error(
-            "%s: error opening file: %s",
-            filename,
-            strerror(errno)
-        );
+    FILE *file = hhg_utils_fopen(filename, "r");
 
     // read file into src->txt
     // use realloc instead of fseek + ftell to
     // support stdin and avoid \r\n issues on Windows
     size_t psize = 0;
     size_t fsize = 4096;
-    src->txt = NULL; // hhg_realloc(NULL, size) behaves like hhg_smalloc(size)
+    src->txt = NULL; // hhg_realloc(NULL, size) behaves like hhg_malloc(size)
     while (true) {
         // allocate more space
         src->txt = hhg_realloc(src->txt, fsize);

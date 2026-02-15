@@ -6,8 +6,10 @@
 // declare all optparse functions as static for optimization
 #define OPTPARSE_API static
 #include <optparse.h>
+#include <stb_ds.h>
 
 #include "cmd_args.h"
+#include "cfg.h"
 #include "msg.h"
 #include "utils.h"
 
@@ -15,52 +17,59 @@ static void hhg_cmd_args_print_global_usage(char *prog_name);
 
 static void hhg_cmd_args_print_init_usage(char *prog_name);
 static void hhg_cmd_args_parse_init(
-    hhg_cmd_args_t *cmd_args,
+    hhg_cfg_t *cfg,
     char **argv,
     char *prog_name
 );
 
 static void hhg_cmd_args_print_build_usage(char *prog_name);
 static void hhg_cmd_args_parse_build(
-    hhg_cmd_args_t *cmd_args,
+    hhg_cfg_t *cfg,
     char **argv,
     char *prog_name
 );
 
 static void hhg_cmd_args_print_run_usage(char *prog_name);
 static void hhg_cmd_args_parse_run(
-    hhg_cmd_args_t *cmd_args,
+    hhg_cfg_t *cfg,
     char **argv,
     char *prog_name
 );
 
 static void hhg_cmd_args_print_test_usage(char *prog_name);
 static void hhg_cmd_args_parse_test(
-    hhg_cmd_args_t *cmd_args,
+    hhg_cfg_t *cfg,
     char **argv,
     char *prog_name
 );
 
 static void hhg_cmd_args_print_clean_usage(char *prog_name);
 static void hhg_cmd_args_parse_clean(
-    hhg_cmd_args_t *cmd_args,
+    hhg_cfg_t *cfg,
     char **argv,
     char *prog_name
 );
 
 static void hhg_cmd_args_print_repl_usage(char *prog_name);
 static void hhg_cmd_args_parse_repl(
-    hhg_cmd_args_t *cmd_args,
+    hhg_cfg_t *cfg,
     char **argv,
     char *prog_name
 );
 
+// note: returns true for NULL (so --color == --color true)
+static bool hhg_cmd_args_parse_true_false(const char *str, const char *option);
+
 typedef struct hhg_cmd_args_subcmd_data_t {
-    hhg_cmd_args_subcmd_type_t subcmd_type;
+    hhg_cmd_args_subcmd_t subcmd;
     const char *str;
 } hhg_cmd_args_subcmd_data_t;
 
-hhg_cmd_args_t hhg_cmd_args_parse(int argc, char **argv)
+hhg_cmd_args_subcmd_t hhg_cmd_args_parse(
+    hhg_cfg_t *cfg,
+    int argc,
+    char **argv
+)
 {
     char *prog_name = hhg_utils_path_trunc(argv[0]);
 
@@ -69,21 +78,21 @@ hhg_cmd_args_t hhg_cmd_args_parse(int argc, char **argv)
         exit(EXIT_FAILURE);
     }
 
-    hhg_cmd_args_t cmd_args = { 0 };
-
     struct optparse global_opts;
     optparse_init(&global_opts, argv);
     
     // disables permutation of non-option arguments
     // so only global options before the subcommand are parsed here
     // e.g. `hhg --help build` will show global help then exit,
-    // while `hhg build --help` will parse `build` as subcommand then show build help
+    // while `hhg build --help` will parse `build` as subcommand
+    // then show build help
     global_opts.permute = 0;
 
     static const struct optparse_long global_longopts[] = {
-        { "help",    'h', OPTPARSE_NONE, },
-        { "version", 'v', OPTPARSE_NONE, },
-        { NULL, },
+        { "help",    'h', OPTPARSE_NONE,     },
+        { "version", 'v', OPTPARSE_NONE,     },
+        { "color",   'c', OPTPARSE_REQUIRED, },
+        { NULL,                              },
     };
 
     int opt;
@@ -101,6 +110,10 @@ hhg_cmd_args_t hhg_cmd_args_parse(int argc, char **argv)
             );
             exit(EXIT_SUCCESS);
             break;
+        case 'c':
+            cfg->global.color =
+                hhg_cmd_args_parse_true_false(global_opts.optarg, "--color");
+            break;
         case '?':
             hhg_fatal_error("%s", global_opts.errmsg);
             break;
@@ -109,8 +122,8 @@ hhg_cmd_args_t hhg_cmd_args_parse(int argc, char **argv)
         }
     }
 
-    char *subcmd = optparse_arg(&global_opts);
-    if (subcmd == NULL) {
+    char *subcmd_str = optparse_arg(&global_opts);
+    if (subcmd_str == NULL) {
         hhg_cmd_args_print_global_usage(prog_name);
         exit(EXIT_FAILURE);
     }
@@ -124,38 +137,38 @@ hhg_cmd_args_t hhg_cmd_args_parse(int argc, char **argv)
         { HHG_CMD_ARGS_SUBCMD_REPL,  "repl",  },
     };
 
-    cmd_args.subcmd_type = HHG_CMD_ARGS_SUBCMD_NONE;
+    hhg_cmd_args_subcmd_t subcmd = HHG_CMD_ARGS_SUBCMD_NONE;
     for (size_t i = 0; i < HHG_ARR_SIZE(cmd_args_subcmd_data); i++)
-        if (strcmp(subcmd, cmd_args_subcmd_data[i].str) == 0) {
-            cmd_args.subcmd_type = cmd_args_subcmd_data[i].subcmd_type;
+        if (strcmp(subcmd_str, cmd_args_subcmd_data[i].str) == 0) {
+            subcmd = cmd_args_subcmd_data[i].subcmd;
             break;
         }
 
-    switch (cmd_args.subcmd_type) {
+    switch (subcmd) {
     case HHG_CMD_ARGS_SUBCMD_INIT:
-        hhg_cmd_args_parse_init(&cmd_args, argv, prog_name);
+        hhg_cmd_args_parse_init(cfg, argv, prog_name);
         break;
     case HHG_CMD_ARGS_SUBCMD_BUILD:
-        hhg_cmd_args_parse_build(&cmd_args, argv, prog_name);
+        hhg_cmd_args_parse_build(cfg, argv, prog_name);
         break;
     case HHG_CMD_ARGS_SUBCMD_RUN:
-        hhg_cmd_args_parse_run(&cmd_args, argv, prog_name);
+        hhg_cmd_args_parse_run(cfg, argv, prog_name);
         break;
     case HHG_CMD_ARGS_SUBCMD_TEST:
-        hhg_cmd_args_parse_test(&cmd_args, argv, prog_name);
+        hhg_cmd_args_parse_test(cfg, argv, prog_name);
         break;
     case HHG_CMD_ARGS_SUBCMD_CLEAN:
-        hhg_cmd_args_parse_clean(&cmd_args, argv, prog_name);
+        hhg_cmd_args_parse_clean(cfg, argv, prog_name);
         break;
     case HHG_CMD_ARGS_SUBCMD_REPL:
-        hhg_cmd_args_parse_repl(&cmd_args, argv, prog_name);
+        hhg_cmd_args_parse_repl(cfg, argv, prog_name);
         break;
     default:
         hhg_fatal_error("unknown subcommand: `%s`", subcmd);
         break;
     }
 
-    return cmd_args;
+    return subcmd;
 }
 
 static void hhg_cmd_args_print_global_usage(char *prog_name)
@@ -163,15 +176,16 @@ static void hhg_cmd_args_print_global_usage(char *prog_name)
     printf(
         "usage: %s <subcommand> [options]\n"
         "global options:\n"
-        "    --help    -h    show help\n"
-        "    --version -v    print compiler version\n"
+        "    --help                 -h    show help\n"
+        "    --version              -v    print compiler version\n"
+        "    --color [true|false]   -c    enable or disable colored output\n"
         "subcommands:\n"
-        "    init            create a new Hedgehog project\n"
-        "    build           compile the current project\n"
-        "    run             build and run the project\n"
-        "    test            run tests\n"
-        "    clean           clean build artifacts\n"
-        "    repl            start an interactive Hedgehog shell\n"
+        "    init                         create a new Hedgehog project\n"
+        "    build                        compile the current project\n"
+        "    run                          build and run the project\n"
+        "    test                         run tests\n"
+        "    clean                        clean build artifacts\n"
+        "    repl                         start an interactive Hedgehog shell\n"
         "options:\n"
         "    use `%s <subcommand> --help`\n",
         prog_name,
@@ -183,24 +197,29 @@ static void hhg_cmd_args_print_init_usage(char *prog_name)
 {
     printf(
         "usage: %s init [name] [options]\n"
+        "args:\n"
+        "    name                   project name (defaults to current directory)\n"
         "options:\n"
-        "    --help -h    show help\n",
+        "    --help    -h           show help\n"
+        "    --version -v <version> set project version\n"
+        "    --std     -s <version> set project standard\n",
         prog_name
     );
 }
 
 static void hhg_cmd_args_parse_init(
-    hhg_cmd_args_t *cmd_args,
+    hhg_cfg_t *cfg,
     char **argv,
     char *prog_name
 )
 {
-    HHG_UNUSED(cmd_args);
     struct optparse opts;
     optparse_init(&opts, argv);
     static const struct optparse_long longopts[] = {
-        { "help", 'h', OPTPARSE_NONE, },
-        { NULL, },
+        { "help",    'h', OPTPARSE_NONE,     },
+        { "version", 'v', OPTPARSE_REQUIRED, },
+        { "std",     's', OPTPARSE_REQUIRED, },
+        { NULL,                              },
     };
     int opt;
     while ((opt = optparse_long(&opts, longopts, NULL)) != -1) {
@@ -209,6 +228,12 @@ static void hhg_cmd_args_parse_init(
             hhg_cmd_args_print_init_usage(prog_name);
             exit(EXIT_SUCCESS);
             break;
+        case 'v':
+            cfg->project.version = opts.optarg;
+            break;
+        case 's':
+            cfg->project.std = opts.optarg;
+            break;
         case '?':
             hhg_fatal_error("%s", opts.errmsg);
             break;
@@ -216,11 +241,10 @@ static void hhg_cmd_args_parse_init(
             break;
         }
     }
+    char *name = optparse_arg(&opts);
+    assert(name != NULL);
+    cfg->project.name = name;
 
-    char *proj_name = optparse_arg(&opts);
-    if (proj_name == NULL) {
-        
-    }
 }
 
 static void hhg_cmd_args_print_build_usage(char *prog_name)
@@ -228,21 +252,21 @@ static void hhg_cmd_args_print_build_usage(char *prog_name)
     printf(
         "usage: %s build [options]\n"
         "options:\n"
-        "    --help                                                                -h    show help\n"
-        "    --debug                                                               -g    debug info (symbols)\n"
-        "    --release                                                             -r    release (optimize)\n"
-        "    --stage <lexer|parser|sem_an|mir_gen|mem_an|code_gen|ext_build>       -s    stop after specified stage\n"
-        "    --debug-stage <lexer|parser|sem_an|mir_gen|mem_an|code_gen|ext_build> -S    debug specified stage\n"
-        "    --target <triple>                                                     -t    cross-target triple\n"
-        "    --output-target <cpp|asm|auto>                                        -T    output target format (default auto)\n"    
-        "    --warnings <..>                                                       -W    none|default|all|pedantic\n"
-        "    --deny-warnings                                                       -E    treat warnings as errors\n",
+        "    --help                                                                          -h    show help\n"
+        "    --out-dir <dir>                                                                 -o    set output directory\n"
+        "    --mode <debug|release>                                                          -m    set build mode\n"
+        "    --stage <none|lexer|parser|sem-an|mir-gen|mem-an|code-gen|ext-build>            -s    stop after specified stage\n"
+        "    --debug-stage <none|lexer|parser|sem-an|mir-gen|mem-an|code-gen|ext_build>      -S    debug specified stage\n"
+        "    --target <triple|auto>                                                          -t    cross-target triple\n"
+        "    --backend <cpp|asm>                                                             -b    backend format\n"    
+        "    --warnings <none|default|all|pedantic>                                          -W    warnings settings\n"
+        "    --error-warnings [true|false]                                                   -E    treat warnings as errors\n",
         prog_name
     );
 }
 
 static void hhg_cmd_args_parse_build(
-    hhg_cmd_args_t *cmd_args,
+    hhg_cfg_t *cfg,
     char **argv,
     char *prog_name
 )
@@ -250,16 +274,16 @@ static void hhg_cmd_args_parse_build(
     struct optparse opts;
     optparse_init(&opts, argv);
     static const struct optparse_long longopts[] = {
-        { "help",          'h', OPTPARSE_NONE,     },
-        { "debug",         'g', OPTPARSE_NONE,     },
-        { "release",       'r', OPTPARSE_NONE,     },
-        { "stage",         's', OPTPARSE_REQUIRED, },
-        { "debug-stage",   'S', OPTPARSE_REQUIRED, },
-        { "target",        't', OPTPARSE_REQUIRED, },
-        { "output-target", 'T', OPTPARSE_REQUIRED, },
-        { "warnings",      'W', OPTPARSE_REQUIRED, },
-        { "deny-warnings", 'E', OPTPARSE_NONE,     },
-        { NULL,                                    },
+        { "help",           'h', OPTPARSE_NONE,     },
+        { "out-dir",        'o', OPTPARSE_REQUIRED, },
+        { "mode",           'm', OPTPARSE_REQUIRED, },
+        { "stage",          's', OPTPARSE_REQUIRED, },
+        { "debug-stage",    'S', OPTPARSE_REQUIRED, },
+        { "target",         't', OPTPARSE_REQUIRED, },
+        { "backend",        'b', OPTPARSE_REQUIRED, },
+        { "warnings",       'W', OPTPARSE_REQUIRED, },
+        { "error-warnings", 'E', OPTPARSE_OPTIONAL, },
+        { NULL,                                     },
     };
 
     int opt;
@@ -269,25 +293,30 @@ static void hhg_cmd_args_parse_build(
             hhg_cmd_args_print_build_usage(prog_name);
             exit(EXIT_SUCCESS);
             break;
-        case 'g':
-            cmd_args->subcmd.build.debug = true;
+        case 'o':
+            cfg->build.out_dir = opts.optarg;
             break;
-        case 'r':
-            cmd_args->subcmd.build.release = true;
+        case 'm':
+            cfg->build.mode = hhg_cfg_parse_build_mode(opts.optarg);
             break;
         case 's':
+            cfg->build.stage = hhg_cfg_parse_build_stage(opts.optarg);
             break;
         case 'S':
+            cfg->build.stage = hhg_cfg_parse_build_stage(opts.optarg);
             break;
         case 't':
-            cmd_args->subcmd.build.target = opts.optarg;
+            cfg->build.target = opts.optarg;
             break;
-        case 'T':
+        case 'b':
+            cfg->build.backend = hhg_cfg_parse_build_backend(opts.optarg);
             break;
         case 'W':
+            cfg->build.warnings = hhg_cfg_parse_build_warnings(opts.optarg);
             break;
         case 'E':
-            cmd_args->subcmd.build.deny_warnings = true;
+            cfg->build.error_warnings =
+                hhg_cmd_args_parse_true_false(opts.optarg, "--error-warnings");
             break;
         case '?':
             hhg_fatal_error("%s", opts.errmsg);
@@ -301,26 +330,28 @@ static void hhg_cmd_args_parse_build(
 static void hhg_cmd_args_print_run_usage(char *prog_name)
 {
     printf(
-        "usage: %s run [args] [options]\n"
+        "usage: %s run [options] [--] [args]\n"
+        "args:\n"
+        "    args             arguments to pass to the program being run\n"
         "options:\n"
-        "    --help -h    show help\n",
+        "    --help     -h    show help\n"
+        "    --override -O    override config values\n",
         prog_name
     );
 }
 
 static void hhg_cmd_args_parse_run(
-    hhg_cmd_args_t *cmd_args,
+    hhg_cfg_t *cfg,
     char **argv,
     char *prog_name
 )
 {
-    HHG_UNUSED(cmd_args);
-
     struct optparse opts;
     optparse_init(&opts, argv);
     static const struct optparse_long longopts[] = {
-        { "help", 'h', OPTPARSE_NONE, },
-        { NULL, },
+        { "help",     'h', OPTPARSE_NONE, },
+        { "override", 'O', OPTPARSE_NONE, },
+        { NULL,                           },
     };
     int opt;
     while ((opt = optparse_long(&opts, longopts, NULL)) != -1) {
@@ -329,6 +360,9 @@ static void hhg_cmd_args_parse_run(
             hhg_cmd_args_print_run_usage(prog_name);
             exit(EXIT_SUCCESS);
             break;
+        case 'O':
+            arrfree(cfg->run.args);
+            break;
         case '?':
             hhg_fatal_error("%s", opts.errmsg);
             break;
@@ -336,6 +370,10 @@ static void hhg_cmd_args_parse_run(
             break;
         }
     }
+    
+    char *arg;
+    while ((arg = optparse_arg(&opts)) != NULL)
+        arrput(cfg->run.args, arg);
 }
 
 static void hhg_cmd_args_print_test_usage(char *prog_name)
@@ -343,27 +381,27 @@ static void hhg_cmd_args_print_test_usage(char *prog_name)
     printf(
         "usage: %s test [options]\n"
         "options:\n"
-        "    --help             -h    show help\n"
-        "    --list             -l    list available tests without running\n"
-        "    --fail-fast        -f    stop on first failure\n"
-        "    --threads <n>      -j    number of parallel test workers (0 => auto)\n"
-        "    --filter <pattern> -p    run tests matching pattern (repeatable)\n",
+        "    --help                   -h    show help\n"
+        "    --test-dir <dir>         -d    set test directory\n"
+        "    --list [true|false]      -l    list available tests without running\n"
+        "    --fail-fast [true|false] -f    stop on first failure\n"
+        "    --threads <n>            -j    number of parallel test workers (-1 => auto)\n"
+        "    --filter <pattern>       -p    run tests matching pattern (repeatable)\n",
         prog_name
     );
 }
 
 static void hhg_cmd_args_parse_test(
-    hhg_cmd_args_t *cmd_args,
+    hhg_cfg_t *cfg,
     char **argv,
     char *prog_name
 )
 {
-    HHG_UNUSED(cmd_args);
-
     struct optparse opts;
     optparse_init(&opts, argv);
     static const struct optparse_long longopts[] = {
         { "help",      'h', OPTPARSE_NONE,     },
+        { "test-dir",  'd', OPTPARSE_REQUIRED, },
         { "list",      'l', OPTPARSE_NONE,     },
         { "fail-fast", 'f', OPTPARSE_NONE,     },
         { "threads",   'j', OPTPARSE_REQUIRED, },
@@ -377,16 +415,22 @@ static void hhg_cmd_args_parse_test(
             hhg_cmd_args_print_test_usage(prog_name);
             exit(EXIT_SUCCESS);
             break;
+        case 'd':
+            cfg->test.test_dir = opts.optarg;
+            break;
         case 'l':
-            cmd_args->subcmd.test.list = true;
+            cfg->test.list =
+                hhg_cmd_args_parse_true_false(opts.optarg, "--list");
             break;
         case 'f':
-            cmd_args->subcmd.test.fail_fast = true;
+            cfg->test.fail_fast =
+                hhg_cmd_args_parse_true_false(opts.optarg, "--fail-fast");
             break;
         case 'j':
+            cfg->test.threads = hhg_utils_str_to_int64(opts.optarg);
             break;
         case 'p':
-            cmd_args->subcmd.test.pattern = opts.optarg;
+            cfg->test.filter = opts.optarg;
             break;
         case '?':
             hhg_fatal_error("%s", opts.errmsg);
@@ -402,24 +446,28 @@ static void hhg_cmd_args_print_clean_usage(char *prog_name)
     printf(
         "usage: %s clean [options]\n"
         "options:\n"
-        "    --help -h    show help\n",
+        "    --help                 -h    show help\n"
+        "    --mode <all|build|gen> -m    clean mode\n"
+        "    --force [true|false]   -f    force clean without confirmation\n"
+        "    --dry-run [true|false] -r    show what would be cleaned without actually deleting files\n",
         prog_name
     );
 }
 
 static void hhg_cmd_args_parse_clean(
-    hhg_cmd_args_t *cmd_args,
+    hhg_cfg_t *cfg,
     char **argv,
     char *prog_name
 )
 {
-    HHG_UNUSED(cmd_args);
-
     struct optparse opts;
     optparse_init(&opts, argv);
     static const struct optparse_long longopts[] = {
-        { "help", 'h', OPTPARSE_NONE, },
-        { NULL,                       },
+        { "help",    'h', OPTPARSE_NONE,     },
+        { "mode",    'm', OPTPARSE_REQUIRED, },
+        { "force",   'f', OPTPARSE_OPTIONAL, },
+        { "dry-run", 'r', OPTPARSE_OPTIONAL, },
+        { NULL,                              },
     };
     int opt;
     while ((opt = optparse_long(&opts, longopts, NULL)) != -1) {
@@ -427,6 +475,17 @@ static void hhg_cmd_args_parse_clean(
         case 'h':
             hhg_cmd_args_print_clean_usage(prog_name);
             exit(EXIT_SUCCESS);
+            break;
+        case 'm':
+            cfg->clean.mode = hhg_cfg_parse_clean_mode(opts.optarg);
+            break;
+        case 'f':
+            cfg->clean.force =
+                hhg_cmd_args_parse_true_false(opts.optarg, "--force");
+            break;
+        case 'r':
+            cfg->clean.dry_run =
+                hhg_cmd_args_parse_true_false(opts.optarg, "--dry-run");
             break;
         case '?':
             hhg_fatal_error("%s", opts.errmsg);
@@ -442,24 +501,28 @@ static void hhg_cmd_args_print_repl_usage(char *prog_name)
     printf(
         "usage: %s repl [options]\n"
         "options:\n"
-        "    --help -h    show help\n",
+        "    --help                 -h    show help\n"
+        "    --tmp-dir <dir>        -d    temporary directory for repl\n"
+        "    --target <triple|auto> -t    cross-target triple\n"
+        "    --backend <cpp|asm>    -b    backend type\n",
         prog_name
     );
 }
 
 static void hhg_cmd_args_parse_repl(
-    hhg_cmd_args_t *cmd_args,
+    hhg_cfg_t *cfg,
     char **argv,
     char *prog_name
 )
 {
-    HHG_UNUSED(cmd_args);
-
     struct optparse opts;
     optparse_init(&opts, argv);
     static const struct optparse_long longopts[] = {
-        { "help", 'h', OPTPARSE_NONE, },
-        { NULL,                       },
+        { "help",    'h', OPTPARSE_NONE,     },
+        { "tmp-dir", 'd', OPTPARSE_REQUIRED, },
+        { "target",  't', OPTPARSE_REQUIRED, },
+        { "backend", 'b', OPTPARSE_REQUIRED, },
+        { NULL,                              },
     };
     int opt;
     while ((opt = optparse_long(&opts, longopts, NULL)) != -1) {
@@ -468,6 +531,15 @@ static void hhg_cmd_args_parse_repl(
             hhg_cmd_args_print_repl_usage(prog_name);
             exit(EXIT_SUCCESS);
             break;
+        case 'd':
+            cfg->repl.tmp_dir = opts.optarg;
+            break;
+        case 't':
+            cfg->repl.target = opts.optarg;
+            break;
+        case 'b':
+            cfg->repl.backend = hhg_cfg_parse_repl_backend(opts.optarg);
+            break;
         case '?':
             hhg_fatal_error("%s", opts.errmsg);
             break;
@@ -475,4 +547,20 @@ static void hhg_cmd_args_parse_repl(
             break;
         }
     }
+}
+
+static bool hhg_cmd_args_parse_true_false(const char *str, const char *option)
+{
+    if (str == NULL)
+        return true;
+    if (strcmp(str, "true") == 0)
+        return true;
+    if (strcmp(str, "false") == 0)
+        return false;
+    hhg_fatal_error(
+        "invalid value for %s: %s",
+        option,
+        str
+    );
+    return true;
 }

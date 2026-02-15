@@ -66,11 +66,6 @@ void hhg_mem_print_summary(void);
     hhg_debug_arena_strdup(arena, str, (hhg_mem_alloc_loc_t) { __FILE__, __func__, __LINE__ })
 #define hhg_arena_free(arena) \
     hhg_debug_arena_free(arena, (hhg_mem_alloc_loc_t) { __FILE__, __func__, __LINE__ })
-
-#else
-
-static inline void hhg_mem_print_summary(void) { }
-
 #endif
 
 

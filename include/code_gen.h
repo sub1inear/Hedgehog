@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 
+#include "cfg.h"
 #include "mem.h" // hhg_arena_t is based off arena_t so can't forward declare
 
 typedef struct hhg_sym hhg_sym_t;
@@ -11,11 +12,6 @@ typedef struct hhg_mir_gen hhg_mir_gen_t;
 
 typedef struct hhg_code_gen hhg_code_gen_t;
 
-typedef enum hhg_code_gen_backend_type {
-    HHG_CODE_GEN_CPP,
-    HHG_CODE_GEN_QBE,
-} hhg_code_gen_backend_type_t;
-
 typedef struct hhg_code_gen_vtbl {
     void (*start_func)(hhg_code_gen_t *gen, hhg_sym_t *sym);
     void (*emit_instr)(hhg_code_gen_t *gen, hhg_mir_instr_t *instr);
@@ -23,7 +19,7 @@ typedef struct hhg_code_gen_vtbl {
 } hhg_code_gen_vtbl_t;
 
 typedef struct hhg_code_gen_backend {
-    hhg_code_gen_backend_type_t type;
+    hhg_cfg_build_backend_t type;
     hhg_code_gen_vtbl_t vtbl;
     // backend specific data here
 } hhg_code_gen_backend_t;
@@ -41,7 +37,7 @@ struct hhg_code_gen {
 
 hhg_code_gen_backend_t *hhg_code_gen_backend_new(
     hhg_arena_t *arena,
-    hhg_code_gen_backend_type_t type
+    hhg_cfg_build_backend_t type
 );
 
 void hhg_code_gen_init(hhg_code_gen_t *gen, hhg_code_gen_backend_t *backend);

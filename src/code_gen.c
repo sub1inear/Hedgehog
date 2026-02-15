@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #include "code_gen.h"
+#include "cfg.h"
 #include "cpp_gen.h"
 #include "qbe_gen.h"
 #include "mir.h"
@@ -9,13 +10,13 @@
 
 hhg_code_gen_backend_t *hhg_code_gen_backend_new(
     hhg_arena_t *arena,
-    hhg_code_gen_backend_type_t type
+    hhg_cfg_build_backend_t type
 )
 {
     switch (type) {
-    case HHG_CODE_GEN_CPP:
+    case HHG_CFG_BUILD_BACKEND_CPP:
         return hhg_cpp_gen_backend_new(arena);
-    case HHG_CODE_GEN_QBE:
+    case HHG_CFG_BUILD_BACKEND_QBE:
         return hhg_qbe_gen_backend_new(arena);
     default:
         hhg_fatal_error("unknown code generation backend type: %d", type);
@@ -32,10 +33,7 @@ void hhg_code_gen_init(hhg_code_gen_t *gen, hhg_code_gen_backend_t *backend)
 
 void hhg_code_gen_set_file(hhg_code_gen_t *gen, const char *filename)
 {
-    FILE *file = fopen(filename, "w");
-    if (file == NULL)
-        hhg_fatal_error("failed to open output file: %s", filename);
-    gen->file = file;
+    gen->file = hhg_utils_fopen(filename, "w");
 }
 
 void hhg_code_gen_run(hhg_code_gen_t *code_gen, hhg_mir_gen_t *mir_gen)
@@ -46,10 +44,10 @@ void hhg_code_gen_run(hhg_code_gen_t *code_gen, hhg_mir_gen_t *mir_gen)
 void hhg_code_gen_backend_free(hhg_code_gen_backend_t *backend)
 {
     switch (backend->type) {
-    case HHG_CODE_GEN_CPP:
+    case HHG_CFG_BUILD_BACKEND_CPP:
         hhg_cpp_gen_backend_free(backend);
         break;
-    case HHG_CODE_GEN_QBE:
+    case HHG_CFG_BUILD_BACKEND_QBE:
         hhg_qbe_gen_backend_free(backend);
         break;
     default:
