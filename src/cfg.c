@@ -18,11 +18,10 @@
 #define hhg_cfg_set_var(cfg, type, offset, value) \
     *(type *)((char *)cfg + offset) = value
 
-static toml_datum_t hhg_cfg_match(
-    toml_datum_t *tab,
-    const char *key,
-    toml_type_t type
-);
+typedef struct hhg_cfg_enum_type_data {
+    const char *str;
+    hhg_cfg_enum_type_t value;
+} hhg_cfg_enum_type_data_t;
 
 // supported types:
 // TOML_STRING
@@ -64,6 +63,19 @@ static const hhg_cfg_data_t cfg_data[] = {
     { "repl.target",          offsetof(hhg_cfg_t, repl.target),          TOML_STRING,  NULL },
     { "repl.backend",         offsetof(hhg_cfg_t, repl.backend),         TOML_STRING,  hhg_cfg_parse_repl_backend },
 };
+
+static toml_datum_t hhg_cfg_match(
+    toml_datum_t *tab,
+    const char *key,
+    toml_type_t type
+);
+static hhg_cfg_enum_type_t hhg_cfg_parse_enum(
+    const char *str,
+    const hhg_cfg_enum_type_data_t *data,
+    size_t data_size,
+    const char *enum_name,
+    hhg_cfg_enum_type_t unknown
+);
 
 void hhg_cfg_init(hhg_cfg_t *cfg, hhg_arena_t *arena) {
     // side effect: sets all fields to 0/NULL so
@@ -136,68 +148,86 @@ void hhg_cfg_del(hhg_cfg_t *cfg) {
 
 hhg_cfg_build_mode_t hhg_cfg_parse_build_mode(const char *str)
 {
-    if (strcmp(str, "debug") == 0)
-        return HHG_CFG_BUILD_MODE_DEBUG;
-    if (strcmp(str, "release") == 0)
-        return HHG_CFG_BUILD_MODE_RELEASE;
-    hhg_fatal_error("invalid build mode: %s", str);
-    return HHG_CFG_BUILD_MODE_UNKNOWN;
+    static const hhg_cfg_enum_type_data_t build_mode_data[] = {
+        { "debug",   HHG_CFG_BUILD_MODE_DEBUG   },
+        { "release", HHG_CFG_BUILD_MODE_RELEASE },
+    };
+    return hhg_cfg_parse_enum(
+        str,
+        build_mode_data,
+        HHG_ARR_SIZE(build_mode_data),
+        "build mode",
+        HHG_CFG_BUILD_MODE_UNKNOWN
+    );
 }
 
 hhg_cfg_build_stage_t hhg_cfg_parse_build_stage(const char *str)
 {
-    if (strcmp(str, "none") == 0)
-        return HHG_CFG_BUILD_STAGE_NONE;
-    if (strcmp(str, "lexer") == 0)
-        return HHG_CFG_BUILD_STAGE_LEXER;
-    if (strcmp(str, "parser") == 0)
-        return HHG_CFG_BUILD_STAGE_PARSER;
-    if (strcmp(str, "sem-an") == 0)
-        return HHG_CFG_BUILD_STAGE_SEM_AN;
-    if (strcmp(str, "mir-gen") == 0)
-        return HHG_CFG_BUILD_STAGE_MIR_GEN;
-    if (strcmp(str, "code-gen") == 0)
-        return HHG_CFG_BUILD_STAGE_CODE_GEN;
-    if (strcmp(str, "ext-build") == 0)
-        return HHG_CFG_BUILD_STAGE_EXT_BUILD;
-    hhg_fatal_error("invalid build stage: %s", str);
-    return HHG_CFG_BUILD_MODE_UNKNOWN;
+    static const hhg_cfg_enum_type_data_t build_stage_data[] = {
+        { "none",      HHG_CFG_BUILD_STAGE_NONE      },
+        { "lexer",     HHG_CFG_BUILD_STAGE_LEXER     },
+        { "parser",    HHG_CFG_BUILD_STAGE_PARSER    },
+        { "sem-an",    HHG_CFG_BUILD_STAGE_SEM_AN    },
+        { "mir-gen",   HHG_CFG_BUILD_STAGE_MIR_GEN   },
+        { "code-gen",  HHG_CFG_BUILD_STAGE_CODE_GEN  },
+        { "ext-build", HHG_CFG_BUILD_STAGE_EXT_BUILD },
+    };
+    return hhg_cfg_parse_enum(
+        str,
+        build_stage_data,
+        HHG_ARR_SIZE(build_stage_data),
+        "build stage",
+        HHG_CFG_BUILD_STAGE_UNKNOWN
+    );
 }
 
 hhg_cfg_build_warnings_t hhg_cfg_parse_build_warnings(const char *str)
 {
-    if (strcmp(str, "none") == 0)
-        return HHG_CFG_BUILD_WARNINGS_NONE;
-    if (strcmp(str, "default") == 0)
-        return HHG_CFG_BUILD_WARNINGS_DEFAULT;
-    if (strcmp(str, "all") == 0)
-        return HHG_CFG_BUILD_WARNINGS_ALL;
-    if (strcmp(str, "pedantic") == 0)
-        return HHG_CFG_BUILD_WARNINGS_PEDANTIC;
-    hhg_fatal_error("invalid build warnings: %s", str);
-    return HHG_CFG_BUILD_MODE_UNKNOWN;
+    static const hhg_cfg_enum_type_data_t build_warnings_data[] = {
+        { "none",     HHG_CFG_BUILD_WARNINGS_NONE     },
+        { "default",  HHG_CFG_BUILD_WARNINGS_DEFAULT  },
+        { "all",      HHG_CFG_BUILD_WARNINGS_ALL      },
+        { "pedantic", HHG_CFG_BUILD_WARNINGS_PEDANTIC },
+    };
+    return hhg_cfg_parse_enum(
+        str,
+        build_warnings_data,
+        HHG_ARR_SIZE(build_warnings_data),
+        "build warnings",
+        HHG_CFG_BUILD_WARNINGS_UNKNOWN
+    );
 }
 
 hhg_cfg_build_backend_t hhg_cfg_parse_build_backend(const char *str)
 {
-    if (strcmp(str, "cpp") == 0)
-        return HHG_CFG_BUILD_BACKEND_CPP;
-    if (strcmp(str, "qbe") == 0)
-        return HHG_CFG_BUILD_BACKEND_QBE;
-    hhg_fatal_error("invalid code gen backend: %s", str);
-    return HHG_CFG_BUILD_BACKEND_UNKNOWN;
+    static const hhg_cfg_enum_type_data_t build_backend_data[] = {
+        { "cpp", HHG_CFG_BUILD_BACKEND_CPP },
+        { "qbe", HHG_CFG_BUILD_BACKEND_QBE },
+    };
+    return hhg_cfg_parse_enum(
+        str,
+        build_backend_data,
+        HHG_ARR_SIZE(build_backend_data),
+        "build backend",
+        HHG_CFG_BUILD_BACKEND_UNKNOWN
+    );
 }
 
 hhg_cfg_clean_mode_t hhg_cfg_parse_clean_mode(const char *str)
 {
-    if (strcmp(str, "all") == 0)
-        return HHG_CFG_CLEAN_MODE_ALL;
-    if (strcmp(str, "build") == 0)
-        return HHG_CFG_CLEAN_MODE_BUILD;
-    if (strcmp(str, "gen") == 0)
-        return HHG_CFG_CLEAN_MODE_GEN;
-    hhg_fatal_error("invalid clean mode: %s", str);
-    return HHG_CFG_CLEAN_MODE_UNKNOWN;
+    static const hhg_cfg_enum_type_data_t clean_mode_data[] = {
+        { "all",   HHG_CFG_CLEAN_MODE_ALL   },
+        { "build", HHG_CFG_CLEAN_MODE_BUILD },
+        { "gen",   HHG_CFG_CLEAN_MODE_GEN   },
+    };
+    return hhg_cfg_parse_enum(
+        str,
+        clean_mode_data,
+        HHG_ARR_SIZE(clean_mode_data),
+        "clean mode",
+        HHG_CFG_CLEAN_MODE_UNKNOWN
+    );
+
 }
 
 static toml_datum_t hhg_cfg_match(
@@ -217,4 +247,20 @@ static toml_datum_t hhg_cfg_match(
             toml_type_to_str(datum.type)
         );
     return datum;
+}
+
+static hhg_cfg_enum_type_t hhg_cfg_parse_enum(
+    const char *str,
+    const hhg_cfg_enum_type_data_t *data,
+    size_t data_size,
+    const char *enum_name,
+    hhg_cfg_enum_type_t unknown
+)
+{
+    for (size_t i = 0; i < data_size; i++) {
+        if (strcmp(str, data[i].str) == 0)
+            return data[i].value;
+    }
+    hhg_fatal_error("invalid %s: %s", enum_name, str);
+    return unknown;
 }
