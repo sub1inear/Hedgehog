@@ -80,9 +80,44 @@ static hhg_cfg_enum_type_t hhg_cfg_parse_enum(
 
 void hhg_cfg_init(hhg_cfg_t *cfg, hhg_arena_t *arena)
 {
-    // sets all fields except init/arena to 0/NULL
-    // this allows hhg_cfg_del to safely free ptrs
     *cfg = (hhg_cfg_t) {
+        .init = (hhg_cfg_init_t) {
+            .name = NULL,
+            .version = "0.1.0",
+            .std = HHG_VERSION,
+        },
+        .build = (hhg_cfg_build_t) {
+            .entry = "main.hhg",
+            .out_dir = "out",
+            .mode = HHG_CFG_BUILD_MODE_DEBUG,
+            .stage = HHG_CFG_BUILD_STAGE_NONE,
+            .debug_stage = HHG_CFG_BUILD_STAGE_NONE,
+            .target = "auto",
+            .backend = HHG_CFG_BUILD_BACKEND_CPP,
+            .incremental = false,
+            .warnings = HHG_CFG_BUILD_WARNINGS_DEFAULT,
+            .error_warnings = false,
+        },
+        .run = (hhg_cfg_run_t) {
+            .args = NULL,
+        },
+        .test = (hhg_cfg_test_t) {
+            .test_dir = "tests",
+            .list = false,
+            .fail_fast = false,
+            .threads = -1,
+            .filter = NULL,
+        },
+        .clean = (hhg_cfg_clean_t) {
+            .mode = HHG_CFG_CLEAN_MODE_ALL,
+            .force = false,
+            .dry_run = false,
+        },
+        .repl = (hhg_cfg_repl_t) {
+            .tmp_dir = NULL,
+            .target = "auto",
+            .backend = HHG_CFG_BUILD_BACKEND_CPP,
+        },
         .arena = arena,
     };
 
@@ -145,8 +180,7 @@ void hhg_cfg_parse(hhg_cfg_t *cfg, const char *filename)
 
 void hhg_cfg_del(hhg_cfg_t *cfg)
 {
-    // safe even if run has not been set because
-    // hhg_cfg_init with compound literal sets all fields to 0/NULL
+    // run is set to NULL so safe to call
     arrfree(cfg->run.args);
 }
 
