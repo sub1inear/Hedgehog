@@ -1,5 +1,6 @@
 #include "driver.h"
 #include "init.h"
+#include "repl.h"
 #include "msg.h"
 #include "utils.h"
 
@@ -21,9 +22,9 @@ bool hhg_driver_run(
             // return hhg_test(cfg, arena);
         case HHG_CMD_ARGS_SUBCMD_CLEAN:
             // return hhg_clean(cfg, arena);
-        case HHG_CMD_ARGS_SUBCMD_REPL:
-            // return hhg_repl(cfg, arena);
             return true;
+        case HHG_CMD_ARGS_SUBCMD_REPL:
+            return hhg_repl(cfg);
         default:
             hhg_fatal_error("unknown subcommand: %i", subcmd);
             return true;
