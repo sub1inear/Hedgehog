@@ -7,10 +7,13 @@
 #define OPTPARSE_API static
 #include <optparse.h>
 #include <stb_ds.h>
+#define LIBFS_IMPLEMENTATION
+#include <fs.h>
 
 #include "cmd_args.h"
 #include "cfg.h"
 #include "msg.h"
+#include "main.h"
 #include "utils.h"
 
 static void hhg_cmd_args_print_global_usage(char *prog_name);
@@ -71,8 +74,7 @@ hhg_cmd_args_subcmd_t hhg_cmd_args_parse(
     char **argv
 )
 {
-    char *prog_name = hhg_utils_path_trunc(argv[0]);
-
+    char *prog_name = argv[0] == NULL ? "hhg" : fs_basename(argv[0]);
     if (argc < 2) {
         hhg_cmd_args_print_global_usage(prog_name);
         exit(EXIT_FAILURE);
@@ -105,7 +107,7 @@ hhg_cmd_args_subcmd_t hhg_cmd_args_parse(
             break;
         case 'v':
             puts(
-                "hhg compiler v0.1.0\n"
+                "hhg compiler v" HHG_VERSION "\n"
                 "copyright (c) 2026- sub1inear"
             );
             exit(EXIT_SUCCESS);
@@ -121,6 +123,10 @@ hhg_cmd_args_subcmd_t hhg_cmd_args_parse(
             break;
         }
     }
+
+    // set before consuming subcommand
+    // optparse ignores argv[0]
+    char **subargv = argv + global_opts.optind;
 
     char *subcmd_str = optparse_arg(&global_opts);
     if (subcmd_str == NULL) {
@@ -146,22 +152,22 @@ hhg_cmd_args_subcmd_t hhg_cmd_args_parse(
 
     switch (subcmd) {
     case HHG_CMD_ARGS_SUBCMD_INIT:
-        hhg_cmd_args_parse_init(cfg, argv, prog_name);
+        hhg_cmd_args_parse_init(cfg, subargv, prog_name);
         break;
     case HHG_CMD_ARGS_SUBCMD_BUILD:
-        hhg_cmd_args_parse_build(cfg, argv, prog_name);
+        hhg_cmd_args_parse_build(cfg, subargv, prog_name);
         break;
     case HHG_CMD_ARGS_SUBCMD_RUN:
-        hhg_cmd_args_parse_run(cfg, argv, prog_name);
+        hhg_cmd_args_parse_run(cfg, subargv, prog_name);
         break;
     case HHG_CMD_ARGS_SUBCMD_TEST:
-        hhg_cmd_args_parse_test(cfg, argv, prog_name);
+        hhg_cmd_args_parse_test(cfg, subargv, prog_name);
         break;
     case HHG_CMD_ARGS_SUBCMD_CLEAN:
-        hhg_cmd_args_parse_clean(cfg, argv, prog_name);
+        hhg_cmd_args_parse_clean(cfg, subargv, prog_name);
         break;
     case HHG_CMD_ARGS_SUBCMD_REPL:
-        hhg_cmd_args_parse_repl(cfg, argv, prog_name);
+        hhg_cmd_args_parse_repl(cfg, subargv, prog_name);
         break;
     default:
         hhg_fatal_error("unknown subcommand: `%s`", subcmd_str);
@@ -241,10 +247,8 @@ static void hhg_cmd_args_parse_init(
             break;
         }
     }
-    char *name = optparse_arg(&opts);
-    assert(name != NULL);
-    cfg->project.name = name;
-
+    // hhg init will handle NULL as cwd
+    cfg->project.name = optparse_arg(&opts);
 }
 
 static void hhg_cmd_args_print_build_usage(char *prog_name)

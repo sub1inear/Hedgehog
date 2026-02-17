@@ -15,13 +15,6 @@
 // crashes with hhg_fatal_error if file cannot be opened
 FILE *hhg_utils_fopen(const char *filename, const char *mode);
 
-// truncate path to filename, separated by / or \
-// returns path if no separator found
-char *hhg_utils_path_trunc(char *path);
-inline const char *hhg_utils_path_trunc_const(const char *path) {
-    return hhg_utils_path_trunc((char *)path);
-}
-
 int64_t hhg_utils_str_to_int64(const char *str);
 
 #endif

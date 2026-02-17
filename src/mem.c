@@ -88,6 +88,8 @@ void hhg_arena_free(hhg_arena_t *arena)
 #include <string.h>
 #include <assert.h>
 
+#include <fs.h>
+
 #include "utils.h"
 
 typedef struct hhg_mem_alloc {
@@ -389,7 +391,7 @@ void hhg_mem_print_summary(void)
 }
 
 static void hhg_mem_alloc_loc_print(hhg_mem_alloc_loc_t loc) {
-    printf("%s:%d (%s)", loc.file, loc.line, loc.func);
+    printf("%s:%i (%s)", loc.file, loc.line, loc.func);
 }
 
 static void *hhg_debug_mem_run_func(
@@ -415,7 +417,7 @@ static void *hhg_debug_mem_run_func(
     mem_debug = true;
 
     // truncate file path (affects downstream printing)
-    loc.file = hhg_utils_path_trunc_const(loc.file);
+    loc.file = fs_basename(loc.file);
 
     (*func_counter)++;
 

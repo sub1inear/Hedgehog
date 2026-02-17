@@ -18,13 +18,6 @@ FILE *hhg_utils_fopen(const char *filename, const char *mode)
     return file;
 }
 
-char *hhg_utils_path_trunc(char *path)
-{
-    char *trunc = strrchr(path, '/');
-    if (trunc == NULL) trunc = strrchr(path, '\\');
-    return trunc == NULL ? path : trunc + 1;
-}
-
 int64_t hhg_utils_str_to_int64(const char *str)
 {
     bool negative = false;

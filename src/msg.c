@@ -41,7 +41,7 @@ simplified vfprintf with support for hhg-specific types
 
 supported format specifiers:
 %s - string
-%d - int
+%i - int
 %c - char
 %b - bool
 %% - %
@@ -131,13 +131,15 @@ void hhg_msg(
     va_end(va_msg);
 }
 
-void hhg_fatal_error(const char *fmt, ...) {
+void hhg_fatal_error(const char *fmt, ...)
+{
     va_list va;
     va_start(va, fmt);
 
     fputs(HHG_ANSI_COLOR_RED "fatal error" HHG_ANSI_COLOR_CLEAR ": ", stderr);
     hhg_vfprintf(stderr, fmt, va);
     fputc('\n', stderr);
+
     va_end(va);
     exit(EXIT_FAILURE);
 }
@@ -209,9 +211,9 @@ static void hhg_vfprintf(FILE *stream, const char *fmt, va_list va)
                     fputs("(null)", stream); 
                 break;
             }
-            case 'd': {
+            case 'i': {
                 int int_arg = va_arg(va, int);
-                fprintf(stream, "%d", int_arg);
+                fprintf(stream, "%i", int_arg);
                 break;
             }
             case 'c': {

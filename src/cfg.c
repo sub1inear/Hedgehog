@@ -12,6 +12,7 @@
 
 #include "cfg.h"
 #include "msg.h"
+#include "main.h"
 #include "utils.h"
 
 // sets variable at offset in cfg to value, with type type
@@ -77,17 +78,18 @@ static hhg_cfg_enum_type_t hhg_cfg_parse_enum(
     hhg_cfg_enum_type_t unknown
 );
 
-void hhg_cfg_init(hhg_cfg_t *cfg, hhg_arena_t *arena) {
-    // side effect: sets all fields to 0/NULL so
-    // that hhg_cfg_del can safely free them even if
-    // hhg_cfg_parse has not been called
+void hhg_cfg_init(hhg_cfg_t *cfg, hhg_arena_t *arena)
+{
+    // sets all fields except init/arena to 0/NULL
+    // this allows hhg_cfg_del to safely free ptrs
     *cfg = (hhg_cfg_t) {
         .arena = arena,
     };
 
 }
 
-void hhg_cfg_parse(hhg_cfg_t *cfg, const char *filename) {
+void hhg_cfg_parse(hhg_cfg_t *cfg, const char *filename)
+{
     FILE *file = hhg_utils_fopen(filename, "r");
     
     toml_result_t result = toml_parse_file(file);
@@ -141,7 +143,8 @@ void hhg_cfg_parse(hhg_cfg_t *cfg, const char *filename) {
     fclose(file);
 }
 
-void hhg_cfg_del(hhg_cfg_t *cfg) {
+void hhg_cfg_del(hhg_cfg_t *cfg)
+{
     // safe even if run has not been set because
     // hhg_cfg_init with compound literal sets all fields to 0/NULL
     arrfree(cfg->run.args);

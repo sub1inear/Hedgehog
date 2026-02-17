@@ -17,6 +17,12 @@ typedef struct hhg_cfg_global {
     bool color;
 } hhg_cfg_global_t;
 
+typedef struct hhg_cfg_init {
+    const char *name;
+    const char *version;
+    const char *std;
+} hhg_cfg_init_t;
+
 // used so we can have a function pointer in cfg_data
 // returning a generic value for parsing strs to enum values
 // otherwise, enum return types would be different
@@ -110,6 +116,7 @@ typedef struct hhg_cfg_repl {
 typedef struct hhg_cfg {
     hhg_cfg_project_t project;
     hhg_cfg_global_t global;
+    hhg_cfg_init_t init;
     hhg_cfg_build_t build;
     hhg_cfg_run_t run;
     hhg_cfg_test_t test;
