@@ -570,6 +570,8 @@ fs_close_dir(struct fs_directory_iterator *it);
 #ifdef LIBFS_IMPLEMENTATION
 
 #ifdef LIBFS_WINDOWS
+#include <direct.h>
+
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <winioctl.h> // for FSCTL_GET_REPARSE_POINT
@@ -742,55 +744,8 @@ bool
 fs_is_symlink(const char *path)
 {
 #ifdef LIBFS_WINDOWS
-    DWORD attrs = GetFileAttributesA(path);
-    if (attrs == INVALID_FILE_ATTRIBUTES)
-        return false;
-
-    if (!(attrs & FILE_ATTRIBUTE_REPARSE_POINT))
-        return false;
-
-    HANDLE h = CreateFileA(
-        path,
-        0,
-        FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
-        NULL,
-        OPEN_EXISTING,
-        FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS,
-        NULL
-    );
-
-    if (h == INVALID_HANDLE_VALUE)
-        return false;
-
-    BYTE buffer[MAXIMUM_REPARSE_DATA_BUFFER_SIZE];
-    DWORD bytes;
-
-    BOOL ok = DeviceIoControl(
-        h,
-        FSCTL_GET_REPARSE_POINT,
-        NULL,
-        0,
-        buffer,
-        sizeof(buffer),
-        &bytes,
-        NULL
-    );
-
-    CloseHandle(h);
-
-    if (!ok)
-        return false;
-
-    typedef struct {
-        DWORD ReparseTag;
-        WORD  ReparseDataLength;
-        WORD  Reserved;
-    } REPARSE_DATA_BUFFER_HEADER;
-
-    REPARSE_DATA_BUFFER_HEADER *hdr =
-        (REPARSE_DATA_BUFFER_HEADER *)buffer;
-
-    return hdr->ReparseTag == IO_REPARSE_TAG_SYMLINK;
+    LIBFS_UNUSED(path);
+    return 0;
 #elif defined(LIBFS_POSIX)
     struct stat s;
 	return (lstat(path, &s) == 0) && S_ISLNK(s.st_mode);

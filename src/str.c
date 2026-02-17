@@ -3,6 +3,7 @@
 
 #include "str.h"
 #include "mem.h"
+#include "utils.h"
 
 void hhg_str_init(hhg_str_t *str)
 {
@@ -15,7 +16,7 @@ void hhg_str_init(hhg_str_t *str)
 
 void hhg_str_init_len(hhg_str_t *str, size_t len)
 {
-    assert(len > 0);
+    hhg_assert(len > 0);
 
     str->len = len + 1;
     str->cap = str->len;
@@ -26,7 +27,7 @@ void hhg_str_init_len(hhg_str_t *str, size_t len)
 
 void hhg_str_init_str(hhg_str_t *str, const char *init)
 {
-    assert(init != NULL);
+    hhg_assert(init != NULL);
 
     str->len = strlen(init) + 1;
     str->cap = str->len;
@@ -70,7 +71,7 @@ void hhg_str_append_char(hhg_str_t *str, int c)
 
 void hhg_str_append_str(hhg_str_t *str, const char *append)
 {
-    assert(append != NULL);
+    hhg_assert(append != NULL);
 
     size_t len = str->len - 1;
 
@@ -83,7 +84,7 @@ void hhg_str_append_str(hhg_str_t *str, const char *append)
 
 void hhg_str_set_cap(hhg_str_t *str, size_t cap)
 {
-    assert(cap > 0);
+    hhg_assert(cap > 0);
     str->cap = cap;
     str->str = hhg_realloc(str->str, str->cap);
 }

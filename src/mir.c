@@ -175,7 +175,7 @@ void hhg_mir_gen_init(hhg_mir_gen_t *gen, hhg_arena_t *arena)
 
 void hhg_mir_gen_run(hhg_mir_gen_t *gen, hhg_node_t *prog)
 {
-    assert(prog->type == HHG_NODE_BLOCK);
+    hhg_assert(prog->type == HHG_NODE_BLOCK);
     hhg_mir_func_t main_func = (hhg_mir_func_t) {
         .sym = hhg_sym_new(
             gen->arena,
@@ -304,7 +304,7 @@ static hhg_mir_reg_t hhg_mir_gen_run_core(
     case HHG_NODE_PARAM:
         return -1;
     default:
-        hhg_fatal_error(
+        hhg_compiler_error(
             "unhandled node type `%n` in hhg_mir_gen_run_core",
             node->type
         );
@@ -337,7 +337,7 @@ static void hhg_mir_gen_new_local(hhg_mir_gen_t *gen, hhg_sym_t *sym)
 {
     hhg_mir_ctx_t *ctx = hhg_mir_gen_get_cur_ctx(gen);
     // local should not already exist
-    assert(hmgetp_null(ctx->local_tab, sym) == NULL);
+    hhg_assert(hmgetp_null(ctx->local_tab, sym) == NULL);
     hmput(ctx->local_tab, sym, gen->reg_count);
     gen->reg_count++;
 }
@@ -377,7 +377,7 @@ static hhg_mir_reg_t hhg_mir_gen_get_local(hhg_mir_gen_t *gen, hhg_sym_t *sym)
 
 static hhg_type_t *hhg_mir_gen_get_tmp(hhg_mir_gen_t *gen, hhg_mir_reg_t tmp)
 {
-    assert(tmp > 0);
+    hhg_assert(tmp > 0);
     return gen->tmp_arr[tmp];
 }
 
@@ -423,7 +423,7 @@ static hhg_mir_reg_t hhg_mir_gen_run_id(
     if (hhg_mir_gen_get_cur_ctx(gen)->in_global_scope)
         return hhg_mir_gen_get_global(gen, node->value.id.sym, node);
     hhg_mir_reg_t reg = hhg_mir_gen_get_local(gen, node->value.id.sym);
-    assert(reg != -1);
+    hhg_assert(reg != -1);
     return reg;
 }
 

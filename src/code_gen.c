@@ -19,7 +19,7 @@ hhg_code_gen_backend_t *hhg_code_gen_backend_new(
     case HHG_CFG_BUILD_BACKEND_QBE:
         return hhg_qbe_gen_backend_new(arena);
     default:
-        hhg_fatal_error("unknown code generation backend type: %i", type);
+        hhg_compiler_error("unknown code generation backend type: %i", type);
         return NULL;
     }
 }
@@ -51,7 +51,7 @@ void hhg_code_gen_backend_free(hhg_code_gen_backend_t *backend)
         hhg_qbe_gen_backend_free(backend);
         break;
     default:
-        hhg_fatal_error("unknown code generation backend type: %i", backend->type);
+        hhg_compiler_error("unknown code generation backend type: %i", backend->type);
         break;
     }
 }

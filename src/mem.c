@@ -334,7 +334,7 @@ void hhg_mem_print_summary(void)
             hhg_mem_alloc_loc_t *locs = alloc.value;
 
             size_t locs_len = arrlen(locs);
-            assert(locs_len > 0);
+            hhg_assert(locs_len > 0);
             if (locs_len == 1) {
                 printf("  leak at %p allocated at ", alloc.key);
                 hhg_mem_alloc_loc_print(locs[0]);
@@ -472,7 +472,7 @@ static void hhg_debug_realloc_core(
 
             hhg_mem_alloc_t *prev_entry = hmgetp_null(mem_alloc_tab, ptr);
             // hhg_realloc should catch this but just in case
-            assert(prev_entry != NULL);
+            hhg_assert(prev_entry != NULL);
 
             hhg_mem_alloc_loc_t *locs = prev_entry->value;
 
@@ -501,7 +501,7 @@ static void hhg_debug_free_core(
     HHG_UNUSED(null, size, loc);
     hhg_mem_alloc_t *entry = hmgetp_null(mem_alloc_tab, ptr);
     // hhg_free should catch this but just in case
-    assert(entry != NULL);
+    hhg_assert(entry != NULL);
     
     arrfree(entry->value);
 

@@ -32,7 +32,7 @@ hhg_sym_t *hhg_sym_tab_insert(hhg_sym_tab_t *sym_tab, hhg_sym_t sym)
     pshput(sym_tab->tab, new_sym);
 
     size_t len = arrlenu(sym_tab->key_arr);
-    assert(len > 0);
+    hhg_assert(len > 0);
 
     // pushes sym str onto last entry of sym_key_arr
     size_t last = len - 1;
@@ -59,7 +59,8 @@ void hhg_sym_tab_exit_scope(hhg_sym_tab_t *sym_tab)
         size_t inner_len = arrlenu(sym_tab->key_arr[last]);
         for (size_t i = 0; i < inner_len; i++) {
             ptrdiff_t result = pshdel(sym_tab->tab, sym_tab->key_arr[last][i]);
-            assert(result); // ensure key was in table (otherwise corruption)
+            // ensure key was in table (otherwise corruption)
+            hhg_assert(result); 
         }
         arrfree(sym_tab->key_arr[last]);
         HHG_UNUSED(arrpop(sym_tab->key_arr));
@@ -74,6 +75,6 @@ void hhg_sym_tab_clear(hhg_sym_tab_t *sym_tab)
 void hhg_sym_tab_del(hhg_sym_tab_t *sym_tab)
 {
     shfree(sym_tab->tab);
-    assert(arrlenu(sym_tab->key_arr) == 0);
+    hhg_assert(arrlenu(sym_tab->key_arr) == 0);
     arrfree(sym_tab->key_arr);
 }

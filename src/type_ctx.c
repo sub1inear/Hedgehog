@@ -1,4 +1,5 @@
 #include "type_ctx.h"
+#include "utils.h"
 
 void hhg_type_ctx_init(hhg_type_ctx_t *type_ctx, hhg_arena_t *arena)
 {
@@ -44,7 +45,7 @@ hhg_type_t *hhg_type_ctx_new_ref(
     hmput(type_ctx->ref_tab, key, ref);
     
     hhg_ref_tab_t *new_entry = hmgetp_null(type_ctx->ref_tab, key);
-    assert(new_entry != NULL);
+    hhg_assert(new_entry != NULL);
     return &new_entry->value;
 }
 
@@ -67,7 +68,7 @@ hhg_type_t *hhg_type_ctx_new_arr(
     hmput(type_ctx->arr_tab, key, arr);
 
     hhg_arr_tab_t *new_entry = hmgetp_null(type_ctx->arr_tab, key);
-    assert(new_entry != NULL);
+    hhg_assert(new_entry != NULL);
     return &new_entry->value;
 }
 
@@ -87,7 +88,7 @@ hhg_type_t *hhg_type_ctx_new_cv_type(
     hmput(type_ctx->cv_tab, key, cv_type);
 
     hhg_cv_tab_t *new_entry = hmgetp_null(type_ctx->cv_tab, key);
-    assert(new_entry != NULL);
+    hhg_assert(new_entry != NULL);
     return &new_entry->value;
 }
 

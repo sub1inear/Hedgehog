@@ -9,6 +9,7 @@ typedef struct hhg_file_src hhg_file_src_t;
 
 typedef struct hhg_msg_ctx {
     int32_t error_count;
+    bool color;
 } hhg_msg_ctx_t;
 
 typedef enum hhg_msg_type {
@@ -17,7 +18,7 @@ typedef enum hhg_msg_type {
     HHG_MSG_INFO,
 } hhg_msg_type_t;
 
-void hhg_msg_ctx_init(hhg_msg_ctx_t *msg_ctx);
+void hhg_msg_ctx_init(hhg_msg_ctx_t *msg_ctx, bool color);
 
 void hhg_msg(
     hhg_msg_ctx_t *msg_ctx,
@@ -29,6 +30,7 @@ void hhg_msg(
     ... // format arguments for both msg and note
 );
 
-void hhg_fatal_error(const char *fmt, ...);
+void hhg_compiler_error(const char *msg, ...);
+void hhg_fatal_error(const char *msg, ...);
 
 #endif

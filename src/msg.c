@@ -13,6 +13,7 @@
 #include "str.h"
 #include "token.h"
 #include "type.h"
+#include "main.h"
 #include "utils.h"
 
 /*
@@ -35,6 +36,13 @@ static void hhg_msg_print_indicator(
     int32_t end,
     size_t line_width
 );
+// prints the message type (error, warning, ...) with color if enabled
+// if color is not enabled, color can be NULL
+static void hhg_msg_print_type_str(
+    const char *str,
+    const char *color,
+    bool enable
+);
 
 /*
 simplified vfprintf with support for hhg-specific types
@@ -51,9 +59,10 @@ supported format specifiers:
 */
 static void hhg_vfprintf(FILE *stream, const char *fmt, va_list va);
 
-void hhg_msg_ctx_init(hhg_msg_ctx_t *msg_ctx)
+void hhg_msg_ctx_init(hhg_msg_ctx_t *msg_ctx, bool color)
 {
     msg_ctx->error_count = 0;
+    msg_ctx->color = color;
 }
 
 void hhg_msg(
@@ -74,16 +83,13 @@ void hhg_msg(
     switch (type) {
     case HHG_MSG_ERROR:
         msg_ctx->error_count++;
-        fputs(HHG_ANSI_COLOR_RED "error" HHG_ANSI_COLOR_CLEAR ": ", stderr);
+        hhg_msg_print_type_str("error", HHG_ANSI_COLOR_RED, msg_ctx->color);
         break;
     case HHG_MSG_WARNING:
-        fputs(
-            HHG_ANSI_COLOR_YELLOW "warning" HHG_ANSI_COLOR_CLEAR ": ",
-            stderr
-        );
+        hhg_msg_print_type_str("warning", HHG_ANSI_COLOR_YELLOW, msg_ctx->color);
         break;
     case HHG_MSG_INFO:
-        fputs("info: ", stderr);
+        hhg_msg_print_type_str("info", "", false);
         break;
     }
 
@@ -131,14 +137,33 @@ void hhg_msg(
     va_end(va_msg);
 }
 
-void hhg_fatal_error(const char *fmt, ...)
+void hhg_compiler_error(const char *msg, ...)
 {
     va_list va;
-    va_start(va, fmt);
+    va_start(va, msg);
+    
+    fputs("compiler error: ", stderr);
 
-    fputs(HHG_ANSI_COLOR_RED "fatal error" HHG_ANSI_COLOR_CLEAR ": ", stderr);
-    hhg_vfprintf(stderr, fmt, va);
-    fputc('\n', stderr);
+    hhg_vfprintf(stderr, msg, va);
+
+    fprintf(
+        stderr,
+        "\n\nPlease report this to the developers at\n"
+        HHG_GITHUB_ISSUES_URL "\n"
+    );
+
+    va_end(va);
+    exit(EXIT_FAILURE);
+}
+
+void hhg_fatal_error(const char *msg, ...)
+{
+    va_list va;
+    va_start(va, msg);
+    
+    fputs("fatal error: ", stderr);
+
+    hhg_vfprintf(stderr, msg, va);
 
     va_end(va);
     exit(EXIT_FAILURE);
@@ -194,6 +219,18 @@ static void hhg_msg_print_indicator(
     fputc('^', stderr);
     for (int32_t i = start + 1; i < end; i++)
         fputc('~', stderr);
+}
+
+static void hhg_msg_print_type_str(
+    const char *str,
+    const char *color,
+    bool enable
+)
+{
+    if (enable)
+        fprintf(stderr, "%s%s" HHG_ANSI_COLOR_CLEAR ": ", color, str);
+    else
+        fprintf(stderr, "%s: ", str);
 }
 
 static void hhg_vfprintf(FILE *stream, const char *fmt, va_list va)

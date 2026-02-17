@@ -16,6 +16,7 @@
 #include "mem.h"
 #include "file_pos.h"
 #include "file_range.h"
+#include "utils.h"
 
 #define HHG_PREC_START 0
 
@@ -361,7 +362,7 @@ static hhg_type_t *hhg_parser_parse_base_type(hhg_parser_t *parser)
             base
         );
     }
-    assert(type != NULL);
+    hhg_assert(type != NULL);
     return type;
 }
 static hhg_type_t *hhg_parser_parse_ref_type(

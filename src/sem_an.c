@@ -193,7 +193,7 @@ void hhg_sem_an_run(hhg_sem_an_t *sem_an, hhg_node_t *node)
     case HHG_NODE_PARAM:
         break;
     default:
-        hhg_fatal_error(
+        hhg_compiler_error(
             "unhandled node type `%n` in hhg_sem_an_run",
             node->type
         );
@@ -262,7 +262,7 @@ static void hhg_sem_an_run_var_decl(hhg_sem_an_t *sem_an, hhg_node_t *node)
     const char *name = node->value.var_decl.id.str;
 
     hhg_type_t *expr_type = node->value.var_decl.expr->value_type;
-    assert(expr_type != NULL);
+    hhg_assert(expr_type != NULL);
 
     if (sym == NULL) {
         node->value.var_decl.first = true;
@@ -285,7 +285,7 @@ static void hhg_sem_an_run_var_decl(hhg_sem_an_t *sem_an, hhg_node_t *node)
     } else
         node->value_type = sym->value.type;
 
-    assert(node->value_type != NULL);
+    hhg_assert(node->value_type != NULL);
 
     if (!hhg_type_eq(expr_type, node->value_type))
         hhg_sem_an_error(
@@ -306,7 +306,7 @@ static void hhg_sem_an_run_obj_init(hhg_sem_an_t *sem_an, hhg_node_t *node)
     if (node->value_type->type == HHG_TYPE_ID) {
         hhg_sym_t *sym =
             hhg_sym_tab_lookup(sem_an->sym_tab, node->value_type->info.id);
-        assert(sym != NULL); // should have been caught in parser
+        hhg_assert(sym != NULL); // should have been caught in parser
         node->value_type = sym->value.type;
     }
 
@@ -707,7 +707,7 @@ static void hhg_sem_an_run_int_literal(hhg_sem_an_t *sem_an, hhg_node_t *node)
         }
     }
     // unreachable
-    hhg_fatal_error("int literal type inference failed");
+    hhg_compiler_error("int literal type inference failed");
 }
 
 static void hhg_sem_an_run_float_literal(

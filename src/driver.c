@@ -26,7 +26,7 @@ bool hhg_driver_run(
         case HHG_CMD_ARGS_SUBCMD_REPL:
             return hhg_repl(cfg);
         default:
-            hhg_fatal_error("unknown subcommand: %i", subcmd);
+            hhg_compiler_error("unknown subcommand: %i", subcmd);
             return true;
     }
 }

@@ -35,3 +35,13 @@ int64_t hhg_utils_str_to_int64(const char *str)
     }
     return negative ? -result : result;
 }
+
+void hhg_utils_assert(const char *expr_str, const char *file, int line)
+{
+    hhg_compiler_error(
+        "assertion failed: %s, at %s:%i",
+        expr_str,
+        file,
+        line
+    );
+}
