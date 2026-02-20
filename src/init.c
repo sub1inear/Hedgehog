@@ -55,59 +55,55 @@ static const char cfg_txt[] =
 
 bool hhg_init(hhg_cfg_t *cfg)
 {
-    if (cfg->project.version == NULL)
-        cfg->project.version = "0.1.0";
-    if (cfg->project.std == NULL)
-        cfg->project.std = HHG_VERSION;
-
     const char *cfg_filename;
+    char cfg_path[LIBFS_MAX_PATH];
 
-    if (cfg->project.name == NULL) {
+    if (cfg->init.name == NULL) {
         char cwd[LIBFS_MAX_PATH];
         if (!fs_current_dir(cwd, LIBFS_MAX_PATH))
             hhg_fatal_error("failed to get current directory");
-        cfg->project.name = (char *)fs_basename(cwd);
+        cfg->init.name = (char *)fs_basename(cwd);
 
+        if (fs_exist(HHG_CONFIG_FILENAME))
+            hhg_fatal_error("config file already exists: " HHG_CONFIG_FILENAME);
         cfg_filename = HHG_CONFIG_FILENAME;
     } else {
-        {
-            bool result = fs_make_dir(cfg->project.name);
-            if (!result)
-                hhg_fatal_error(
-                    "failed to create project directory: %s",
-                    cfg->project.name
-                );
-        }
-        {
-            char cfg_path[LIBFS_MAX_PATH];
-            int result =
-                fs_join_path(
-                    cfg_path,
-                    LIBFS_MAX_PATH,
-                    cfg->project.name,
-                    HHG_CONFIG_FILENAME
-                );
-            if (result >= LIBFS_MAX_PATH)
-                hhg_fatal_error(
-                    "path too long: %s/" HHG_CONFIG_FILENAME,
-                    cfg->project.name
-                );
+        if (fs_exist(cfg->init.name))
+            hhg_fatal_error(
+                "project directory already exists: %s",
+                cfg->init.name
+            );
+        
+        if (!fs_make_dir(cfg->init.name))
+            hhg_fatal_error(
+                "failed to create project directory: %s",
+                cfg->init.name
+            );
 
-            cfg_filename = cfg_path;
-        }
+        int result =
+            fs_join_path(
+                cfg_path,
+                LIBFS_MAX_PATH,
+                cfg->init.name,
+                HHG_CONFIG_FILENAME
+            );
+        if (result >= LIBFS_MAX_PATH)
+            hhg_fatal_error(
+                "path too long: %s/" HHG_CONFIG_FILENAME,
+                cfg->init.name
+            );
+
+        // must not exist, we just created the directory
+        cfg_filename = cfg_path;
     }
-    
-    if (fs_exist(cfg_filename))
-        hhg_fatal_error("config file already exists: %s", cfg_filename);
 
     FILE *cfg_file = hhg_utils_fopen(cfg_filename, "w");
-
     fprintf(
         cfg_file,
         cfg_txt,
-        cfg->project.name,
-        cfg->project.version,
-        cfg->project.std
+        cfg->init.name,
+        cfg->init.version,
+        cfg->init.std
     );
     fclose(cfg_file);
     return false;

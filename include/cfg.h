@@ -10,9 +10,9 @@
 #include "msg.h"
 
 typedef struct hhg_cfg_project {
-    char *name;
-    char *version;
-    char *std;
+    const char *name;
+    const char *version;
+    const char *std;
 } hhg_cfg_project_t;
 
 typedef struct hhg_cfg_global {

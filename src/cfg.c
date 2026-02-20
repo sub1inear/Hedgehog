@@ -93,11 +93,17 @@ static hhg_cfg_enum_type_t hhg_cfg_parse_enum(
 void hhg_cfg_init(hhg_cfg_t *cfg, hhg_arena_t *arena)
 {
     *cfg = (hhg_cfg_t) {
+        .project = (hhg_cfg_project_t) {
+            .name = "unknown",
+            .version = "0.1.0",
+            .std = HHG_VERSION,
+        },
         .global = (hhg_cfg_global_t) {
             .color = false,
         },
         .init = (hhg_cfg_init_t) {
-            .name = "unknown",
+            // NULL tells hhg_init to use current working directory name
+            .name = NULL,
             .version = "0.1.0",
             .std = HHG_VERSION,
         },
@@ -136,7 +142,6 @@ void hhg_cfg_init(hhg_cfg_t *cfg, hhg_arena_t *arena)
         .arena = arena,
         .subcmd = HHG_CMD_ARGS_SUBCMD_NONE,
     };
-
     hhg_msg_ctx_init(&cfg->msg_ctx, cfg);
 }
 
@@ -169,8 +174,11 @@ bool hhg_cfg_parse(hhg_cfg_t *cfg, const char *filename)
                     data->offset,
                     data->parse_func(value.u.s)
                 );
-             else
-                hhg_cfg_set_var(cfg, const char *, data->offset, value.u.s);
+             else {
+                // owned by toml_result_t so need to copy to arena
+                const char *str = hhg_arena_strdup(cfg->arena, value.u.s);
+                hhg_cfg_set_var(cfg, const char *, data->offset, str);
+             }
         } else if (data->type == TOML_BOOLEAN)
             hhg_cfg_set_var(cfg, bool, data->offset, value.u.boolean);
         else if (data->type == TOML_INT64)
@@ -188,7 +196,7 @@ bool hhg_cfg_parse(hhg_cfg_t *cfg, const char *filename)
                         data->str,
                         toml_type_to_str(elem->type)
                     );
-                // don't need to free original string (owned by toml_result_t)
+                // owned by toml_result_t so need to copy to arena
                 arr[j] = hhg_arena_strdup(cfg->arena, elem->u.s);
             }
             hhg_cfg_set_var(cfg, char **, data->offset, arr);

@@ -233,10 +233,10 @@ static void hhg_cmd_args_parse_init(
             exit(EXIT_SUCCESS);
             break;
         case 'v':
-            cfg->project.version = opts.optarg;
+            cfg->init.version = opts.optarg;
             break;
         case 's':
-            cfg->project.std = opts.optarg;
+            cfg->init.std = opts.optarg;
             break;
         case '?':
             hhg_fatal_error("%s", opts.errmsg);
@@ -246,7 +246,7 @@ static void hhg_cmd_args_parse_init(
         }
     }
     // hhg init will handle NULL as cwd
-    cfg->project.name = optparse_arg(&opts);
+    cfg->init.name = optparse_arg(&opts);
 }
 
 static void hhg_cmd_args_print_build_usage(char *prog_name)
