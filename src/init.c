@@ -60,7 +60,7 @@ bool hhg_init(hhg_cfg_t *cfg)
     if (cfg->project.std == NULL)
         cfg->project.std = HHG_VERSION;
 
-    FILE *cfg_file;
+    const char *cfg_filename;
 
     if (cfg->project.name == NULL) {
         char cwd[LIBFS_MAX_PATH];
@@ -68,7 +68,7 @@ bool hhg_init(hhg_cfg_t *cfg)
             hhg_fatal_error("failed to get current directory");
         cfg->project.name = (char *)fs_basename(cwd);
 
-        cfg_file = hhg_utils_fopen(HHG_CONFIG_FILENAME, "w");
+        cfg_filename = HHG_CONFIG_FILENAME;
     } else {
         {
             bool result = fs_make_dir(cfg->project.name);
@@ -93,10 +93,15 @@ bool hhg_init(hhg_cfg_t *cfg)
                     cfg->project.name
                 );
 
-            cfg_file = hhg_utils_fopen(cfg_path, "w");
+            cfg_filename = cfg_path;
         }
     }
     
+    if (fs_exist(cfg_filename))
+        hhg_fatal_error("config file already exists: %s", cfg_filename);
+
+    FILE *cfg_file = hhg_utils_fopen(cfg_filename, "w");
+
     fprintf(
         cfg_file,
         cfg_txt,
