@@ -181,9 +181,11 @@ bool hhg_cfg_parse(hhg_cfg_t *cfg, const char *filename)
             for (int32_t j = 0; j < value.u.arr.size; j++) {
                 toml_datum_t *elem = &value.u.arr.elem[j];
                 if (elem->type != TOML_STRING)
-                    hhg_fatal_error(
-                        "config: expected array of strings for key `%s`",
-                        data->str
+                    hhg_cfg_basic_error(
+                        cfg,
+                        "config: expected array of strings for key `%s`, got element type `%s`",
+                        data->str,
+                        toml_type_to_str(elem->type)
                     );
                 // don't need to free original string (owned by toml_result_t)
                 arr[j] = hhg_arena_strdup(cfg->arena, elem->u.s);
