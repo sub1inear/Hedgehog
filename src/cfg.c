@@ -134,9 +134,10 @@ void hhg_cfg_init(hhg_cfg_t *cfg, hhg_arena_t *arena)
             .backend = HHG_CFG_BACKEND_CPP,
         },
         .arena = arena,
+        .subcmd = HHG_CMD_ARGS_SUBCMD_NONE,
     };
 
-    hhg_msg_ctx_init(&cfg->msg_ctx, cfg->global.color);
+    hhg_msg_ctx_init(&cfg->msg_ctx, cfg);
 }
 
 bool hhg_cfg_parse(hhg_cfg_t *cfg, const char *filename)

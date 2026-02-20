@@ -16,6 +16,6 @@ typedef enum hhg_cmd_args_subcmd {
     HHG_CMD_ARGS_SUBCMD_REPL,
 } hhg_cmd_args_subcmd_t;
 
-hhg_cmd_args_subcmd_t hhg_cmd_args_parse(hhg_cfg_t *cfg, int argc, char **argv);
+void hhg_cmd_args_parse(hhg_cfg_t *cfg, int argc, char **argv);
 
 #endif

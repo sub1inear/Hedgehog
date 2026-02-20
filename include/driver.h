@@ -8,8 +8,7 @@ typedef struct hhg_cfg hhg_cfg_t;
 
 bool hhg_driver_run(
     hhg_cfg_t *cfg,
-    hhg_arena_t *arena,
-    hhg_cmd_args_subcmd_t subcmd
+    hhg_arena_t *arena
 );
 
 #endif

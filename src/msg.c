@@ -13,6 +13,8 @@
 #include "str.h"
 #include "token.h"
 #include "type.h"
+#include "cmd_args.h"
+#include "cfg.h"
 #include "main.h"
 #include "utils.h"
 
@@ -66,10 +68,10 @@ supported format specifiers:
 */
 static void hhg_vfprintf(FILE *stream, const char *fmt, va_list va);
 
-void hhg_msg_ctx_init(hhg_msg_ctx_t *msg_ctx, bool color)
+void hhg_msg_ctx_init(hhg_msg_ctx_t *msg_ctx, hhg_cfg_t *cfg)
 {
     msg_ctx->error_count = 0;
-    msg_ctx->color = color;
+    msg_ctx->cfg = cfg;
 }
 
 void hhg_msg(
@@ -236,20 +238,27 @@ static void hhg_msg_print_indicator(
 
 static void hhg_msg_process_msg_type(hhg_msg_ctx_t *msg_ctx, hhg_msg_type_t type)
 {
+    if (msg_ctx->cfg->subcmd == HHG_CMD_ARGS_SUBCMD_BUILD &&
+        msg_ctx->cfg->build.error_warnings &&
+        type == HHG_MSG_WARNING)
+        type = HHG_MSG_ERROR;
     switch (type) {
     case HHG_MSG_ERROR:
         msg_ctx->error_count++;
         hhg_msg_print_msg_type_str(
             "error",
             HHG_ANSI_COLOR_RED,
-            msg_ctx->color
+            msg_ctx->cfg->global.color
         );
         break;
     case HHG_MSG_WARNING:
+        if (msg_ctx->cfg->subcmd == HHG_CMD_ARGS_SUBCMD_BUILD &&
+            msg_ctx->cfg->build.warnings == HHG_CFG_BUILD_WARNINGS_NONE)
+            break;
         hhg_msg_print_msg_type_str(
             "warning",
             HHG_ANSI_COLOR_YELLOW,
-            msg_ctx->color
+            msg_ctx->cfg->global.color
         );
         break;
     case HHG_MSG_INFO:

@@ -1,17 +1,17 @@
 #include "driver.h"
 #include "init.h"
+#include "build.h"
 #include "repl.h"
 #include "msg.h"
 #include "utils.h"
 
 bool hhg_driver_run(
     hhg_cfg_t *cfg,
-    hhg_arena_t *arena,
-    hhg_cmd_args_subcmd_t subcmd
+    hhg_arena_t *arena
 )
 {
     HHG_UNUSED(arena);
-    switch (subcmd) {
+    switch (cfg->subcmd) {
         case HHG_CMD_ARGS_SUBCMD_INIT:
             return hhg_init(cfg);
         case HHG_CMD_ARGS_SUBCMD_BUILD:
@@ -26,7 +26,7 @@ bool hhg_driver_run(
         case HHG_CMD_ARGS_SUBCMD_REPL:
             return hhg_repl(cfg);
         default:
-            hhg_compiler_error("unknown subcommand: %i", subcmd);
+            hhg_compiler_error("unknown subcommand: %i", cfg->subcmd);
             return true;
     }
 }

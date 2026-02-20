@@ -68,7 +68,7 @@ typedef struct hhg_cmd_args_subcmd_data_t {
     const char *str;
 } hhg_cmd_args_subcmd_data_t;
 
-hhg_cmd_args_subcmd_t hhg_cmd_args_parse(
+void hhg_cmd_args_parse(
     hhg_cfg_t *cfg,
     int argc,
     char **argv
@@ -142,15 +142,15 @@ hhg_cmd_args_subcmd_t hhg_cmd_args_parse(
         { HHG_CMD_ARGS_SUBCMD_CLEAN, "clean", },
         { HHG_CMD_ARGS_SUBCMD_REPL,  "repl",  },
     };
-
-    hhg_cmd_args_subcmd_t subcmd = HHG_CMD_ARGS_SUBCMD_NONE;
+    
+    // cfg->subcmd defaults to HHG_CMD_ARGS_SUBCMD_NONE
     for (size_t i = 0; i < HHG_ARR_SIZE(cmd_args_subcmd_data); i++)
         if (strcmp(subcmd_str, cmd_args_subcmd_data[i].str) == 0) {
-            subcmd = cmd_args_subcmd_data[i].subcmd;
+            cfg->subcmd = cmd_args_subcmd_data[i].subcmd;
             break;
         }
 
-    switch (subcmd) {
+    switch (cfg->subcmd) {
     case HHG_CMD_ARGS_SUBCMD_INIT:
         hhg_cmd_args_parse_init(cfg, subargv, prog_name);
         break;
@@ -173,8 +173,6 @@ hhg_cmd_args_subcmd_t hhg_cmd_args_parse(
         hhg_compiler_error("unknown subcommand: `%s`", subcmd_str);
         break;
     }
-
-    return subcmd;
 }
 
 static void hhg_cmd_args_print_global_usage(char *prog_name)
