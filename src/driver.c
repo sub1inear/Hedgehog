@@ -12,7 +12,7 @@ bool hhg_driver_run(hhg_cfg_t *cfg, hhg_arena_t *arena)
         case HHG_CMD_ARGS_SUBCMD_INIT:
             return hhg_init(cfg);
         case HHG_CMD_ARGS_SUBCMD_BUILD:
-            // return hhg_build(cfg, arena);
+            return hhg_build(cfg, arena);
         case HHG_CMD_ARGS_SUBCMD_RUN:
             // return hhg_run(cfg, arena);
         case HHG_CMD_ARGS_SUBCMD_TEST:
