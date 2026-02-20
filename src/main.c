@@ -8,7 +8,7 @@
 #include "cmd_args.h"
 #include "driver.h"
 
-int main(int argc, char **argv)
+int hhg_main(int argc, char **argv)
 {
     hhg_arena_t *arena = hhg_arena_new();
 
@@ -27,4 +27,9 @@ int main(int argc, char **argv)
     hhg_mem_print_summary();
 #endif
     return result ? EXIT_FAILURE : EXIT_SUCCESS;
+}
+
+int main(int argc, char **argv)
+{
+    return hhg_main(argc, argv);
 }
