@@ -15,6 +15,17 @@
 #include "main.h"
 #include "utils.h"
 
+#define hhg_cfg_basic_msg(cfg, type, msg, ...) \
+    hhg_basic_msg(&cfg->msg_ctx, type, msg, __VA_ARGS__)
+
+#define hhg_cfg_basic_error(cfg, msg, ...) \
+    hhg_cfg_basic_msg(cfg, HHG_MSG_ERROR, msg, __VA_ARGS__)
+#define hhg_cfg_basic_warning(cfg, msg, ...) \
+    hhg_cfg_basic_msg(cfg, HHG_MSG_WARNING, msg, __VA_ARGS__)
+#define hhg_cfg_basic_info(cfg, msg, ...) \
+    hhg_cfg_basic_msg(cfg, HHG_MSG_INFO, msg, __VA_ARGS__)
+
+
 // sets variable at offset in cfg to value, with type type
 #define hhg_cfg_set_var(cfg, type, offset, value) \
     *(type *)((char *)cfg + offset) = value
@@ -66,6 +77,7 @@ static const hhg_cfg_data_t cfg_data[] = {
 };
 
 static toml_datum_t hhg_cfg_match(
+    hhg_cfg_t *cfg,
     toml_datum_t *tab,
     const char *key,
     toml_type_t type
@@ -81,8 +93,11 @@ static hhg_cfg_enum_type_t hhg_cfg_parse_enum(
 void hhg_cfg_init(hhg_cfg_t *cfg, hhg_arena_t *arena)
 {
     *cfg = (hhg_cfg_t) {
+        .global = (hhg_cfg_global_t) {
+            .color = false,
+        },
         .init = (hhg_cfg_init_t) {
-            .name = NULL,
+            .name = "unknown",
             .version = "0.1.0",
             .std = HHG_VERSION,
         },
@@ -102,11 +117,11 @@ void hhg_cfg_init(hhg_cfg_t *cfg, hhg_arena_t *arena)
             .args = NULL,
         },
         .test = (hhg_cfg_test_t) {
-            .test_dir = "tests",
+            .test_dir = "test",
             .list = false,
             .fail_fast = false,
             .threads = -1,
-            .filter = NULL,
+            .filter = "",
         },
         .clean = (hhg_cfg_clean_t) {
             .mode = HHG_CFG_CLEAN_MODE_ALL,
@@ -114,18 +129,21 @@ void hhg_cfg_init(hhg_cfg_t *cfg, hhg_arena_t *arena)
             .dry_run = false,
         },
         .repl = (hhg_cfg_repl_t) {
-            .tmp_dir = NULL,
+            .tmp_dir = "tmp",
             .target = "auto",
             .backend = HHG_CFG_BUILD_BACKEND_CPP,
         },
         .arena = arena,
     };
 
+    hhg_msg_ctx_init(&cfg->msg_ctx, cfg->global.color);
 }
 
-void hhg_cfg_parse(hhg_cfg_t *cfg, const char *filename)
+bool hhg_cfg_parse(hhg_cfg_t *cfg, const char *filename)
 {
-    FILE *file = hhg_utils_fopen(filename, "r");
+    FILE *file = fopen(filename, "r");
+    if (file == NULL)
+        return false;
     
     toml_result_t result = toml_parse_file(file);
     if (!result.ok)
@@ -137,6 +155,7 @@ void hhg_cfg_parse(hhg_cfg_t *cfg, const char *filename)
     for (size_t i = 0; i < HHG_ARR_SIZE(cfg_data); i++) {
         const hhg_cfg_data_t *data = &cfg_data[i];
         toml_datum_t value = hhg_cfg_match(
+            cfg,
             &result.toptab,
             data->str,
             data->type
@@ -176,6 +195,7 @@ void hhg_cfg_parse(hhg_cfg_t *cfg, const char *filename)
     toml_free(result);
 
     fclose(file);
+    return cfg->msg_ctx.error_count > 0;
 }
 
 void hhg_cfg_del(hhg_cfg_t *cfg)
@@ -269,6 +289,7 @@ hhg_cfg_clean_mode_t hhg_cfg_parse_clean_mode(const char *str)
 }
 
 static toml_datum_t hhg_cfg_match(
+    hhg_cfg_t *cfg,
     toml_datum_t *tab,
     const char *key,
     toml_type_t type
@@ -276,9 +297,10 @@ static toml_datum_t hhg_cfg_match(
 {
     toml_datum_t datum = toml_seek(*tab, key);
     if (datum.type == TOML_UNKNOWN)
-        hhg_fatal_error("config: missing key `%s`", key);
+        hhg_cfg_basic_error(cfg, "config: missing key `%s`", key);
     if (datum.type != type)
-        hhg_fatal_error(
+        hhg_cfg_basic_error(
+            cfg,
             "config: expected type %s for key `%s`, got %s",
             toml_type_to_str(type),
             key,

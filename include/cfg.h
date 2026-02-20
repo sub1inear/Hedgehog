@@ -6,6 +6,7 @@
 
 #include "build.h"
 #include "mem.h" // hhg_arena_t is based off arena_t so can't forward declare
+#include "msg.h"
 
 typedef struct hhg_cfg_project {
     char *name;
@@ -122,12 +123,16 @@ typedef struct hhg_cfg {
     hhg_cfg_test_t test;
     hhg_cfg_clean_t clean;
     hhg_cfg_repl_t repl;
+    hhg_msg_ctx_t msg_ctx;
     hhg_arena_t *arena;
 } hhg_cfg_t;
 
 void hhg_cfg_init(hhg_cfg_t *cfg, hhg_arena_t *arena);
 
-void hhg_cfg_parse(hhg_cfg_t *cfg, const char *filename);
+// parses filename into cfg
+// returns true if there were parsing errors,
+// false otherwise (including file not found)
+bool hhg_cfg_parse(hhg_cfg_t *cfg, const char *filename);
 
 void hhg_cfg_del(hhg_cfg_t *cfg);
 

@@ -36,9 +36,16 @@ static void hhg_msg_print_indicator(
     int32_t end,
     size_t line_width
 );
+
+// prints the message type and increments error count if it's an error
+static void hhg_msg_process_msg_type(
+    hhg_msg_ctx_t *msg_ctx,
+    hhg_msg_type_t type
+);
+
 // prints the message type (error, warning, ...) with color if enabled
 // if color is not enabled, color can be NULL
-static void hhg_msg_print_type_str(
+static void hhg_msg_print_msg_type_str(
     const char *str,
     const char *color,
     bool enable
@@ -80,18 +87,7 @@ void hhg_msg(
     va_start(va_msg, note);
     va_copy(va_note, va_msg);
 
-    switch (type) {
-    case HHG_MSG_ERROR:
-        msg_ctx->error_count++;
-        hhg_msg_print_type_str("error", HHG_ANSI_COLOR_RED, msg_ctx->color);
-        break;
-    case HHG_MSG_WARNING:
-        hhg_msg_print_type_str("warning", HHG_ANSI_COLOR_YELLOW, msg_ctx->color);
-        break;
-    case HHG_MSG_INFO:
-        hhg_msg_print_type_str("info", "", false);
-        break;
-    }
+    hhg_msg_process_msg_type(msg_ctx, type);
 
     hhg_vfprintf(stderr, msg, va_msg);
 
@@ -135,6 +131,23 @@ void hhg_msg(
 
     va_end(va_note);
     va_end(va_msg);
+}
+
+void hhg_basic_msg(
+    hhg_msg_ctx_t *msg_ctx,
+    hhg_msg_type_t type,
+    const char *msg,
+    ...
+)
+{
+    va_list va;
+    va_start(va, msg);
+
+    hhg_msg_process_msg_type(msg_ctx, type);
+    hhg_vfprintf(stderr, msg, va);
+
+    fputc('\n', stderr);
+    va_end(va);
 }
 
 void hhg_compiler_error(const char *msg, ...)
@@ -221,7 +234,31 @@ static void hhg_msg_print_indicator(
         fputc('~', stderr);
 }
 
-static void hhg_msg_print_type_str(
+static void hhg_msg_process_msg_type(hhg_msg_ctx_t *msg_ctx, hhg_msg_type_t type)
+{
+    switch (type) {
+    case HHG_MSG_ERROR:
+        msg_ctx->error_count++;
+        hhg_msg_print_msg_type_str(
+            "error",
+            HHG_ANSI_COLOR_RED,
+            msg_ctx->color
+        );
+        break;
+    case HHG_MSG_WARNING:
+        hhg_msg_print_msg_type_str(
+            "warning",
+            HHG_ANSI_COLOR_YELLOW,
+            msg_ctx->color
+        );
+        break;
+    case HHG_MSG_INFO:
+        hhg_msg_print_msg_type_str("info", NULL, false);
+        break;
+    }
+}
+
+static void hhg_msg_print_msg_type_str(
     const char *str,
     const char *color,
     bool enable

@@ -14,7 +14,9 @@ int main(int argc, char **argv)
 
     hhg_cfg_t cfg;
     hhg_cfg_init(&cfg, arena);
-    // hhg_cfg_parse(&cfg, HHG_CONFIG_FILENAME);
+    if (hhg_cfg_parse(&cfg, HHG_CONFIG_FILENAME))
+        return EXIT_FAILURE;
+
     hhg_cmd_args_subcmd_t subcmd = hhg_cmd_args_parse(&cfg, argc, argv);
 
     bool result = hhg_driver_run(&cfg, arena, subcmd);

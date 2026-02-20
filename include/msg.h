@@ -30,6 +30,13 @@ void hhg_msg(
     ... // format arguments for both msg and note
 );
 
+void hhg_basic_msg(
+    hhg_msg_ctx_t *msg_ctx,
+    hhg_msg_type_t type,
+    const char *msg,
+    ...
+);
+
 void hhg_compiler_error(const char *msg, ...);
 void hhg_fatal_error(const char *msg, ...);
 
