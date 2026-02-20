@@ -58,7 +58,7 @@ static const hhg_cfg_data_t cfg_data[] = {
     { "build.stage",          offsetof(hhg_cfg_t, build.stage),          TOML_STRING,  hhg_cfg_parse_build_stage },
     { "build.debug-stage",    offsetof(hhg_cfg_t, build.debug_stage),    TOML_STRING,  hhg_cfg_parse_build_stage },
     { "build.target",         offsetof(hhg_cfg_t, build.target),         TOML_STRING,  NULL },
-    { "build.backend",        offsetof(hhg_cfg_t, build.backend),        TOML_STRING,  hhg_cfg_parse_build_backend },
+    { "build.backend",        offsetof(hhg_cfg_t, build.backend),        TOML_STRING,  hhg_cfg_parse_backend },
     { "build.incremental",    offsetof(hhg_cfg_t, build.incremental),    TOML_BOOLEAN, NULL },
     { "build.warnings",       offsetof(hhg_cfg_t, build.warnings),       TOML_STRING,  hhg_cfg_parse_build_warnings },
     { "build.error-warnings", offsetof(hhg_cfg_t, build.error_warnings), TOML_BOOLEAN, NULL },
@@ -73,7 +73,7 @@ static const hhg_cfg_data_t cfg_data[] = {
     { "clean.dry-run",        offsetof(hhg_cfg_t, clean.dry_run),        TOML_BOOLEAN, NULL },
     { "repl.tmp-dir",         offsetof(hhg_cfg_t, repl.tmp_dir),         TOML_STRING,  NULL },
     { "repl.target",          offsetof(hhg_cfg_t, repl.target),          TOML_STRING,  NULL },
-    { "repl.backend",         offsetof(hhg_cfg_t, repl.backend),         TOML_STRING,  hhg_cfg_parse_repl_backend },
+    { "repl.backend",         offsetof(hhg_cfg_t, repl.backend),         TOML_STRING,  hhg_cfg_parse_backend },
 };
 
 static toml_datum_t hhg_cfg_match(
@@ -108,7 +108,7 @@ void hhg_cfg_init(hhg_cfg_t *cfg, hhg_arena_t *arena)
             .stage = HHG_CFG_BUILD_STAGE_NONE,
             .debug_stage = HHG_CFG_BUILD_STAGE_NONE,
             .target = "auto",
-            .backend = HHG_CFG_BUILD_BACKEND_CPP,
+            .backend = HHG_CFG_BACKEND_CPP,
             .incremental = false,
             .warnings = HHG_CFG_BUILD_WARNINGS_DEFAULT,
             .error_warnings = false,
@@ -131,7 +131,7 @@ void hhg_cfg_init(hhg_cfg_t *cfg, hhg_arena_t *arena)
         .repl = (hhg_cfg_repl_t) {
             .tmp_dir = "tmp",
             .target = "auto",
-            .backend = HHG_CFG_BUILD_BACKEND_CPP,
+            .backend = HHG_CFG_BACKEND_CPP,
         },
         .arena = arena,
     };
@@ -258,18 +258,18 @@ hhg_cfg_build_warnings_t hhg_cfg_parse_build_warnings(const char *str)
     );
 }
 
-hhg_cfg_build_backend_t hhg_cfg_parse_build_backend(const char *str)
+hhg_cfg_backend_t hhg_cfg_parse_backend(const char *str)
 {
-    static const hhg_cfg_enum_type_data_t build_backend_data[] = {
-        { "cpp", HHG_CFG_BUILD_BACKEND_CPP },
-        { "qbe", HHG_CFG_BUILD_BACKEND_QBE },
+    static const hhg_cfg_enum_type_data_t backend_data[] = {
+        { "cpp", HHG_CFG_BACKEND_CPP },
+        { "qbe", HHG_CFG_BACKEND_QBE },
     };
     return hhg_cfg_parse_enum(
         str,
-        build_backend_data,
-        HHG_ARR_SIZE(build_backend_data),
-        "build backend",
-        HHG_CFG_BUILD_BACKEND_UNKNOWN
+        backend_data,
+        HHG_ARR_SIZE(backend_data),
+        "backend",
+        HHG_CFG_BACKEND_UNKNOWN
     );
 }
 

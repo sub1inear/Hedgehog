@@ -39,12 +39,13 @@ enum hhg_cfg_build_mode {
 };
 typedef hhg_cfg_enum_type_t hhg_cfg_build_mode_t;
 
-enum hhg_cfg_build_backend {
-    HHG_CFG_BUILD_BACKEND_UNKNOWN,
-    HHG_CFG_BUILD_BACKEND_CPP,
-    HHG_CFG_BUILD_BACKEND_QBE,
+// shared between build and repl
+enum hhg_cfg_backend {
+    HHG_CFG_BACKEND_UNKNOWN,
+    HHG_CFG_BACKEND_CPP,
+    HHG_CFG_BACKEND_QBE,
 };
-typedef hhg_cfg_enum_type_t hhg_cfg_build_backend_t;
+typedef hhg_cfg_enum_type_t hhg_cfg_backend_t;
 
 enum hhg_cfg_build_stage {
     HHG_CFG_BUILD_STAGE_UNKNOWN,
@@ -74,7 +75,7 @@ typedef struct hhg_cfg_build {
     hhg_cfg_build_stage_t stage;
     hhg_cfg_build_stage_t debug_stage;
     char *target;
-    hhg_cfg_build_backend_t backend;
+    hhg_cfg_backend_t backend;
     bool incremental;
     hhg_cfg_build_warnings_t warnings;
     bool error_warnings;
@@ -106,12 +107,10 @@ typedef struct hhg_cfg_clean {
     bool dry_run;
 } hhg_cfg_clean_t;
 
-typedef hhg_cfg_build_backend_t hhg_cfg_repl_backend_t;
-
 typedef struct hhg_cfg_repl {
     const char *tmp_dir;
     const char *target;
-    hhg_cfg_repl_backend_t backend;
+    hhg_cfg_backend_t backend;
 } hhg_cfg_repl_t;
 
 typedef struct hhg_cfg {
@@ -139,11 +138,7 @@ void hhg_cfg_del(hhg_cfg_t *cfg);
 hhg_cfg_build_mode_t hhg_cfg_parse_build_mode(const char *str);
 hhg_cfg_build_stage_t hhg_cfg_parse_build_stage(const char *str);
 hhg_cfg_build_warnings_t hhg_cfg_parse_build_warnings(const char *str);
-hhg_cfg_build_backend_t hhg_cfg_parse_build_backend(const char *str);
-inline hhg_cfg_repl_backend_t hhg_cfg_parse_repl_backend(const char *str)
-{
-    return hhg_cfg_parse_build_backend(str);
-}
+hhg_cfg_backend_t hhg_cfg_parse_backend(const char *str);
 hhg_cfg_clean_mode_t hhg_cfg_parse_clean_mode(const char *str);
 
 #endif

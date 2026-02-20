@@ -10,13 +10,13 @@
 
 hhg_code_gen_backend_t *hhg_code_gen_backend_new(
     hhg_arena_t *arena,
-    hhg_cfg_build_backend_t type
+    hhg_cfg_backend_t type
 )
 {
     switch (type) {
-    case HHG_CFG_BUILD_BACKEND_CPP:
+    case HHG_CFG_BACKEND_CPP:
         return hhg_cpp_gen_backend_new(arena);
-    case HHG_CFG_BUILD_BACKEND_QBE:
+    case HHG_CFG_BACKEND_QBE:
         return hhg_qbe_gen_backend_new(arena);
     default:
         hhg_compiler_error("unknown code generation backend type: %i", type);
@@ -44,10 +44,10 @@ void hhg_code_gen_run(hhg_code_gen_t *code_gen, hhg_mir_gen_t *mir_gen)
 void hhg_code_gen_backend_free(hhg_code_gen_backend_t *backend)
 {
     switch (backend->type) {
-    case HHG_CFG_BUILD_BACKEND_CPP:
+    case HHG_CFG_BACKEND_CPP:
         hhg_cpp_gen_backend_free(backend);
         break;
-    case HHG_CFG_BUILD_BACKEND_QBE:
+    case HHG_CFG_BACKEND_QBE:
         hhg_qbe_gen_backend_free(backend);
         break;
     default:

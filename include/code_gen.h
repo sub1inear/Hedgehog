@@ -19,7 +19,7 @@ typedef struct hhg_code_gen_vtbl {
 } hhg_code_gen_vtbl_t;
 
 typedef struct hhg_code_gen_backend {
-    hhg_cfg_build_backend_t type;
+    hhg_cfg_backend_t type;
     hhg_code_gen_vtbl_t vtbl;
     // backend specific data here
 } hhg_code_gen_backend_t;
@@ -37,7 +37,7 @@ struct hhg_code_gen {
 
 hhg_code_gen_backend_t *hhg_code_gen_backend_new(
     hhg_arena_t *arena,
-    hhg_cfg_build_backend_t type
+    hhg_cfg_backend_t type
 );
 
 void hhg_code_gen_init(hhg_code_gen_t *gen, hhg_code_gen_backend_t *backend);

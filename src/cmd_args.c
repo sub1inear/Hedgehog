@@ -322,7 +322,7 @@ static void hhg_cmd_args_parse_build(
             cfg->build.target = opts.optarg;
             break;
         case 'b':
-            cfg->build.backend = hhg_cfg_parse_build_backend(opts.optarg);
+            cfg->build.backend = hhg_cfg_parse_backend(opts.optarg);
             break;
         case 'i':
             cfg->build.incremental =
@@ -558,7 +558,7 @@ static void hhg_cmd_args_parse_repl(
             cfg->repl.target = opts.optarg;
             break;
         case 'b':
-            cfg->repl.backend = hhg_cfg_parse_repl_backend(opts.optarg);
+            cfg->repl.backend = hhg_cfg_parse_backend(opts.optarg);
             break;
         case '?':
             hhg_fatal_error("%s", opts.errmsg);

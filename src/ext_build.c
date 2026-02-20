@@ -6,7 +6,7 @@
 
 bool hhg_ext_build_run(
     const char **filenames,
-    hhg_cfg_build_backend_t backend
+    hhg_cfg_backend_t backend
 )
 {
     HHG_UNUSED(filenames, backend);

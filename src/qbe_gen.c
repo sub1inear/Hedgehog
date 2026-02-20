@@ -18,7 +18,7 @@ hhg_code_gen_backend_t *hhg_qbe_gen_backend_new(hhg_arena_t *arena)
     hhg_qbe_gen_backend_t *backend = hhg_arena_malloc(arena, sizeof(hhg_qbe_gen_backend_t));
     *backend = (hhg_qbe_gen_backend_t) {
         .base = {
-            .type = HHG_CFG_BUILD_BACKEND_QBE,
+            .type = HHG_CFG_BACKEND_QBE,
             .vtbl = {
                 .start_func = hhg_qbe_gen_start_func,
                 .emit_instr = hhg_qbe_gen_emit_instr,
