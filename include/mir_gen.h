@@ -3,6 +3,7 @@
 
 #include "mir.h"
 #include "mem.h" // hhg_arena_t is based off arena_t so can't forward declare
+#include "type.h"
 
 typedef struct hhg_mir_gen_ctx {
     bool in_global_scope;

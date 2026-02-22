@@ -298,4 +298,14 @@ typedef struct hhg_mir_local {
     hhg_mir_reg_t value;
 } hhg_mir_local_t;
 
+void hhg_mir_opnd_print(hhg_mir_opnd_t *opnd);
+
+void hhg_mir_instr_print(hhg_mir_instr_t *instr);
+
+void hhg_mir_func_print(hhg_mir_func_t *func);
+
+void hhg_mir_instr_free(hhg_mir_instr_t *instr);
+
+void hhg_mir_func_free(hhg_mir_func_t *func);
+
 #endif
