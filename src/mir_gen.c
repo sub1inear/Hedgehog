@@ -34,7 +34,10 @@ static hhg_mir_lbl_t hhg_mir_gen_new_lbl(hhg_mir_gen_t *gen);
 
 static hhg_mir_reg_t hhg_mir_gen_get_global(hhg_mir_gen_t *gen, hhg_sym_t *sym, hhg_node_t *node);
 static hhg_mir_lbl_t hhg_mir_gen_get_local(hhg_mir_gen_t *gen, hhg_sym_t *sym);
-static hhg_type_t *hhg_mir_gen_get_tmp(hhg_mir_gen_t *gen, hhg_mir_reg_t tmp);
+static hhg_type_t *hhg_mir_gen_get_tmp_type(
+    hhg_mir_gen_t *gen,
+    hhg_mir_reg_t tmp
+);
 
 static void hhg_mir_gen_push_ctx(hhg_mir_gen_t *gen, hhg_mir_gen_ctx_t ctx);
 static void hhg_mir_gen_pop_ctx(hhg_mir_gen_t *gen);
@@ -328,9 +331,11 @@ static hhg_mir_reg_t hhg_mir_gen_get_local(hhg_mir_gen_t *gen, hhg_sym_t *sym)
     return entry == NULL ? -1 : entry->value;
 }
 
-static hhg_type_t *hhg_mir_gen_get_tmp(hhg_mir_gen_t *gen, hhg_mir_reg_t tmp)
+static hhg_type_t *hhg_mir_gen_get_tmp_type(
+    hhg_mir_gen_t *gen,
+    hhg_mir_reg_t tmp
+)
 {
-    hhg_assert(tmp > 0);
     return gen->tmp_arr[tmp];
 }
 
