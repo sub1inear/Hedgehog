@@ -52,11 +52,15 @@ static const char cfg_txt[] =
     "tmp-dir = \"tmp\" # temporary directory for repl"                                                                "\n"
     "target = \"auto\" # cross-target triple: triple | auto"                                                          "\n"
     "backend = \"cpp\" # backend format: cpp | qbe"                                                                   "\n";
+static const char main_txt[] =
+    "print(\"Hello, world!\")\n";
 
 bool hhg_init(hhg_cfg_t *cfg)
 {
     const char *cfg_filename;
+    const char *main_filename;
     char cfg_path[LIBFS_MAX_PATH];
+    char main_path[LIBFS_MAX_PATH];
 
     if (cfg->init.name == NULL) {
         char cwd[LIBFS_MAX_PATH];
@@ -67,6 +71,7 @@ bool hhg_init(hhg_cfg_t *cfg)
         if (fs_exist(HHG_CONFIG_FILENAME))
             hhg_fatal_error("config file already exists: " HHG_CONFIG_FILENAME);
         cfg_filename = HHG_CONFIG_FILENAME;
+        main_filename = HHG_MAIN_FILENAME;
     } else {
         if (fs_exist(cfg->init.name))
             hhg_fatal_error(
@@ -80,21 +85,35 @@ bool hhg_init(hhg_cfg_t *cfg)
                 cfg->init.name
             );
 
-        int result =
+        int cfg_result =
             fs_join_path(
                 cfg_path,
                 LIBFS_MAX_PATH,
                 cfg->init.name,
                 HHG_CONFIG_FILENAME
             );
-        if (result >= LIBFS_MAX_PATH)
+        if (cfg_result >= LIBFS_MAX_PATH)
             hhg_fatal_error(
                 "path too long: %s/" HHG_CONFIG_FILENAME,
                 cfg->init.name
             );
 
+        int main_result =
+            fs_join_path(
+                main_path,
+                LIBFS_MAX_PATH,
+                cfg->init.name,
+                HHG_MAIN_FILENAME
+            );
+        if (main_result >= LIBFS_MAX_PATH)
+            hhg_fatal_error(
+                "path too long: %s/" HHG_MAIN_FILENAME,
+                cfg->init.name
+            );
+
         // must not exist, we just created the directory
         cfg_filename = cfg_path;
+        main_filename = main_path;
     }
 
     FILE *cfg_file = hhg_utils_fopen(cfg_filename, "w");
@@ -106,5 +125,9 @@ bool hhg_init(hhg_cfg_t *cfg)
         cfg->init.std
     );
     fclose(cfg_file);
+
+    FILE *main_file = hhg_utils_fopen(main_filename, "w");
+    fputs(main_txt, main_file);
+    fclose(main_file);  
     return false;
 }
