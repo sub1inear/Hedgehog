@@ -10,7 +10,7 @@
 #include "mem.h"
 #include "type_ctx.h"
 #include "sem_an.h"
-#include "mir.h"
+#include "mir_gen.h"
 #include "cfg.h"
 
 typedef struct hhg_build_data {

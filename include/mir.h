@@ -1,5 +1,5 @@
-#ifndef HHG_IR_H
-#define HHG_IR_H
+#ifndef HHG_MIR_H
+#define HHG_MIR_H
 
 #include <inttypes.h>
 #include <stdbool.h>
@@ -7,7 +7,6 @@
 #include "node.h"
 #include "token.h"
 #include "type.h"
-#include "mem.h"
 
 #define HHG_PRIreg PRId32
 #define HHG_PRIlbl PRId32
@@ -298,33 +297,5 @@ typedef struct hhg_mir_local {
     hhg_sym_t *key;
     hhg_mir_reg_t value;
 } hhg_mir_local_t;
-
-typedef struct hhg_mir_ctx {
-    bool in_global_scope;
-    hhg_mir_func_t *func;
-    hhg_mir_local_t *local_tab;
-} hhg_mir_ctx_t;
-
-typedef struct hhg_mir_gen {
-    hhg_mir_func_t *funcs;
-
-    hhg_mir_ctx_t *ctx;
-
-    hhg_sym_t **global_arr;
-    hhg_type_t **tmp_arr;
-
-    hhg_mir_reg_t reg_count;
-    hhg_mir_lbl_t lbl_count;
-
-    hhg_arena_t *arena;
-} hhg_mir_gen_t;
-
-void hhg_mir_gen_init(hhg_mir_gen_t *gen, hhg_arena_t *arena);
-
-void hhg_mir_gen_run(hhg_mir_gen_t *gen, hhg_node_t *prog);
-
-void hhg_mir_gen_print(hhg_mir_gen_t *gen);
-
-void hhg_mir_gen_del(hhg_mir_gen_t *gen);
 
 #endif
