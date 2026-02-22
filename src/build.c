@@ -14,18 +14,24 @@
 #include "cfg.h"
 
 typedef struct hhg_build_data {
-    hhg_lexer_t *lexer;
-    hhg_sym_tab_t *sym_tab;
-    hhg_type_ctx_t *type_ctx;
-    hhg_mir_gen_t *mir_gen;
+    hhg_lexer_t *lexer;        // can be NULL
+    hhg_sym_tab_t *sym_tab;    // can be NULL
+    hhg_type_ctx_t *type_ctx;  // can be NULL
+    hhg_mir_gen_t *mir_gen;    // can be NULL
 } hhg_build_data_t;
 
+typedef struct hhg_build_stage_desc {
+    hhg_cfg_build_stage_t stage;
+    void (*debug_func)(void *);
+    void *debug_arg;
+} hhg_build_stage_desc_t;
+
+// cleans up build data, handles NULL pointers
 static void hhg_build_cleanup(hhg_build_data_t *build_data);
 static bool hhg_build_check_exit(
     hhg_cfg_t *cfg,
-    void (*debug_func)(void *),
-    void *debug_arg,
     hhg_msg_ctx_t *msg_ctx,
+    hhg_build_stage_desc_t *stage_desc,
     hhg_build_data_t *build_data
 );
 static void hhg_build_debug_print_lexer(hhg_lexer_t *lexer);
@@ -44,9 +50,13 @@ bool hhg_build(hhg_cfg_t *cfg, hhg_arena_t *arena)
 
     bool lexer_result = hhg_build_check_exit(
         cfg,
-        hhg_build_debug_print_lexer,
-        &lexer,
         &msg_ctx,
+        &(hhg_build_stage_desc_t) {
+            .stage = HHG_CFG_BUILD_STAGE_LEXER,
+            .debug_func = hhg_build_debug_print_lexer,
+            .debug_arg = &lexer,
+        },
+        // compound literals set the fields to 0/NULL if unspecified
         &(hhg_build_data_t) {
             .lexer = &lexer,
         }
@@ -67,9 +77,12 @@ bool hhg_build(hhg_cfg_t *cfg, hhg_arena_t *arena)
 
     bool parser_result = hhg_build_check_exit(
         cfg,
-        hhg_build_debug_print_parser,
-        prog,
         &msg_ctx,
+        &(hhg_build_stage_desc_t) {
+            .stage = HHG_CFG_BUILD_STAGE_PARSER,
+            .debug_func = hhg_build_debug_print_parser,
+            .debug_arg = prog,
+        },
         &(hhg_build_data_t) {
             .lexer = &lexer,
             .sym_tab = &sym_tab,
@@ -85,9 +98,12 @@ bool hhg_build(hhg_cfg_t *cfg, hhg_arena_t *arena)
 
     bool sem_an_result = hhg_build_check_exit(
         cfg,
-        hhg_build_debug_print_sem_an,
-        prog,
         &msg_ctx,
+        &(hhg_build_stage_desc_t) {
+            .stage = HHG_CFG_BUILD_STAGE_SEM_AN,
+            .debug_func = hhg_build_debug_print_sem_an,
+            .debug_arg = prog,
+        },
         &(hhg_build_data_t) {
             .lexer = &lexer,
             .sym_tab = &sym_tab,
@@ -103,9 +119,12 @@ bool hhg_build(hhg_cfg_t *cfg, hhg_arena_t *arena)
     
     bool mir_gen_result = hhg_build_check_exit(
         cfg,
-        hhg_build_debug_print_mir_gen,
-        &mir_gen,
         &msg_ctx,
+        &(hhg_build_stage_desc_t) {
+            .stage = HHG_CFG_BUILD_STAGE_MIR_GEN,
+            .debug_func = hhg_build_debug_print_mir_gen,
+            .debug_arg = &mir_gen,
+        },
         &(hhg_build_data_t) {
             .lexer = &lexer,
             .sym_tab = &sym_tab,
@@ -133,21 +152,26 @@ bool hhg_build(hhg_cfg_t *cfg, hhg_arena_t *arena)
 
 static bool hhg_build_check_exit(
     hhg_cfg_t *cfg,
-    void (*debug_func)(void *),
-    void *debug_arg,
     hhg_msg_ctx_t *msg_ctx,
+    hhg_build_stage_desc_t *stage_desc,
     hhg_build_data_t *build_data
 )
 {
-    if (cfg->build.stage == cfg->build.debug_stage ||
-        cfg->build.debug_stage == cfg->build.stage) {
-        if (msg_ctx->error_count == 0 &&
-            cfg->build.debug_stage == cfg->build.stage)
-            debug_func(debug_arg);
+    if (msg_ctx->error_count > 0) {
         hhg_build_cleanup(build_data);
         return true;
     }
-    return msg_ctx->error_count > 0;
+    if (stage_desc->stage == cfg->build.debug_stage) {
+        // safe to print, no errors
+        stage_desc->debug_func(stage_desc->debug_arg);
+        hhg_build_cleanup(build_data);
+        return true;
+    }
+    if (stage_desc->stage == cfg->build.stage) {
+        hhg_build_cleanup(build_data);
+        return true;
+    }
+    return false;
 }
 
 void hhg_build_cleanup(hhg_build_data_t *build_data)
