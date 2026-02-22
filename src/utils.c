@@ -11,7 +11,7 @@ FILE *hhg_utils_fopen(const char *filename, const char *mode)
     FILE *file = fopen(filename, mode);
     if (file == NULL)
         hhg_fatal_error(
-            "%s: error opening file: %s",
+            "opening %s: %s",
             filename,
             strerror(errno)
         );
