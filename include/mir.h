@@ -96,15 +96,14 @@ typedef struct hhg_mir_cnst {
 } hhg_mir_cnst_t;
 
 typedef enum hhg_mir_opnd_type {
+    HHG_MIR_OPND_NONE,
     HHG_MIR_OPND_REG,
-    HHG_MIR_OPND_CNST,
-    HHG_MIR_OPND_SYM,
+    HHG_MIR_OPND_CNST
 } hhg_mir_opnd_type_t;
 
 typedef union hhg_mir_opnd_value {
     hhg_mir_reg_t reg;
     hhg_mir_cnst_t cnst;
-    hhg_sym_t *sym;
 } hhg_mir_opnd_value_t;
 
 typedef struct hhg_mir_opnd {
@@ -155,7 +154,7 @@ typedef struct hhg_mir_ret {
 } hhg_mir_ret_t;
 
 typedef struct hhg_mir_load {
-    hhg_mir_opnd_t src;
+    hhg_sym_t *src;
     hhg_mir_reg_t dest;
 } hhg_mir_load_t;
 
@@ -194,7 +193,7 @@ typedef struct hhg_mir_move {
 } hhg_mir_move_t;
 
 typedef struct hhg_mir_copy {
-    hhg_mir_reg_t src;
+    hhg_mir_opnd_t src;
     hhg_mir_reg_t dest;
 } hhg_mir_copy_t;
 

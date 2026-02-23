@@ -3,6 +3,7 @@
 #include <stb_ds.h>
 
 #include "mir.h"
+#include "msg.h"
 
 static const char *mir_instr_op_to_str[] = {
     [HHG_MIR_ADD]          = "add",
@@ -47,6 +48,9 @@ static const char *mir_instr_op_to_str[] = {
 void hhg_mir_opnd_print(hhg_mir_opnd_t *opnd)
 {
     switch (opnd->type) {
+    case HHG_MIR_OPND_NONE:
+        fputs("none", stdout);
+        break;
     case HHG_MIR_OPND_REG:
         printf("%%%" HHG_PRIreg, opnd->value.reg);
         break;
@@ -75,10 +79,8 @@ void hhg_mir_opnd_print(hhg_mir_opnd_t *opnd)
             break;
         }
         break;
-    case HHG_MIR_OPND_SYM:
-        printf("$%s", opnd->value.sym->key);
-        break;
     default:
+        hhg_compiler_error("invalid operand type: %i", (int)opnd->type);
         break;
     }
 }
@@ -141,7 +143,7 @@ void hhg_mir_instr_print(hhg_mir_instr_t *instr)
     }
     case HHG_MIR_LOAD: {
         hhg_mir_load_t *load = &instr->value->load;
-        hhg_mir_opnd_print(&load->src);
+        printf("$%s", load->src->key);
         break;
     }
     case HHG_MIR_STORE: {

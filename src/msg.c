@@ -282,7 +282,6 @@ static void hhg_msg_print_msg_type_str(
 static void hhg_vfprintf(FILE *stream, const char *fmt, va_list va)
 {
     char c;
-    // (()) to avoid warning about assignment in condition
     while ((c = *fmt++) != '\0') {
         if (c == '%') {
             switch (c = *fmt) {
@@ -312,9 +311,6 @@ static void hhg_vfprintf(FILE *stream, const char *fmt, va_list va)
                     fputs("false", stream);
                 break;
             }
-            case '%':
-                fputc('%', stream);
-                break;
             case 'n': // same as 't'
             case 't': {
                 hhg_token_type_t token_type_arg =
@@ -327,7 +323,10 @@ static void hhg_vfprintf(FILE *stream, const char *fmt, va_list va)
                 hhg_type_fprint(type_arg, stream);
                 break;
             }
+            case '%':
             default:
+                fputc('%', stream);
+                fputc(c, stream);
                 break;
             }
             if (c != '\0')

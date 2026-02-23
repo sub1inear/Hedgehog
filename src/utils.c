@@ -26,12 +26,13 @@ int64_t hhg_utils_str_to_int64(const char *str)
         str++;
     }
     int64_t result = 0;
-    while (*str++) {
+    while (*str) {
         if (*str < '0' || *str > '9')
             hhg_fatal_error("invalid integer: %s", str);
         if (result > (INT64_MAX - (*str - '0')) / 10)
             hhg_fatal_error("integer overflow: %s", str);
         result = result * 10 + (*str - '0');
+        str++;
     }
     return negative ? -result : result;
 }

@@ -17,7 +17,7 @@
         sizeof(instr_type)                           \
     )
 
-static hhg_mir_reg_t hhg_mir_gen_run_core(
+static hhg_mir_opnd_t hhg_mir_gen_run_core(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 );
@@ -47,71 +47,71 @@ static void hhg_mir_gen_run_children(
     hhg_mir_gen_t *gen,
     hhg_node_t **children
 );
-static hhg_mir_reg_t hhg_mir_gen_run_block(
+static hhg_mir_opnd_t hhg_mir_gen_run_block(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 );
-static hhg_mir_reg_t hhg_mir_gen_run_id(
+static hhg_mir_opnd_t hhg_mir_gen_run_id(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 );
-static hhg_mir_reg_t hhg_mir_gen_run_if(
+static hhg_mir_opnd_t hhg_mir_gen_run_if(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 );
-static hhg_mir_reg_t hhg_mir_gen_run_while(
+static hhg_mir_opnd_t hhg_mir_gen_run_while(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 );
-static hhg_mir_reg_t hhg_mir_gen_run_var_decl(
+static hhg_mir_opnd_t hhg_mir_gen_run_var_decl(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 );
-static hhg_mir_reg_t hhg_mir_gen_run_obj_init(
+static hhg_mir_opnd_t hhg_mir_gen_run_obj_init(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 );
-static hhg_mir_reg_t hhg_mir_gen_run_func_decl(
+static hhg_mir_opnd_t hhg_mir_gen_run_func_decl(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 );
-static hhg_mir_reg_t hhg_mir_gen_run_class_decl(
+static hhg_mir_opnd_t hhg_mir_gen_run_class_decl(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 );
-static hhg_mir_reg_t hhg_mir_gen_run_func_call(
+static hhg_mir_opnd_t hhg_mir_gen_run_func_call(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 );
-static hhg_mir_reg_t hhg_mir_gen_run_return(
+static hhg_mir_opnd_t hhg_mir_gen_run_return(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 );
-static hhg_mir_reg_t hhg_mir_gen_run_arr_literal(
+static hhg_mir_opnd_t hhg_mir_gen_run_arr_literal(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 );
-static hhg_mir_reg_t hhg_mir_gen_run_expr(
+static hhg_mir_opnd_t hhg_mir_gen_run_expr(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 );
-static hhg_mir_reg_t hhg_mir_gen_run_inc_dec(
+static hhg_mir_opnd_t hhg_mir_gen_run_inc_dec(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 );
-static hhg_mir_reg_t hhg_mir_gen_run_bool_literal(
+static hhg_mir_opnd_t hhg_mir_gen_run_bool_literal(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 );
-static hhg_mir_reg_t hhg_mir_gen_run_string_literal(
+static hhg_mir_opnd_t hhg_mir_gen_run_string_literal(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 );
-static hhg_mir_reg_t hhg_mir_gen_run_int_literal(
+static hhg_mir_opnd_t hhg_mir_gen_run_int_literal(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 );
-static hhg_mir_reg_t hhg_mir_gen_run_float_literal(
+static hhg_mir_opnd_t hhg_mir_gen_run_float_literal(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 );
@@ -178,7 +178,7 @@ void hhg_mir_gen_del(hhg_mir_gen_t *gen)
     arrfree(gen->tmp_arr);
 }
 
-static hhg_mir_reg_t hhg_mir_gen_run_core(
+static hhg_mir_opnd_t hhg_mir_gen_run_core(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 )
@@ -189,11 +189,11 @@ static hhg_mir_reg_t hhg_mir_gen_run_core(
         new_ctx.in_global_scope = false;
         hhg_mir_gen_push_ctx(gen, new_ctx);
 
-        hhg_mir_reg_t reg = hhg_mir_gen_run_block(gen, node);
+        hhg_mir_opnd_t opnd = hhg_mir_gen_run_block(gen, node);
         
         hhg_mir_gen_pop_ctx(gen);
         
-        return reg;
+        return opnd;
     }
     case HHG_TOKEN_ID:
         return hhg_mir_gen_run_id(gen, node);
@@ -258,13 +258,13 @@ static hhg_mir_reg_t hhg_mir_gen_run_core(
         return hhg_mir_gen_run_float_literal(gen, node);
     case '.':
     case HHG_NODE_PARAM:
-        return -1;
+        return (hhg_mir_opnd_t){ .type = HHG_MIR_OPND_NONE };
     default:
         hhg_compiler_error(
             "unhandled node type `%n` in hhg_mir_gen_run_core",
             node->type
         );
-        return -1;
+        return (hhg_mir_opnd_t){ .type = HHG_MIR_OPND_NONE };
     }
 }
 
@@ -315,10 +315,7 @@ static hhg_mir_reg_t hhg_mir_gen_get_global(hhg_mir_gen_t *gen, hhg_sym_t *sym, 
 
     hhg_mir_load_t *load_value = hhg_mir_gen_new_instr_value(gen, hhg_mir_load_t);
     load_value->dest = tmp_reg;
-    load_value->src = (hhg_mir_opnd_t){
-        .type = HHG_MIR_OPND_SYM,
-        .value.sym = sym,
-    };
+    load_value->src = sym;
     hhg_mir_gen_add_instr(gen, node, HHG_MIR_LOAD, load_value);
 
     return tmp_reg;
@@ -364,52 +361,53 @@ static void hhg_mir_gen_run_children(
         hhg_mir_gen_run_core(gen, children[i]);
 }
 
-static hhg_mir_reg_t hhg_mir_gen_run_block(
+static hhg_mir_opnd_t hhg_mir_gen_run_block(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 )
 {
     hhg_mir_gen_run_children(gen, node->value.block.body);
-    return -1;
+    return (hhg_mir_opnd_t){ .type = HHG_MIR_OPND_NONE, };
 }
 
-static hhg_mir_reg_t hhg_mir_gen_run_id(
+static hhg_mir_opnd_t hhg_mir_gen_run_id(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 )
 {
     if (hhg_mir_gen_get_cur_ctx(gen)->in_global_scope)
-        return hhg_mir_gen_get_global(gen, node->value.id.sym, node);
+        return (hhg_mir_opnd_t) {
+            .type = HHG_MIR_OPND_REG,
+            .value.reg = hhg_mir_gen_get_global(gen, node->value.id.sym, node)
+        };
     hhg_mir_reg_t reg = hhg_mir_gen_get_local(gen, node->value.id.sym);
     hhg_assert(reg != -1);
-    return reg;
+    return (hhg_mir_opnd_t) { .type = HHG_MIR_OPND_REG, .value.reg = reg, };
 }
 
-static hhg_mir_reg_t hhg_mir_gen_run_if(
+static hhg_mir_opnd_t hhg_mir_gen_run_if(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 )
 {
     HHG_UNUSED(gen, node);
-    return -1;
+    return (hhg_mir_opnd_t) { .type = HHG_MIR_OPND_NONE, };
 }
 
-static hhg_mir_reg_t hhg_mir_gen_run_while(
+static hhg_mir_opnd_t hhg_mir_gen_run_while(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 )
 {
     HHG_UNUSED(gen, node);
-    return -1;
+    return (hhg_mir_opnd_t) { .type = HHG_MIR_OPND_NONE, };
 }
 
-static hhg_mir_reg_t hhg_mir_gen_run_var_decl(
+static hhg_mir_opnd_t hhg_mir_gen_run_var_decl(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 )
 {
-    hhg_mir_reg_t expr_reg = hhg_mir_gen_run_core(gen, node->value.var_decl.expr);
-
     hhg_mir_gen_ctx_t *ctx = hhg_mir_gen_get_cur_ctx(gen);
 
     // declare variable if first
@@ -420,132 +418,138 @@ static hhg_mir_reg_t hhg_mir_gen_run_var_decl(
             hhg_mir_gen_new_local(gen, node->value.var_decl.id.sym);
     }
 
+    hhg_mir_opnd_t expr_opnd = hhg_mir_gen_run_core(gen, node->value.var_decl.expr);
+
     if (ctx->in_global_scope) {
         hhg_mir_store_t *store_value =
             hhg_mir_gen_new_instr_value(gen, hhg_mir_store_t);
         store_value->dest = node->value.var_decl.id.sym;
-        store_value->src = (hhg_mir_opnd_t) {
-            .type = HHG_MIR_OPND_REG,
-            .value.reg = expr_reg,
-        };
+        store_value->src = expr_opnd;
         hhg_mir_gen_add_instr(gen, node, HHG_MIR_STORE, store_value);
     } else {
         hhg_mir_reg_t local_reg =
             hhg_mir_gen_get_local(gen, node->value.var_decl.id.sym);
-        hhg_mir_move_t *move_value =
-            hhg_mir_gen_new_instr_value(gen, hhg_mir_move_t);
-        move_value->dest = local_reg;
-        move_value->src = expr_reg;
-        hhg_mir_gen_add_instr(gen, node, HHG_MIR_MOVE, move_value);
+        hhg_mir_copy_t *copy_value =
+            hhg_mir_gen_new_instr_value(gen, hhg_mir_copy_t);
+        copy_value->dest = local_reg;
+        copy_value->src = expr_opnd;
+        hhg_mir_gen_add_instr(gen, node, HHG_MIR_COPY, copy_value);
     }
 
-    return expr_reg;
+    return expr_opnd;
 }
 
-static hhg_mir_reg_t hhg_mir_gen_run_obj_init(
+static hhg_mir_opnd_t hhg_mir_gen_run_obj_init(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 )
 {
     HHG_UNUSED(gen, node);
-    return -1;
+    return (hhg_mir_opnd_t) { .type = HHG_MIR_OPND_NONE, };
 }
 
-static hhg_mir_reg_t hhg_mir_gen_run_func_decl(
+static hhg_mir_opnd_t hhg_mir_gen_run_func_decl(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 )
 {
     HHG_UNUSED(gen, node);
-    return -1;
+    return (hhg_mir_opnd_t) { .type = HHG_MIR_OPND_NONE, };
 }
 
-static hhg_mir_reg_t hhg_mir_gen_run_class_decl(
+static hhg_mir_opnd_t hhg_mir_gen_run_class_decl(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 )
 {
     HHG_UNUSED(gen, node);
-    return -1;
+    return (hhg_mir_opnd_t) { .type = HHG_MIR_OPND_NONE, };
 }
 
-static hhg_mir_reg_t hhg_mir_gen_run_func_call(
+static hhg_mir_opnd_t hhg_mir_gen_run_func_call(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 )
 {
     HHG_UNUSED(gen, node);
-    return -1;
+    return (hhg_mir_opnd_t) { .type = HHG_MIR_OPND_NONE, };
 }
 
-static hhg_mir_reg_t hhg_mir_gen_run_return(
+static hhg_mir_opnd_t hhg_mir_gen_run_return(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 )
 {
     HHG_UNUSED(gen, node);
-    return -1;
+    return (hhg_mir_opnd_t) { .type = HHG_MIR_OPND_NONE, };
 }
 
-static hhg_mir_reg_t hhg_mir_gen_run_arr_literal(
+static hhg_mir_opnd_t hhg_mir_gen_run_arr_literal(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 )
 {
     HHG_UNUSED(gen, node);
-    return -1;
+    return (hhg_mir_opnd_t) { .type = HHG_MIR_OPND_NONE, };
 }
 
-static hhg_mir_reg_t hhg_mir_gen_run_expr(
+static hhg_mir_opnd_t hhg_mir_gen_run_expr(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 )
 {
     HHG_UNUSED(gen, node);
-    return -1;
+    return (hhg_mir_opnd_t) { .type = HHG_MIR_OPND_NONE, };
 }
 
-static hhg_mir_reg_t hhg_mir_gen_run_inc_dec(
+static hhg_mir_opnd_t hhg_mir_gen_run_inc_dec(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 )
 {
     HHG_UNUSED(gen, node);
-    return -1;
+    return (hhg_mir_opnd_t) { .type = HHG_MIR_OPND_NONE, };
 }
 
-static hhg_mir_reg_t hhg_mir_gen_run_bool_literal(
+static hhg_mir_opnd_t hhg_mir_gen_run_bool_literal(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 )
 {
     HHG_UNUSED(gen, node);
-    return -1;
+    return (hhg_mir_opnd_t) { .type = HHG_MIR_OPND_NONE, };
 }
 
-static hhg_mir_reg_t hhg_mir_gen_run_string_literal(
+static hhg_mir_opnd_t hhg_mir_gen_run_string_literal(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 )
 {
     HHG_UNUSED(gen, node);
-    return -1;
+    return (hhg_mir_opnd_t) { .type = HHG_MIR_OPND_NONE, };
 }
 
-static hhg_mir_reg_t hhg_mir_gen_run_int_literal(
+static hhg_mir_opnd_t hhg_mir_gen_run_int_literal(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 )
 {
     HHG_UNUSED(gen, node);
-    return -1;
+   
+    return (hhg_mir_opnd_t) {
+        .type = HHG_MIR_OPND_CNST,
+        .value.cnst = (hhg_mir_cnst_t) {
+            .type = HHG_MIR_CNST_SI,
+            .value.si = hhg_utils_str_to_int64(node->value.literal.str),
+        },
+    };
 }
 
-static hhg_mir_reg_t hhg_mir_gen_run_float_literal(
+static hhg_mir_opnd_t hhg_mir_gen_run_float_literal(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 )
 {
     HHG_UNUSED(gen, node);
-    return -1;
+    return (hhg_mir_opnd_t) { .type = HHG_MIR_OPND_NONE, };
 }
