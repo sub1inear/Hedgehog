@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <ctype.h>
 #include <string.h>
 
 #include "utils.h"

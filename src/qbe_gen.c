@@ -23,10 +23,17 @@ hhg_code_gen_backend_t *hhg_qbe_gen_backend_new(hhg_arena_t *arena)
                 .start_func = hhg_qbe_gen_start_func,
                 .emit_instr = hhg_qbe_gen_emit_instr,
                 .end_func = hhg_qbe_gen_end_func,
-            },    
+            },
+            .ext = "ssa",
         },
     };
     return (hhg_code_gen_backend_t *)backend;
+}
+
+void hhg_qbe_gen_backend_print(hhg_code_gen_backend_t *backend)
+{
+    // nothing to print for now
+    HHG_UNUSED(backend);
 }
 
 void hhg_qbe_gen_backend_free(hhg_code_gen_backend_t *backend)

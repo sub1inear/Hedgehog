@@ -94,7 +94,7 @@ bool hhg_init(hhg_cfg_t *cfg)
             );
         if (cfg_result >= LIBFS_MAX_PATH)
             hhg_fatal_error(
-                "path too long: %s/" HHG_CONFIG_FILENAME,
+                "path too long: %s " HHG_CONFIG_FILENAME,
                 cfg->init.name
             );
 
@@ -107,7 +107,7 @@ bool hhg_init(hhg_cfg_t *cfg)
             );
         if (main_result >= LIBFS_MAX_PATH)
             hhg_fatal_error(
-                "path too long: %s/" HHG_MAIN_FILENAME,
+                "path too long: %s " HHG_MAIN_FILENAME,
                 cfg->init.name
             );
 

@@ -206,7 +206,7 @@ void hhg_node_print(hhg_node_t *node, int32_t indent, bool use_sym)
     }
 }
 
-void hhg_node_del(hhg_node_t *node)
+void hhg_node_free(hhg_node_t *node)
 {
     hhg_type_del(node->value_type);
 }

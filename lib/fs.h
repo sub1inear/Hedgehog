@@ -155,6 +155,19 @@ const char*
 fs_basename(const char* path);
 
 /**
+    * Gets the extension of path.
+    *
+    * @code{.c}
+    * const char* ext = fs_extention("./foo.txt");
+    * @endcode
+    *
+    * @param[in] path Some null-terminated path
+    * @return A pointer to the extension, or NULL if there is no extension.
+    */
+const char*
+fs_extention(const char* path);
+
+/**
     * Copies files or directories.
     *
     * @code{.c}
@@ -193,15 +206,15 @@ fs_current_dir(char *buf, size_t size);
     * Concatenates two paths together with the platform specific separator.
     *
     * @code{.c}
-    * char cwd[MAX_PATH];
-    * if (!fs_current_dir(cwd, MAX_PATH))
+    * char cwd[LIBFS_MAX_PATH];
+    * if (!fs_current_dir(cwd, LIBFS_MAX_PATH))
     * {
     *     print("fs_current_dir failed");
     *     return;
     * }
     *
-    * char buf[MAX_PATH];
-    * fs_join_path(buf, MAX_PATH, cwd, "foo.txt");
+    * char buf[LIBFS_MAX_PATH];
+    * fs_join_path(buf, LIBFS_MAX_PATH, cwd, "foo.txt");
     * printf("%s", buf);
     * @endcode
     *
@@ -476,6 +489,21 @@ bool
 fs_delete_dir(const char *path);
 
 /**
+    * Recursively deletes a directory if it exists.
+    *
+    * @code
+    * if (!fs_delete_dir_r("foo"))
+    * {
+    *     printf("fs_delete_dir_r failed");
+    * }
+    * @endcode
+    * @param[in] path Some null-terminated path
+    * @return If the directory was deleted.
+    */
+bool
+fs_delete_dir_r(const char *path);
+
+/**
     * Deletes a file if it exists.
     *
     * @code
@@ -666,6 +694,17 @@ fs_basename(const char *path)
 	}
 
 	return c + 1;
+}
+
+const char *
+fs_extention(const char *path)
+{
+    char *c = strrchr(path, '.');
+    if (!c)
+    {
+        return NULL;
+    }
+    return c + 1;
 }
 
 #ifdef LIBFS_WINDOWS

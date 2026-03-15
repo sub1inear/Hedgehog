@@ -156,4 +156,6 @@ hhg_node_t *hhg_node_new(
 
 void hhg_node_print(hhg_node_t *node, int32_t indent, bool use_sym);
 
+void hhg_node_free(hhg_node_t *node);
+
 #endif

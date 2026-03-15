@@ -14,8 +14,15 @@ hhg_code_gen_backend_t *hhg_cpp_gen_backend_new(hhg_arena_t *arena)
     hhg_cpp_gen_backend_t *backend = hhg_arena_malloc(arena, sizeof(hhg_cpp_gen_backend_t));
     *backend = (hhg_cpp_gen_backend_t) {
         .base.type = HHG_CFG_BACKEND_CPP,
+        .base.ext = "cpp",
     };
     return (hhg_code_gen_backend_t *)backend;
+}
+
+void hhg_cpp_gen_backend_print(hhg_code_gen_backend_t *backend)
+{
+    // nothing to print for now
+    HHG_UNUSED(backend);
 }
 
 void hhg_cpp_gen_backend_free(hhg_code_gen_backend_t *backend)

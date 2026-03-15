@@ -8,6 +8,7 @@
 typedef struct hhg_code_gen_backend hhg_code_gen_backend_t;
 
 hhg_code_gen_backend_t *hhg_cpp_gen_backend_new(hhg_arena_t *arena);
+void hhg_cpp_gen_backend_print(hhg_code_gen_backend_t *backend);
 void hhg_cpp_gen_backend_free(hhg_code_gen_backend_t *backend);
 
 #endif
