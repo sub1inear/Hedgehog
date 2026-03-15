@@ -57,7 +57,7 @@ bool hhg_build(hhg_cfg_t *cfg, hhg_arena_t *arena)
     hhg_lexer_t lexer;
     hhg_lexer_init(&lexer, &msg_ctx, cfg->build.entry);
 
-    bool lexer_result = hhg_build_check_exit(
+    hhg_build_check_exit_result_t lexer_result = hhg_build_check_exit(
         cfg,
         &msg_ctx,
         &(hhg_build_stage_desc_t) {
@@ -85,7 +85,7 @@ bool hhg_build(hhg_cfg_t *cfg, hhg_arena_t *arena)
 
     hhg_node_t *prog = hhg_parser_parse(&parser);
 
-    bool parser_result = hhg_build_check_exit(
+    hhg_build_check_exit_result_t parser_result = hhg_build_check_exit(
         cfg,
         &msg_ctx,
         &(hhg_build_stage_desc_t) {
@@ -107,7 +107,7 @@ bool hhg_build(hhg_cfg_t *cfg, hhg_arena_t *arena)
 
     hhg_sem_an_run(&sem_an, prog);
 
-    bool sem_an_result = hhg_build_check_exit(
+    hhg_build_check_exit_result_t sem_an_result = hhg_build_check_exit(
         cfg,
         &msg_ctx,
         &(hhg_build_stage_desc_t) {
@@ -129,7 +129,7 @@ bool hhg_build(hhg_cfg_t *cfg, hhg_arena_t *arena)
     hhg_mir_gen_init(&mir_gen, arena);
     hhg_mir_gen_run(&mir_gen, prog);
     
-    bool mir_gen_result = hhg_build_check_exit(
+    hhg_build_check_exit_result_t mir_gen_result = hhg_build_check_exit(
         cfg,
         &msg_ctx,
         &(hhg_build_stage_desc_t) {
@@ -162,7 +162,7 @@ bool hhg_build(hhg_cfg_t *cfg, hhg_arena_t *arena)
     hhg_code_gen_run(&code_gen, &mir_gen);
     hhg_code_gen_del(&code_gen);
     
-    bool code_gen_result = hhg_build_check_exit(
+    hhg_build_check_exit_result_t code_gen_result = hhg_build_check_exit(
         cfg,
         &msg_ctx,
         &(hhg_build_stage_desc_t) {
