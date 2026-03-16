@@ -104,7 +104,14 @@ void hhg_code_gen_init(
 
 void hhg_code_gen_run(hhg_code_gen_t *code_gen, hhg_mir_gen_t *mir_gen)
 {
-    HHG_UNUSED(code_gen, mir_gen);
+    switch (code_gen->backend->type) {
+    case HHG_CFG_BACKEND_CPP:
+        hhg_cpp_gen_backend_run(code_gen->backend, code_gen, mir_gen);
+        break;
+    case HHG_CFG_BACKEND_QBE:
+        hhg_qbe_gen_backend_run(code_gen->backend, code_gen, mir_gen);
+        break;
+    }
 }
 
 void hhg_code_gen_backend_print(hhg_code_gen_backend_t *backend)

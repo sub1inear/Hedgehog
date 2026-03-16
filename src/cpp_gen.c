@@ -11,12 +11,25 @@ typedef struct hhg_cpp_gen_backend {
 
 hhg_code_gen_backend_t *hhg_cpp_gen_backend_new(hhg_arena_t *arena)
 {
-    hhg_cpp_gen_backend_t *backend = hhg_arena_malloc(arena, sizeof(hhg_cpp_gen_backend_t));
+    hhg_cpp_gen_backend_t *backend =
+        hhg_arena_malloc(arena, sizeof(hhg_cpp_gen_backend_t));
     *backend = (hhg_cpp_gen_backend_t) {
-        .base.type = HHG_CFG_BACKEND_CPP,
-        .base.ext = "cpp",
+        .base = {
+            .type = HHG_CFG_BACKEND_CPP,
+            .ext = "cpp",
+        },
     };
     return (hhg_code_gen_backend_t *)backend;
+}
+
+void hhg_cpp_gen_backend_run(
+    hhg_code_gen_backend_t *backend,
+    hhg_code_gen_t *code_gen,
+    hhg_mir_gen_t *mir_gen
+)
+{
+    HHG_UNUSED(backend, mir_gen);
+    fputs("int main(int argc, char **argv) {}\n", code_gen->file);
 }
 
 void hhg_cpp_gen_backend_print(hhg_code_gen_backend_t *backend)
