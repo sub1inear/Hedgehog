@@ -12,6 +12,7 @@
 #include "sem_an.h"
 #include "mir_gen.h"
 #include "code_gen.h"
+#include "ext_build.h"
 #include "cfg.h"
 
 typedef struct hhg_build_data {
@@ -47,6 +48,7 @@ static void hhg_build_debug_print_parser(hhg_node_t *prog);
 static void hhg_build_debug_print_sem_an(hhg_node_t *prog);
 static void hhg_build_debug_print_mir_gen(hhg_mir_gen_t *mir_gen);
 static void hhg_build_debug_print_code_gen(hhg_code_gen_t *code_gen);
+static void hhg_build_debug_print_ext_build(void *arg);
 
 bool hhg_build(hhg_cfg_t *cfg, hhg_arena_t *arena)
 {
@@ -160,7 +162,6 @@ bool hhg_build(hhg_cfg_t *cfg, hhg_arena_t *arena)
     );
 
     hhg_code_gen_run(&code_gen, &mir_gen);
-    hhg_code_gen_del(&code_gen);
     
     hhg_build_check_exit_result_t code_gen_result = hhg_build_check_exit(
         cfg,
@@ -182,8 +183,36 @@ bool hhg_build(hhg_cfg_t *cfg, hhg_arena_t *arena)
     else if (code_gen_result == HHG_BUILD_CHECK_EXIT_SAFE_EXIT) return false;
 
     // 5th stage: external build
+    hhg_ext_build_t ext_build;
+    hhg_ext_build_init(&ext_build, &msg_ctx);
 
+    hhg_ext_build_run(
+        &ext_build,
+        &code_gen,
+        cfg->build.backend
+    );
 
+    hhg_build_check_exit_result_t ext_build_result =
+        hhg_build_check_exit(
+            cfg,
+            &msg_ctx,
+            &(hhg_build_stage_desc_t) {
+                .stage = HHG_CFG_BUILD_STAGE_EXT_BUILD,
+                .debug_func = hhg_build_debug_print_ext_build,
+                .debug_arg = NULL,
+            },
+            &(hhg_build_data_t) {
+                .lexer = &lexer,
+                .sym_tab = &sym_tab,
+                .type_ctx = &type_ctx,
+                .mir_gen = &mir_gen,
+                .code_gen = &code_gen,
+            }
+        );
+    if (ext_build_result == HHG_BUILD_CHECK_EXIT_ERROR) return true;
+    else if (ext_build_result == HHG_BUILD_CHECK_EXIT_SAFE_EXIT) return false;
+    
+    
     // 6th stage: cleanup
     hhg_build_cleanup(&(hhg_build_data_t) {
         .lexer = &lexer,
@@ -256,4 +285,9 @@ static void hhg_build_debug_print_mir_gen(hhg_mir_gen_t *mir_gen)
 static void hhg_build_debug_print_code_gen(hhg_code_gen_t *code_gen)
 {
     hhg_code_gen_backend_print(code_gen->backend);
+}
+
+static void hhg_build_debug_print_ext_build(void *arg)
+{
+    (void)arg;
 }

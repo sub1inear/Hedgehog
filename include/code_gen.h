@@ -19,6 +19,8 @@ typedef struct hhg_code_gen_backend {
 
 typedef struct hhg_code_gen {
     hhg_code_gen_backend_t *backend;
+    char *filename/*[LIBFS_MAX_PATH]*/; // ex. "out/main.cpp"
+    char *module; // ex. "main"
     FILE *file;
     hhg_arena_t *arena;
 } hhg_code_gen_t;

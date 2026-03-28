@@ -37,6 +37,12 @@ void hhg_code_gen_init(
     hhg_arena_t *arena
 )
 {
+    // set fields to first to avoid clearing fields set up below
+    *gen = (hhg_code_gen_t) {
+        .backend = backend,
+        .arena = arena,
+    };
+
     // create directory if it doesn't exist
     if (!fs_exist(out_dir))
         if (!fs_make_dir(out_dir))
@@ -48,6 +54,11 @@ void hhg_code_gen_init(
     const char *in_ext = fs_extention(in_basename);
     if (in_ext == NULL)
         hhg_fatal_error("input file has no extension: %s", in_filename);
+
+    ptrdiff_t module_len = in_ext - in_basename;
+    gen->module = hhg_arena_malloc(arena, module_len);
+    strncpy(gen->module, in_basename, module_len - 1);
+    gen->module[module_len - 1] = '\0';
 
     size_t basename_len = in_ext - in_basename - 1;
     
@@ -78,11 +89,10 @@ void hhg_code_gen_init(
             backend->ext
         );
     
-    // join output directory and filename
-    char out_path[LIBFS_MAX_PATH];
-    
+    gen->filename = hhg_arena_malloc(arena, LIBFS_MAX_PATH);
+
     int join_path_result = fs_join_path(
-        out_path,
+        gen->filename,
         LIBFS_MAX_PATH,
         out_dir,
         out_filename
@@ -95,11 +105,7 @@ void hhg_code_gen_init(
             out_filename
         );
 
-    *gen = (hhg_code_gen_t) {
-        .backend = backend,
-        .file = hhg_utils_fopen(out_path, "w"),
-        .arena = arena,
-    };
+    gen->file = hhg_utils_fopen(gen->filename, "w");
 }
 
 void hhg_code_gen_run(hhg_code_gen_t *code_gen, hhg_mir_gen_t *mir_gen)
