@@ -1,13 +1,13 @@
 # The Hedgehog Programming Language
 
 ## Introduction
-The Hedgehog programming language is based on three core principles, listed in order of importance below.
+The Hedgehog programming language is based on three core principles, listed in order of importance.
 
 ### I: As Powerful as C++ with the Simplicity of Python
 Make programming in Hedgehog and the resulting program as fast as possible.
 
 ### II: Don't Reinvent the Wheel
-No drastic syntax changes from C++ or Python; Hedgehog should look familiar and be easy to learn from either.
+No drastic changes from C++ or Python; Hedgehog should look familiar and be easy to learn from either.
 
 ### III: There Should Be One, and Only One, Way to Do It
 Duplicates or slight reinventions should be avoided.
@@ -84,6 +84,7 @@ Variables types are automatically inferred by default. However, if you want to e
 | i64 | signed 64-bit number | -9,223,372,036,854,775,808 to 9,223,372,036,854,775,807 |
 | u64 | unsigned 64-bit number | 0 to 18,446,744,073,709,551,615 |
 | int | signed arbitrary-precision number | memory of machine |
+| uint | unsigned arbitrary-precision number | memory of machine |
 | f32 | 32-bit floating point number | -3.40 × 10<sup>38</sup> to 3.40 × 10<sup>38</sup> |
 | f64 | 64-bit floating point number | -1.80×10<sup>308</sup> to 1.80×10<sup>308</sup>|
 | float | arbitrary-precision floating point number | memory of machine |
@@ -101,6 +102,8 @@ uint k = 4674
 Numbers are inferred to be the smallest type possible, starting at `i32` for integers and `f32` for floating-point numbers. Arbitrary-precision types must always be explicitly set.
 
 Limited-precision integers will wrap around in their ranges if they exceed them. Floating-point numbers will clamp at ∞ and -∞.
+
+`const` can be used to make a variable immutable.
 
 `constexpr` can be used to tell the compiler a variable's value can be computed at compile-time. 
 
@@ -158,34 +161,30 @@ while z {
 
 `do-while` and `switch` statements are not supported.
 
-If the body is only one line, the braces can be omitted.
-
-```python
-if x > 3
-    x = 4
-```
-
 `and` is used to be `true` if both sides are true. `or` is used to be `true` if either side is true. Like Python and C++, they are short-circuiting and will not evaluate beyond what is necessary to determine the result.
 
 ```python
-if x > 3 and y > 4
+if x > 3 and y > 4 {
     print("Settings achieved")
+}
 ```
 
 `not` is used to invert a condition.
 
 ```python
-if not x
+if not x {
     print("x was false.")
+}
 ```
 
 ## Functions
 
-Functions are declared with the `def` keyword. While the return type is always inferred, the arguments must have explicit types. Unlike C++, one line functions are allowed to not use curly braces.
+Functions are declared with the `def` keyword. While the return type is always inferred, the arguments must have explicit types.
 
 ```python
-def foo(i32 bar)
+def foo(i32 bar) {
     return bar * 32 + 4
+}
 print(foo(4))
 ```
 
@@ -199,14 +198,18 @@ An array is declared by adding square brackets with the size after the variable 
 a[4] = [1, 2, 3, 4]
 ```
 
-To declare a variable-length array (list), leave the array size empty.
+To declare a list (variable size array), put a `*` inside the brackets.
 
 ```c++
-constants[] = [0.0, 3.14, 6.28]
+constants[*] = [0.0, 3.14, 6.28]
 ```
 
-To automatically count the size of an array, omit the square brackets.
+`[]` can be used to automatically count the size of an array, similar to C++.
+```python
+l[] = [5, 6, 7, 8]
+```
 
+Literals default to using `[]`.
 ```python
 l = [5, 6, 7, 8]
 ```
@@ -217,54 +220,65 @@ Items can be added to to lists with `.append()`, similar to Python.
 constants.append(23.14)
 ```
 
-To index an array, use the square brackets with the index, which starts at 0.
+To index an array/list, use the square brackets with the index, which starts at 0.
 
 ```python
 print(a[0])
 print(a[i])
 ```
 
-Array indexes are checked for overflow automatically.
+Array/list indexes are checked for overflow automatically in debug mode.
 
-Unlike C++ and Python, arrays are first-class objects. Assigning an array to another will copy it. You can also pass in arrays by value and return them.
+Unlike C++ and Python, arrays/lists are first-class objects. Assigning an array/list to another will copy it. You can also pass in arrays/lists by value and return them.
 ```python
-b[4] = [ 5, 6, 7, 8 ]
+b = [ 5, 6, 7, 8 ]
 a = b
 def array(u32 b[4]) {
+    return [ 1, 2, 4, 8, 16 ]
+}
+u32[*] list(u32 b[*]) {
     return [ 1, 2, 4, 8, 16 ]
 }
 ```
 
 ## For Loops
 
-The `for` loop is declared similarly to C++.
+The `for` loop is declared similarly to Python.
 ```python
-for i = 0; i < 10; i++
+for i in range(10) {
     print(i)
+}
 ```
 
-Using `in`, the `for` loop can also iterate over a collection of items, similarly to Python:
+Looping over `range(stop)` or `range(start, stop)` iterates from `0` or `start` to `stop - 1`. Note that unlike Python, this is a syntactical construct and not a function.
+
+Using `in`, the `for` loop can also iterate over a collection of items:
 ```python
-for x in constants
+for x in constants {
     print(x)
+}
 ```
 
-The `for` `in` loop can also be used with `range(stop)` or `range(start, stop)` to iterate from `0` or `start` to `stop - 1`, similarly to Python:
+
+The `for` loop can also be declared similarly to C++. This is intended for more complex loops, like iterating with a step or incrementing multiple variables.
 ```python
-for i in range(10)
+for i = x; i < y; i++ {
     print(i)
+}
 ```
+
 
 `else` can be used after a `for` loop to only run a statement if `break` is not called.
 
 ```c++
-for x in items
+for x in items {
     if x == y {
         print("Found.")
         break
     }
-else
+} else {
     print("Not found.")
+}
 ```
 
 ## Runtime
@@ -289,15 +303,22 @@ def func(i32 i) {
 
 References can be used access/change something but not pass it by value. A reference is declared by an `&`.
 
-For an array, a reference must know the size of the array it refers to (a sized reference). For arrays or lists you don't know the size of (an unsized reference), leave the square brackets empty. This costs performance so prefer to use the size.
-
-References to arrays must surround the name of the array and `&` in parenthesis to distinguish it from a list of references.
 ```python
 a[4] = [ 1, 2, 3, 4 ]
 
 b = &a
+```
 
+For arrays, put the size in the square brackets (e.g. `[4]`). This is known as a sized reference.
+To explicitly require lists, use `[*]`. This is known as a list reference.
+To take either arrays or lists, leave the square brackets empty (`[]`). This is known as an unsized reference.
+You must wrap the `&` and the variable in parenthesis to distinguish it from a list of references.
+
+```
 def sized(u32 (&i)[10]) {
+
+}
+def list(u32 (&i)[*]) {
 
 }
 def unsized(f64 (&p)[]) {
@@ -313,18 +334,48 @@ def arr_of_ref(u32 &i[10]) {
 Casting is done by calling the new type as a function and passing it the old type.
 
 ```c++
-x = 10
-y = f32(x)
-b = u8(x)
+f32(10)
 ```
 
+In Hedgehog, casting rules are significantly strengthened. In expressions, nothing will ever be automatically promoted.
+This fixes mistakes like:
+```c++
+i32 x = -1
+u32 y = 1
+if x > y {
+    println("-1 > 1")
+} else {
+    println("-1 <= 1")
+}
+```
+In this example, with C++ casting rules, `x` is promoted to `u32`, becoming `4294967295` because of two's complement, and so `-1 > 1`.
+Hedgehog forces the programmer to explicity cast `x` to `u32` if they want this behavior, which makes it clear that this is happening.
+
+To fix the above code, cast `y` to `i32`:
+```c++
+if x > i32(y) {
+    println("-1 > 1")
+} else {
+    println("-1 <= 1")
+}
+```
+Which will print `-1 <= 1` as expected.
+
+Typed variable declarations also allow casting. This is preferred over manually casting and using type inference.
+```python
+x = 10
+u8 y = x
+```
 
 ## Dictionaries/Hash Maps
 
-To create a dictionary, use curly braces and `key:value` syntax. Manually declaring the type is done by adding `[key type:value type]` to the end.
+To create a dictionary, use curly braces and `key:value` syntax. Manually declaring the type is done by adding `[key type : value type]` to the end.
 
 ```python
 d = { "Hello" : 0, ", " : 1, "World" : 2}
+def dict(u32 d[char[] : i32]) {
+    ...
+}
 ```
 
 Accesses are the same as arrays/lists.
@@ -374,13 +425,17 @@ while running {
 }
 ```
 
-Unlike C++ and Python, `break` and `continue` can also be used with a number after it. This specifies how many loops to `break` out of/which loop to apply the `continue`.
+Unlike C++ and Python, `break` and `continue` can also be used with a number after it. This specifies how many loops to `break` out of/which loop to apply the `continue` to.
 
 ```python
-for x in range(100)
-    for y in range(100)
-        if i > x * 100 + y
+for x in range(100) {
+    for y in range(100) {
+        if i > x * 100 + y {
             break 2
+        }
+    }
+}
+println("Exited both loops.")
 ```
 
 ## Advanced Statements
@@ -397,22 +452,10 @@ dx =
         -1
 ```
 
-For a `while` statement, this allows you to easily get a statement's result.
+A `for` loop can be used inside an array/list to dynamically set its contents, similar to list comprehension in Python.
 
 ```python
-x =
-    while z {
-        z--
-        y--
-    }
-```
-
-A `for`-loop can be used in a similar way as to the `while` loop. It can also be used inside an array/list to dynamically set its contents, similar to list comprehension in Python.
-
-```python
-x[8] = [ for i = 0; i < 8; i++
-            i
-       ]
+x[8] = [ for i in range(8) { i } ]
 ```
 
 Finally, this can also be used like the comma operator in C++.
@@ -434,19 +477,19 @@ Classes are declared with the keyword `class`. All members of a class are public
 
 The `__init__` method serves as the constructor, while the `__del__` method serves as the destructor. By default, the constructor initializes all the members in the order they are declared, like the default constructor of C++.
 
-`self` is automatically passed to the function, similar to `this` in C++. Like Python and unlike C++, you must explicitly use it.
+Unlike Python and like C++, you don't need to use `self`/`this` to access members of a class.
 ```python
 class Player {
     i32 x
     i32 y
     i32 health
     def forward() {
-        self.x++
-        self.y++
+        x++
+        y++
     }
     def backward() {
-        self.x++
-        self.y++
+        x--
+        y--
     }
 }
 player = Player(1, 1, 3)
@@ -455,13 +498,13 @@ print(player)
 
 ## Tuples
 
-Tuples are declared by comma separated list of items. Unlike Python and like C++, they are mutable.
+Tuples are declared by a comma separated list of items within a tuple. Unlike Python and like C++, they are mutable.
 
 ```python
-t = 1, 2.0, '3'
+t = (1, 2.0, '3')
 
 def func() {
-    return 7, 8.0, '9'
+    return (7, 8.0, '9')
 }
 ```
 
@@ -490,88 +533,62 @@ enum Color : i32 {
 }
 ```
 
+## Compiler Directives
 
+Compiler directives are catagorized into three catagories.
 
-## Compile-Time Statements
+| Sigil | Description | Explanation |
+|-------|-------------| ----------- |
+| `#` | Compile-Time Statement/Constant | A statement/constant that is evaluated at compile-time. | 
+| `@` | Attribute | Modifies a function, variable, or type. |
+| ` ` | Built-in Function | A function provided by Hedgehog that is built-in to the language. |
+
+### Compile-Time Statements
 
 `#if`, `#else if`, and `#else` are similar to normal `if`-statements, except they are evaluated at compile-time and only the taken branch is compiled, similar to `if constexpr` in C++.
 
 ```c++
 const x = 1
-#if x == 1
+#if x == 1 {
     print("x == 1")
-#else if x == 2
+} #else if x == 2 {
     print("x == 2")
-#else
+} #else {
     print("x != 1 and x != 2")
+}
 ```
 
 `#run` runs a statement at compile time. The changes made to variables are permanent.
-
 ```c++
 x = 1
 #run x = 2
 ```
 
-`#inline` forces a function to be inlined without question:
-```
-#inline
-def swap(i32 &a, i32 &b) {
-    tmp = a
-    a = b
-    b = tmp
-}
-```
+`#error(message)` prints `message` when encountered and fails to compile.
+`#warning(message)` prints `message` when encountered as a warning.
 
-`#assert(expr, message)` asserts that `expr` is true. `expr` may or may not be evaluated and can be evaluated at run-time or compile-time. It also optimizes based on that assumption, even if asserts are disabled.
-
+`#assert(expr, message)` asserts that `expr` is true. `#assert`s will be enabled in debug mode and disabled in release mode. `#assert` can be run at compile-time or runtime (it is both `static_assert()` and `assert()` in C++). `#assert` will also optimize based on its condition being true (if supported by the backend).
 ```c++
 x = 0
 #assert(x == 0, "x != 0, help!")
-```
 
-`#sizeof(expr)` gets the size in bytes of `expr`.
-
-```c++
-print(#sizeof(u32))
-```
-
-`#typeof(expr)` gets the type of `expr`. Types can be compared to others.
-
-```c++
-#if #typeof(x) == u32
-    print("x is a u32.") 
-```
-
-`#unroll(times)` provides a hint to the compiler to unroll a loop `times` many iterations.
-```c++
-#unroll(10)
-for i in range(10)
-    print(i)
-```
-
-`#parallel` makes a loop parallel, when possible.
-```c++
-#parallel
-for i in range(10)
-    print(i)
+if (x != 0) {
+    ... // ideally this will optimize away
+}
 ```
 
 `#asm` allows for a programmer to directly use GCC-style inline assembly. Support is guarenteed for backend compilers supporting it.
+```
+i32 result
+#asm {
+    "mov $1, %%eax"
+        : "=a" (result) 
+}
+```
 
-`#noreturn` marks a function as not returning.
+`#version` can be used to determine the Hedgehog version, in SemVer (e.g. `1.0.0`).
 
-`#used` prevents a function from being optimized away.
-
-`#pack` ensures a `class` is packed.
-
-`#align(alignment)` ensures a variable is aligned at `alignment`.
-
-`#error(message)` prints `message` when encountered and fails to compile.
-
-`#warning(message)` prints `message` when encountered as a warning.
-
-`#help(expr)` prints the documentation on the class, function, or type given as `expr`. This is intented to be used in a REPL.
+`#c` marks a section of code to be exported to the C programming language, similar to `extern "C"` in C++. Advanced features not supported in C, like classes or templates, within a `#c` block will cause an error.
 
 `#compiler` can be used to determine the compiler.
 
@@ -596,9 +613,58 @@ for i in range(10)
 * `"RISC-V"`
 * ...
 
-`#version` can be used to determine the Hedgehog version, in SemVer.
+### Attributes
 
-`#c` marks a section of code to be exported to the C programming language, similar to `extern "C"` in C++. Advanced features not supported in C, like classes or templates, within a `#c` block will cause an error. 
+`@inline` forces a function to be inlined without question:
+```
+@inline
+def swap(i32 &a, i32 &b) {
+    tmp = a
+    a = b
+    b = tmp
+}
+```
+
+`@unroll(times)` provides a hint to the compiler to unroll a loop `times` many iterations.
+```c++
+@unroll(10)
+for i in range(10)
+    print(i)
+```
+
+`@parallel` makes a loop parallel, when possible.
+```c++
+@parallel
+for i in range(10)
+    print(i)
+```
+
+`@noreturn` marks a function as not returning.
+
+`@used` prevents a variable/function from being optimized away.
+
+`@pack` ensures a `class` is packed.
+
+`@align(alignment)` ensures a variable is aligned at `alignment`.
+
+`@fmt` allows a function to take a format string as C-style with variadic arguments.
+`@scan` allows a function to take a scan string as C-style with variadic arguments.
+
+### Built-In Functions
+
+`sizeof(expr)` gets the size in bytes of `expr`.
+
+```c++
+print(sizeof(u32))
+```
+
+`typeof(expr)` gets the type of `expr`. Types can be compared to others.
+
+```c++
+#if typeof(x) == u32 {
+    print("x is a u32.")
+}
+```
 
 ## Import
 
@@ -616,7 +682,7 @@ c = module.Class()
 
 ## Templates
 
-Templates have a similar syntax as C++. `class` is always used instead `typename`.
+Templates have a similar syntax to C++. `class` is always used instead `typename`.
 
 ```c++
 template <class T>
@@ -626,182 +692,82 @@ def add(T a, T b)
 
 Unlike C++, templates cannot recursively instantiate themselves. This is intended to prevent template metaprogramming that is generally less understandable and can be replaced with `#run`.
 
-To establish constraints on templates, use `requires`.
+## Borrow Checker
 
-```c++
-template <class T>
-requires <T == u32 || T == u64>
-def add(T a, T b)
-    return a + b;
+Hedgehog uses a borrow checker to manage memory, similar to Rust.
+```python
+x = [1, 2, 3]
+y = x
+```
+Here, `x` is moved to `y`, and `x` becomes invalid.
+
+```python
+x = [1, 2, 3]
+y = &const x
+z = &const x
+```
+You have have as many immutable references as you want, but only one mutable reference.
+```python
+x = [1, 2, 3]
+y = &x
 ```
 
-## Allocations
+To allocate something on the heap, use `unique`, `shared`, or `arc`.
 
-Hedgehog does not have a traditional concept of memory allocation. Without using a `new`/`delete`, smart pointers, or a garbage collection system, all references are guarenteed to refer to valid memory and memory is guarenteed not be leaked or double freed.
-
-> ***Note***: The following section documents the Hedgehog internals and is only relevant for optimization.
-
-To enforce this, the compiler uses escape detection to determine when a reference to a variable can escape the lifetime of a variable.
-
-If the variable escapes, the compiler uses three rules used to dermine where and how it is stored:
-
-### I. Stack Extention:
-
-If a reference to a variable escapes into an outer scope of a function, it is lifetime extended, meaning the memory for the variable is allocated on the stack at the same scope as the reference.
-
-```c++
-def stack_ext() {
-    i32 &r
-    {
-        x = 0
-        r = &x
-    }
+`unique` is similar to `std::unique_ptr` in C++. It allocates memory on the heap, but only one variable can own it at a time.
+```python
+def func() {
+    unique x = [1, 2, 3]
+    return &x
 }
 ```
 
-becomes
+`shared` is similar to `std::shared_ptr` in C++. It allocates and reference counts memory on the heap, so multiple variables can own it at a time. It is not thread-safe.
 
-```c++
-def stack_ext() {
-    i32 x = 0
-    r = &x
+```python
+shared x = [1, 2, 3]
+y = &x
+z = &x
+```
+
+`arc` is the same as `shared` but thread-safe, similar to `std::atomic_shared_ptr` in C++.
+```python
+arc x = [1, 2, 3]
+y = &x
+z = &x
+```
+
+`unique` is automatically deallocated when they go out of scope. `shared` and `arc` are automatically deallocated when the last reference to it goes out of scope.
+
+Unlike Rust, Hedgehog does not use lifetimes, so it is possible to create dangling references.
+
+```python
+def danger() {
+    x = [1, 2, 3]
+    return &x
 }
 ```
 
+In simple cases like the one above, Hedgehog will detect this and produce an error. In more complex cases, it is the programmer's responsibility to avoid this.
 
-### II. Unique/Shared Heap Allocation:
-
-If a reference to a variable escapes outside a function, it becomes a heap reference, with the variable being allocated on the heap. If only one owner can hold it at a given time, it is identical to a normal reference to a variable or an array. This is called a unique reference.
-
-However, if more than one owner can access it at a given time, it becomes a shared reference. Every shared reference has a reference count; this tracks the number of owners. When the number of owners goes to zero, it is deleted.
-
-In the following code, the attributes `#unique` and `#shared` are used to show variables that are unique and shared, respectively. They are used for demonstration only and are not part of the language.
-
-```c++
-i32 &r
-def unique_heap_alloc() {
-    i32 x = 0
-    r = &x
+```python
+u32 &critical(u32 (&x)[]) {
+    process(x)
+    handle(x)
+    return find(x, 0)
 }
 ```
-
-becomes
-
-```c++
-#unique i32 &r
-def unique_heap_alloc() {
-    #unique i32 x = 0
-    r = &x
-}
-```
-
-```c++
-i32 &r
-i32 &r2
-def shared_heap_alloc() {
-    i32 x = 0
-    r = &x
-    r2 = &x
-}
-```
-
-becomes
-
-```c+++
-#shared i32 &r
-#shared i32 &r2
-def shared_heap_alloc() {
-    #shared i32 x = 0
-    r = &x
-    r2 = &x
-}
-```
-
-### III. Heap Promotion:
-
-Refering to data on the heap, or by extension shared data, on the heap, is viral.
-
-If a reference points to something on the stack/a global variable, but in one instance is data from the heap, everything assigned to that reference becomes allocated on the heap. The same goes for shared references; if a reference is assigned to unique references, but in one instance is assigned to a shared reference, everything is converted into a shared reference. This applies anywhere, from variables to functions to classes.
-
-Function arguments are one-way in this sense: a function can require its arguments to be allocated on the heap, but a caller cannot affect the location of a function argument.
-
-```c++
-i32 &r
-def unique_heap_alloc() {
-    i32 x = 0
-    r = &x
-}
-i32 y = 0
-r = &y
-```
-
-becomes
-
-```c++
-#unique i32 &r
-def unique_heap_alloc() {
-    #unique i32 x = 0
-    r = &x
-}
-
-#unique i32 y = 0
-r = &y
-```
-Note how `y` is becomes `#unique`, even though it is not necessary.
-
-```c++
-i32 &r
-i32 &r2
-def shared_heap_alloc() {
-    i32 x = 0
-    r = &x
-    r2 = &x
-}
-i32 y = 0
-r = &y
-r2 = &y
-```
-
-becomes
-
-```c++
-#shared i32 &r
-#shared i32 &r2
-def shared_heap_alloc() {
-    #shared i32 x = 0
-    r = &x
-    r2 = &x
-}
-#shared i32 y = 0
-r = &y
-r2 = &y
-```
-Again, note how `y` is becomes `#shared`, even though it is not necessary.
-
-
-Perhaps the simplest example of Hedgehog's allocation system lies in a Hedgehog implementation of the C `malloc` function:
-
-```c++
-template <class T>
-def malloc(usize size) {
-    T data[size]
-    return &data
-}
-```
-
-Here, a reference to `data` escapes, forcing the Hedgehog compiler to allocate it on the heap.
-
-Hedgehog is designed to be at minimum faster than compiled garbage-collected languages like Go and to be able to compete with C++ as optimizations for allocations improve. Fast non-allocating code in Hedgehog should equal the performance of fast non-allocating code in C++.
+Here, it is possible to create a dangling reference without Hedgehog knowing.
 
 ## Linking to C/C++
 
-To use Hedgehog with C/C++, simply `import` the `.h` files and access the variables/functions/classes similarly as if it was a Hedgehog file. C header files must be surrounded with an `extern "C"`.
+To use Hedgehog with C/C++, simply `import` the `.h`/`.hpp` files and access the variables/functions/classes similarly as if it was a Hedgehog file. C header files must be surrounded with an `extern "C"`.
 
-To use C/C++ with Hedgehog, simply `#include` the `.h` files generated for each Hedgehog file and access the functions similarly as if it were C/C++. Functions in Hedgehog meant to export to C must be surrounded by an `#C` block, as described above.
+To use C/C++ with Hedgehog, simply `#include` the `.h`/`.hpp` files generated for each Hedgehog file and access the functions similarly as if it were C/C++. Functions in Hedgehog meant to export to C must be surrounded by an `#c` block, as described above.
 
-For streamlined compatibility, use `#include "hstdlib.h"` in C/C++ to be able to access (sized and unsized) references, arrays, lists, tuples, and dictionaries.
+For streamlined compatibility, use `#include "hstdlib.h"` in C/C++ to be able to access references, arrays, lists, tuples, and dictionaries.
 
-## Platforms and Requirements
+## Platform Requirements
 
 Hedgehog requires a C++11 compiler and the C standard libraries to run on a machine.
 
