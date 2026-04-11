@@ -6,15 +6,6 @@ The Hedgehog programming language is based on three core principles, listed in o
 ### I: As Powerful as C++ with the Simplicity of Python
 Make programming in Hedgehog and the resulting program as fast as possible.
 
-#### Ia: Memory Safety without Garbage Collection
-Hedgehog should have an 80% of the memory safety of Rust with 20% of the effort.
-
-#### Ib: No Undefined Behavior for Optimization
-Hedgehog bans undefined behavior when possible.
-
-#### Ic: Practicality beats Purity
-Hedgehog should be practical to use and implement, even if it means sacrificing some theoretical purity.
-
 ### II: Don't Reinvent the Wheel
 No drastic changes from C++ or Python; Hedgehog should look familiar and be easy to learn from either.
 
@@ -41,10 +32,16 @@ A single expression can be passed directly to `print`. More complex types are fo
 print(3 + 4)
 ```
 
-Similarly to Python, an `f` prefix before a string denotes a formatted string. Expressions in `{}` are evaluated and printed.
+Similarly to Python, an `f` prefix before a string denotes a formatted string (known as f-strings). Expressions in `{}` are evaluated and printed.
 
 ```python
 print(f"There are {4 * 5} ducks.")
+```
+
+F-strings can be modified, like in Python (look [here](https://docs.python.org/3/library/string.html#format-specification-mini-language) for the complete list).
+
+```python
+print(f"Two digits of pi: {3.14159:.2f}.")
 ```
 
 All standard control characters are supported.
@@ -52,6 +49,7 @@ All standard control characters are supported.
 ```python
 print("\n\t\a")
 ```
+
 
 ## Println
 
@@ -95,7 +93,7 @@ Variables types are automatically inferred by default. However, if you want to e
 | int | signed arbitrary-precision number | memory of machine |
 | uint | unsigned arbitrary-precision number | memory of machine |
 | f32 | 32-bit floating point number | -3.40 × 10<sup>38</sup> to 3.40 × 10<sup>38</sup> |
-| f64 | 64-bit floating point number | -1.80×10<sup>308</sup> to 1.80×10<sup>308</sup>|
+| f64 | 64-bit floating point number | -1.80 × 10<sup>308</sup> to 1.80 × 10<sup>308</sup>|
 | float | arbitrary-precision floating point number | memory of machine |
 | bool | 1 byte | 0 to 1 (`true` or `false`) |
 | char | unsigned 8-bit number | 0 to 255 (using ASCII) |
@@ -108,7 +106,7 @@ float j = 1
 uint k = 4674
 ```
 
-Numbers are inferred to be the smallest type possible, starting at `i32` for integers and `f32` for floating-point numbers. Arbitrary-precision types must always be explicitly set.
+Numbers are inferred to be the smallest type possible, with deduction starting at `i32` for integers and `f32` for floating-point numbers. Arbitrary-precision types must always be explicitly set.
 
 In debug mode, limited-precision integers will panic if they exceed their ranges.
 In release mode, limited-precision integers will wrap around in their ranges if they exceed them.
@@ -116,12 +114,12 @@ In release mode, limited-precision integers will wrap around in their ranges if 
 Floating-point numbers will always clamp at ∞ and -∞.
 
 `const` can be used to make a variable immutable.
-`volatile` can be use to tell the compiler a variable can change at any time externally.
+`volatile` can be used to tell the compiler a variable can change at any time externally.
 `constexpr` can be used to tell the compiler a variable's value can be computed at compile-time. 
 
 ## Arithmetic
 
-All standard arithmetic operators are supported with C++ precedence.
+All standard arithmetic operators are supported with C++ precedence (see [here](https://en.cppreference.com/w/cpp/language/operator_precedence)).
 
 ```python
 x = y + z - a
@@ -139,6 +137,15 @@ Increment (`++`) and decrement (`--`) are supported. Being before the variable m
 ```c++
 x++
 y = ++z
+```
+
+`++` and `--` can only be applied once to a variable, and that variable may not appear again in the statement.
+In expressions, `++`/`--`s are evaluated from left to right.
+In an assignment, the right-hand side is evaluated before the left-hand side.
+```c++
+x = i++ // ok
+y = x++ + x // error!
+z = y++ + y++ // error!
 ```
 
 ## Comments
@@ -171,7 +178,24 @@ while z {
 }
 ```
 
-`do-while` and `switch` statements are not supported.
+`switch` is supported like C++, with some differences.
+`break` is implicit at the end of the case.
+`continue` is supported to "fallthrough" to the next case.
+`case`s automatically are scoped.
+Every enum case needs to be handled in some way.
+```c++
+switch (x) {
+case 1:
+    println("low")
+case 2:
+    println("medium")
+case 3:
+    println("high")
+default:
+    println("unknown")
+}
+```
+The `do-while` statement is not supported.
 
 `and` is used to be `true` if both sides are true. `or` is used to be `true` if either side is true. Like Python and C++, they are short-circuiting and will not evaluate beyond what is necessary to determine the result.
 
@@ -202,6 +226,13 @@ print(foo(4))
 
 Nested functions are allowed, like Python but unlike C++. These are not closures, just scope-limited functions.
 
+To explicitly type the return value, replace `def` with it. `void` is used for functions not returning anything, like C++.
+```
+i32 foo(i32 bar) {
+    return bar * 32 + 4
+}
+```
+
 ## Arrays and Lists
 
 An array is declared by adding square brackets with the size after the variable name. Square brackets are also used to initialize it, similar to Python but different than C++.
@@ -210,7 +241,7 @@ An array is declared by adding square brackets with the size after the variable 
 a[4] = [1, 2, 3, 4]
 ```
 
-To declare a list (variable size array), put a `*` inside the brackets.
+To declare a list (variable-size array), put a `*` inside the brackets.
 
 ```c++
 constants[*] = [0.0, 3.14, 6.28]
@@ -460,15 +491,16 @@ def func() {
     return { value = y; x }
 }
 
-for i = 0; i < 10; { i++; value++ }
+for i = 0; i < 10; { i++; value++ } {
     println(f"i: {i}\nvalue: {value}")
+}
 ```
 
 ## Classes
 
 Classes are declared with the keyword `class`. All variables in a class must be typed.
 
-The `__init__` method serves as the constructor, while the `__del__` method serves as the destructor. By default, the constructor initializes all the members in the order they are declared, like the default constructor of C++.
+The `__init__` method serves as the constructor. By default, the constructor initializes all the members in the order they are declared, like the default constructor of C++.
 
 Unlike Python and like C++, you don't need to use `self`/`this` to access members of a class.
 ```python
@@ -505,6 +537,43 @@ public:
 Private usage outside defaults to a **warning**.
 
 There is no inheritance or polymorphism in Hedgehog. It is recommended to use composition instead.
+
+Hedgehog supports other `__*__` methods (known as dunder methods).
+
+| Method | Description | Default? |
+|--------|-------------|----------|
+| `Object __add__(Object y)` | `+` operator | No |
+| `Object __sub__(Object y)` | `-` operator | No |
+| `Object __mul__(Object y)` | `*` operator | No |
+| `Object __div__(Object y)` | `/` operator | No |
+| `Object __mod__(Object y)` | `%` operator | No |
+| `Object __eq__(Object y)` | `==` operator | No |
+| `bool __ne__(Object y)` | `!=` operator | No |
+| `bool __lt__(Object y)` | `<` operator | No |
+| `bool __le__(Object y)` | `<=` operator | No |
+| `bool __gt__(Object y)` | `>` operator | No |
+| `bool __ge__(Object y)` | `>=` operator | No |
+| `usize __len__()` | `len` function | No |
+| `void __del__()` | destructor | No |
+| `i32 __print__(File &stream)` | `print` function/f-string within | Yes |
+| `char (&)[*] __str__()` | f-strings | Yes |
+
+Operator overloading should only be used if it logically makes sense to perform arithmetic (for example, `+` for adding two matrices).
+These should be quick and efficient, as no one expects `+` to be slow.
+For other applications/speeds, please define a member function.
+
+Hedgehog will automatically generate `__print__` and `__str__` to output objects in the format `ClassName(member=value, ...)`.
+It is recommended to stick to this format if you choose to implement your own `__print__` and `__str__` for consistency.
+`__print__` is called by `print`/f-strings in `print`; `__str__` is called by f-strings in other context.
+This allows for greater optimization, as `__print__` can directly write to the console.
+
+## Typedefs
+
+`typedef` creates an alias for a type, similar to C++. Unlike C++, they are **distinct** types, but will implicitly convert to one another.
+References, arrays, lists, and other complex types cannot be `typedef`ed.
+```
+typedef u32 StdInt
+```
 
 ## Tuples
 
@@ -545,7 +614,7 @@ enum Color : i32 {
 
 ## Compiler Directives
 
-Compiler directives are catagorized into three catagories.
+Compiler directives are categorized into three categories.
 
 | Sigil | Description | Explanation |
 |-------|-------------| ----------- |
@@ -592,7 +661,7 @@ if (x != 0) {
 }
 ```
 
-`#asm` allows for a programmer to directly use GCC-style inline assembly. Support is guarenteed for backend compilers supporting it.
+`#asm` allows for a programmer to directly use GCC-style inline assembly. Support is guaranteed for backend compilers supporting it.
 ```
 i32 result
 #asm {
@@ -691,11 +760,11 @@ print(len(l)) // 4
 print(sizeof(l)) // 16
 ```
 
-`panic(message)` prints `message` and fails at runtime.
+`error(message)` prints `message` and fails at runtime.
 Hedgehog uses it internally for out-of-memory errors, index out of bounds, and other unrecoverable errors.
 ```c++
 if error {
-    panic("An error occurred!")
+    error("An error occurred!")
 }
 ```
 
@@ -858,7 +927,10 @@ For streamlined compatibility, use `#include "hstdlib.h"` in C/C++ to be able to
 
 ## Platform Requirements
 
-Hedgehog requires a C++11 compiler and the C standard libraries to run on a machine.
+Hedgehog requires the C standard libraries.
+
+Hedgehog's C++ backend requires a C++11 compiler.
+Hedgehog's QBE backend requires an installation of QBE.
 
 ## Appendix A: Hedgehog Standard Library Reference
 
@@ -1144,7 +1216,7 @@ def arr_of_ref(u32 &i[10]) {
 
 ### Classes
 
-Members of a class must be defined with their types inside a class. They are automatically inititalized in order, so you don't need to write an `__init__` method unless more functionality is required. `self` is used to access the members, although it does not need to be declared as an argument.
+Members of a class must be defined with their types inside a class. They are automatically initialized in order, so you don't need to write an `__init__` method unless more functionality is required. `self` is used to access the members, although it does not need to be declared as an argument.
 
 Python:
 ```python
