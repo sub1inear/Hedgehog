@@ -78,7 +78,7 @@ x = "Hello, World"
 
 ## Types
 
-Variables types are automatically inferred by default. However, if you want to explicitly set a type, it is appended before the variable name.
+Variable types are automatically inferred by default. However, if you want to explicitly set a type, it is appended before the variable name.
 
 | Name | Size | Range |
 |------|------|-------|
@@ -197,7 +197,7 @@ default:
 ```
 The `do-while` statement is not supported.
 
-`and` is used to be `true` if both sides are true. `or` is used to be `true` if either side is true. Like Python and C++, they are short-circuiting and will not evaluate beyond what is necessary to determine the result.
+`and` evaluates to `true` if both sides are true. `or` evaluates to `true` if either side is true. Like Python and C++, they are short-circuiting and will not evaluate beyond what is necessary to determine the result.
 
 ```python
 if x > 3 and y > 4 {
@@ -257,7 +257,7 @@ Literals default to using `[]`.
 l = [5, 6, 7, 8]
 ```
 
-Items can be added to to lists with `.append()`, similar to Python.
+Items can be added to lists with `.append()`, similar to Python.
 
 ```python
 constants.append(23.14)
@@ -324,7 +324,7 @@ def func(i32 i) {
 
 ## References
 
-References can be used access/change something but not pass it by value. A reference is declared by an `&`.
+References can be used to access/change something but not pass it by value. A reference is declared by an `&`.
 
 ```python
 a[4] = [ 1, 2, 3, 4 ]
@@ -770,7 +770,7 @@ if error {
 
 ## Import
 
-Importing a another Hedgehog file is done with the `import` keyword, similar to Python. The `.hhg` is omitted. To access the contents, use the import name and the `.` operator.
+Importing another Hedgehog file is done with the `import` keyword, similar to Python. The `.hhg` is omitted. To access the contents, use the import name and the `.` operator.
 
 ```python
 import module
@@ -784,7 +784,7 @@ c = module.Class()
 
 ## Templates
 
-Templates have a similar syntax to C++. `class` is always used instead `typename`.
+Templates have a similar syntax to C++. `class` is always used instead of `typename`.
 
 ```c++
 template <class T>
@@ -826,7 +826,7 @@ Much better.
 ## Borrow Checker
 
 Hedgehog uses a borrow checker to manage memory, similar to Rust.
-Hedgehog aims for a 80%/20% split of memory safety; that is, Hedgehog has 80% of Rust's memory safety at 20% of the complexity.
+Hedgehog aims for an 80%/20% split of memory safety; that is, Hedgehog has 80% of Rust's memory safety at 20% of the complexity.
 
 ```python
 x = [1, 2, 3]
@@ -839,7 +839,7 @@ x = [1, 2, 3]
 y = &const x
 z = &const x
 ```
-You have have as many immutable references as you want, but only one mutable reference.
+You can have as many immutable references as you want, but only one mutable reference.
 ```python
 x = [1, 2, 3]
 y = &x
@@ -1141,7 +1141,7 @@ Normally, use the type inference and don't worry about types. However, if it bec
 
 ### Lists and Arrays
 
-List are declared by adding `[]` after the variable name.
+Lists are declared by adding `[]` after the variable name.
 
 Arrays are lists with a specific size. They are faster than lists because of this. To use an array, add square brackets with a max size or omit the square brackets altogether to automatically count array elements to determine its size.
 
