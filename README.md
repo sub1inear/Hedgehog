@@ -6,6 +6,15 @@ The Hedgehog programming language is based on three core principles, listed in o
 ### I: As Powerful as C++ with the Simplicity of Python
 Make programming in Hedgehog and the resulting program as fast as possible.
 
+#### Ia: Memory Safety without Garbage Collection
+Hedgehog should have an 80% of the memory safety of Rust with 20% of the effort.
+
+#### Ib: No Undefined Behavior for Optimization
+Hedgehog bans undefined behavior when possible.
+
+#### Ic: Practicality beats Purity
+Hedgehog should be practical to use and implement, even if it means sacrificing some theoretical purity.
+
 ### II: Don't Reinvent the Wheel
 No drastic changes from C++ or Python; Hedgehog should look familiar and be easy to learn from either.
 
@@ -88,7 +97,7 @@ Variables types are automatically inferred by default. However, if you want to e
 | f32 | 32-bit floating point number | -3.40 × 10<sup>38</sup> to 3.40 × 10<sup>38</sup> |
 | f64 | 64-bit floating point number | -1.80×10<sup>308</sup> to 1.80×10<sup>308</sup>|
 | float | arbitrary-precision floating point number | memory of machine |
-| bool | unsigned 8-bit number | 0 to 1 (`true` or `false`) |
+| bool | 1 byte | 0 to 1 (`true` or `false`) |
 | char | unsigned 8-bit number | 0 to 255 (using ASCII) |
 | usize | unsigned number able to store the maximum memory of machine | platform-specific |
 | isize | signed number able to store the maximum memory of machine | platform-specific |
@@ -101,10 +110,13 @@ uint k = 4674
 
 Numbers are inferred to be the smallest type possible, starting at `i32` for integers and `f32` for floating-point numbers. Arbitrary-precision types must always be explicitly set.
 
-Limited-precision integers will wrap around in their ranges if they exceed them. Floating-point numbers will clamp at ∞ and -∞.
+In debug mode, limited-precision integers will panic if they exceed their ranges.
+In release mode, limited-precision integers will wrap around in their ranges if they exceed them.
+
+Floating-point numbers will always clamp at ∞ and -∞.
 
 `const` can be used to make a variable immutable.
-
+`volatile` can be use to tell the compiler a variable can change at any time externally.
 `constexpr` can be used to tell the compiler a variable's value can be computed at compile-time. 
 
 ## Arithmetic
@@ -165,7 +177,7 @@ while z {
 
 ```python
 if x > 3 and y > 4 {
-    print("Settings achieved")
+    println("Settings achieved")
 }
 ```
 
@@ -173,13 +185,13 @@ if x > 3 and y > 4 {
 
 ```python
 if not x {
-    print("x was false.")
+    println("x was false.")
 }
 ```
 
 ## Functions
 
-Functions are declared with the `def` keyword. While the return type is always inferred, the arguments must have explicit types.
+Functions are declared with the `def` keyword. The arguments must have explicit types.
 
 ```python
 def foo(i32 bar) {
@@ -188,7 +200,7 @@ def foo(i32 bar) {
 print(foo(4))
 ```
 
-Nested functions are allowed, like Python but unlike C++.
+Nested functions are allowed, like Python but unlike C++. These are not closures, just scope-limited functions.
 
 ## Arrays and Lists
 
@@ -229,16 +241,10 @@ print(a[i])
 
 Array/list indexes are checked for overflow automatically in debug mode.
 
-Unlike C++ and Python, arrays/lists are first-class objects. Assigning an array/list to another will copy it. You can also pass in arrays/lists by value and return them.
+To get the length of an array/list, use the `len` built-in function.
+
 ```python
-b = [ 5, 6, 7, 8 ]
-a = b
-def array(u32 b[4]) {
-    return [ 1, 2, 4, 8, 16 ]
-}
-u32[*] list(u32 b[*]) {
-    return [ 1, 2, 4, 8, 16 ]
-}
+print(len(a))
 ```
 
 ## For Loops
@@ -264,20 +270,6 @@ The `for` loop can also be declared similarly to C++. This is intended for more 
 ```python
 for i = x; i < y; i++ {
     print(i)
-}
-```
-
-
-`else` can be used after a `for` loop to only run a statement if `break` is not called.
-
-```c++
-for x in items {
-    if x == y {
-        print("Found.")
-        break
-    }
-} else {
-    print("Not found.")
 }
 ```
 
@@ -329,6 +321,11 @@ def arr_of_ref(u32 &i[10]) {
 }
 ```
 
+Function references are declared similarly to C++.
+```c++
+i32 (&func)(i32 x, i32 y) = ...
+```
+
 ## Casting
 
 Casting is done by calling the new type as a function and passing it the old type.
@@ -338,7 +335,7 @@ f32(10)
 ```
 
 In Hedgehog, casting rules are significantly strengthened. In expressions, nothing will ever be automatically promoted.
-This fixes mistakes like:
+
 ```c++
 i32 x = -1
 u32 y = 1
@@ -348,10 +345,10 @@ if x > y {
     println("-1 <= 1")
 }
 ```
-In this example, with C++ casting rules, `x` is promoted to `u32`, becoming `4294967295` because of two's complement, and so `-1 > 1`.
-Hedgehog forces the programmer to explicity cast `x` to `u32` if they want this behavior, which makes it clear that this is happening.
+With C++ casting rules, `x` is promoted to `u32`, becoming `4294967295` because of two's complement, and so `-1 > 1`.
+In Hedgehog, the above code will cause an error, forcing you to specify which variable to cast.
 
-To fix the above code, cast `y` to `i32`:
+To correctly compare, cast `y` to `i32`:
 ```c++
 if x > i32(y) {
     println("-1 > 1")
@@ -390,13 +387,13 @@ Nested dictionaries can occur only with value. Dictionaries are unordered.
 
 Variables and arrays can be declared without being defined, causing their contents to be undefined. However, this can only occur in the case that Hedgehog can prove that the variable is not accessed uninitialized.
 For example, this is acceptable:
-```
+```c++
 u32 &r
 x = 0
 r = &x
 ```
 but this will cause an error:
-```
+```c++
 def danger() {
     u32 x
     return x
@@ -445,11 +442,7 @@ All statements are actually expressions! The value of the expression is its last
 This allows an `if` statement to act like a ternary operator (`?:`) in C++.
 
 ```python
-dx =
-    if input == "forward"
-        1
-    else
-        -1
+dx = if input == "forward" { 1 } else { -1 }
 ```
 
 A `for` loop can be used inside an array/list to dynamically set its contents, similar to list comprehension in Python.
@@ -468,12 +461,12 @@ def func() {
 }
 
 for i = 0; i < 10; { i++; value++ }
-    print(f"i: {i}\nvalue: {value}")
+    println(f"i: {i}\nvalue: {value}")
 ```
 
 ## Classes
 
-Classes are declared with the keyword `class`. All members of a class are public.  All variables in a class must be typed.
+Classes are declared with the keyword `class`. All variables in a class must be typed.
 
 The `__init__` method serves as the constructor, while the `__del__` method serves as the destructor. By default, the constructor initializes all the members in the order they are declared, like the default constructor of C++.
 
@@ -495,6 +488,23 @@ class Player {
 player = Player(1, 1, 3)
 print(player)
 ```
+
+Class variables default to public, like Python. To explicitly set a variable's visibility, use `public:` or `private:`, like C++.
+
+```c++
+class Encapsulated {
+private:
+    f32 a
+    f32 b
+    f32 c
+public:
+    bool f
+}
+```
+
+Private usage outside defaults to a **warning**.
+
+There is no inheritance or polymorphism in Hedgehog. It is recommended to use composition instead.
 
 ## Tuples
 
@@ -543,18 +553,18 @@ Compiler directives are catagorized into three catagories.
 | `@` | Attribute | Modifies a function, variable, or type. |
 | ` ` | Built-in Function | A function provided by Hedgehog that is built-in to the language. |
 
-### Compile-Time Statements
+### Compile-Time Statements/Constants
 
 `#if`, `#else if`, and `#else` are similar to normal `if`-statements, except they are evaluated at compile-time and only the taken branch is compiled, similar to `if constexpr` in C++.
 
 ```c++
 const x = 1
 #if x == 1 {
-    print("x == 1")
+    print("x == 1\n")
 } #else if x == 2 {
-    print("x == 2")
+    print("x == 2\n")
 } #else {
-    print("x != 1 and x != 2")
+    print("x != 1 and x != 2\n")
 }
 ```
 
@@ -562,6 +572,11 @@ const x = 1
 ```c++
 x = 1
 #run x = 2
+```
+
+For simplicity, `constexpr` variables will always use `#run`.
+```c++
+constexpr u32 x = func()
 ```
 
 `#error(message)` prints `message` when encountered and fails to compile.
@@ -625,18 +640,20 @@ def swap(i32 &a, i32 &b) {
 }
 ```
 
-`@unroll(times)` provides a hint to the compiler to unroll a loop `times` many iterations.
+`@unroll(times)` tells the compiler to unroll a loop `times` many iterations.
 ```c++
 @unroll(10)
-for i in range(10)
+for i in range(10) {
     print(i)
+}
 ```
 
 `@parallel` makes a loop parallel, when possible.
 ```c++
 @parallel
-for i in range(10)
+for i in range(10) {
     print(i)
+}
 ```
 
 `@noreturn` marks a function as not returning.
@@ -647,8 +664,9 @@ for i in range(10)
 
 `@align(alignment)` ensures a variable is aligned at `alignment`.
 
-`@fmt` allows a function to take a format string as C-style with variadic arguments.
-`@scan` allows a function to take a scan string as C-style with variadic arguments.
+`@fmt` allows a function to take a format string as C-style with variadic arguments for optimization.
+
+`@scan` allows a function to take a scan string as C-style with variadic arguments for optimization.
 
 ### Built-In Functions
 
@@ -663,6 +681,21 @@ print(sizeof(u32))
 ```c++
 #if typeof(x) == u32 {
     print("x is a u32.")
+}
+```
+
+As discussed above, `len(obj)` gets the length of an array/list. `len` counts **elements**, not **size**.
+```c++
+l = [1, 2, 3, 4]
+print(len(l)) // 4
+print(sizeof(l)) // 16
+```
+
+`panic(message)` prints `message` and fails at runtime.
+Hedgehog uses it internally for out-of-memory errors, index out of bounds, and other unrecoverable errors.
+```c++
+if error {
+    panic("An error occurred!")
 }
 ```
 
@@ -690,11 +723,42 @@ def add(T a, T b)
     return a + b
 ```
 
-Unlike C++, templates cannot recursively instantiate themselves. This is intended to prevent template metaprogramming that is generally less understandable and can be replaced with `#run`.
+Unlike C++, templates cannot recursively instantiate themselves. This is intended to prevent template metaprogramming that is generally less understandable and can be replaced with compile-time execution.
+However, a `class` can always instantiate itself, so recursive data structures are possible.
+
+```
+template <>
+def fibonacci<0>() {
+    return 1
+}
+template <u32 N>
+def fibonacci() {
+    return N * fibonacci<N - 1>()
+}
+
+u32 result = fibonacci<10>()
+```
+This example calculates the 10th Fibonacci number at compile-time.
+However, because of Hedgehog's rules limited template wizardry, this will not compile.
+
+The correct way is to use Hedgehog's compile-time execution features:
+```
+def fibonacci(u32 n) {
+    if n == 0 {
+        return 1
+    } else {
+        return n * fibonacci(n - 1)
+    }
+}
+constexpr u32 result = fibonacci(10)
+```
+Much better.
 
 ## Borrow Checker
 
 Hedgehog uses a borrow checker to manage memory, similar to Rust.
+Hedgehog aims for a 80%/20% split of memory safety; that is, Hedgehog has 80% of Rust's memory safety at 20% of the complexity.
+
 ```python
 x = [1, 2, 3]
 y = x
@@ -712,9 +776,17 @@ x = [1, 2, 3]
 y = &x
 ```
 
-To allocate something on the heap, use `unique`, `shared`, or `arc`.
+To copy an object, use `.copy()`. The resulting object can have a new owner.
+```
+x = [1, 2, 3]
+y = x.copy()
+a = &x
+b = &y
+```
 
-`unique` is similar to `std::unique_ptr` in C++. It allocates memory on the heap, but only one variable can own it at a time.
+To allocate something on the heap, use `unique`, `shared`, `arc`, or `weak`.
+
+`unique` is similar to `std::unique_ptr` in C++. It allocates memory on the heap. Only one owner can mutably reference it at a time.
 ```python
 def func() {
     unique x = [1, 2, 3]
@@ -722,7 +794,7 @@ def func() {
 }
 ```
 
-`shared` is similar to `std::shared_ptr` in C++. It allocates and reference counts memory on the heap, so multiple variables can own it at a time. It is not thread-safe.
+`shared` is similar to `std::shared_ptr` in C++. It allocates and reference counts memory on the heap. Multiple owners can mutably reference it at a time. It is not thread-safe.
 
 ```python
 shared x = [1, 2, 3]
@@ -735,6 +807,12 @@ z = &x
 arc x = [1, 2, 3]
 y = &x
 z = &x
+```
+
+`weak` is similar to `std::weak_ptr` in C++. It is used to break reference cycles caused by `std::shared_ptr`.
+```
+shared x = [1, 2, 3]
+weak y = &x
 ```
 
 `unique` is automatically deallocated when they go out of scope. `shared` and `arc` are automatically deallocated when the last reference to it goes out of scope.
@@ -758,6 +836,17 @@ u32 &critical(u32 (&x)[]) {
 }
 ```
 Here, it is possible to create a dangling reference without Hedgehog knowing.
+
+## Unsafe
+
+The `unsafe` keyword allows you to bypass all safety features of Hedgehog.
+```python
+unsafe {
+    x = [1, 2, 3]
+    print(x[10])
+}
+```
+This **will compile**, so be careful!
 
 ## Linking to C/C++
 
@@ -793,19 +882,11 @@ File for errors.
 ### Functions
 `i32 print(const char (&str)[])`
 
-`i32 print(#attr(fmt) const char (&fmt)[])`
+`i32 print(@fmt const char (&fmt)[])`
 
 `template <class T> i32 print(T obj)`
 
 Prints a string, format string, or object to the console. Returns number of characters printed on success or `EOF` on error.
-
-`i32 println(const char (&str)[])`
-
-`i32 println(#attr(fmt) const char (&fmt)[])`
-
-`template <class T> i32 println(T obj)`
-
-Prints a string, format string, or object to the console along with a newline. Returns number of characters printed on success or `EOF` on error.
 
 `char, bool read()`
 
@@ -813,7 +894,7 @@ Prints a string, format string, or object to the console along with a newline. R
 
 Reads a character or an array of characters from `stdin`. If an error occurs, `bool` is `true` and `char` is undefined.
 
-`i32 scan(#attr(scan) const char (&fmt)[])`
+`i32 scan(@scan const char (&fmt)[])`
 
 Scans `stdin` with a scan string. Returns number of variables written to or `EOF` on error.
 
@@ -925,7 +1006,7 @@ Scans `stdin` with a scan string. Returns number of variables written to or `EOF
 
 &emsp; Reads an array of objects from a file. If an error occurs, `bool` is `true` and `T[count]` is undefined.
 
-&emsp; `i32 scan(#attr(scan) const char (&fmt)[])`
+&emsp; `i32 scan(@scan const char (&fmt)[])`
 
 &emsp; Scans file with a scan string. Returns number of variables written to or `EOF` on error.
 
@@ -935,19 +1016,11 @@ Scans `stdin` with a scan string. Returns number of variables written to or `EOF
 
 &emsp; `i32 print(const char (&str)[])`
 
-&emsp; `i32 print(#attr(fmt) const char (&fmt)[])`
+&emsp; `i32 print(@fmt const char (&fmt)[])`
 
 &emsp; `template <typename T> i32 print(T obj)`
 
 &emsp; Prints a string, format string, or object to the file. Returns number of characters printed on success or `EOF` on error.
-
-&emsp; `i32 println(const char (&str)[])`
-
-&emsp; `i32 println(#attr(fmt) const char (&fmt)[])`
-
-&emsp; `template <typename T> i32 println(T obj)`
-
-&emsp; Prints a string, format string, or object to the file along with a newline. Returns number of characters printed on success or `EOF` on error.
 
 &emsp; `i32 unget(char c)`
 
@@ -984,7 +1057,6 @@ Scans `stdin` with a scan string. Returns number of variables written to or `EOF
 ### Printing
 
 `print` prints a string with no newline.
-`println` prints a string with a newline (similar to `print` in Python).
 
 ### Types
 In Hedgehog, the types of variables cannot change. Integers are sized, and can wrap around if they exceed their ranges. To use multiple precision types (the default Python behavior), use `int` or `float` before the variable name.
@@ -1112,5 +1184,6 @@ The following languages influenced the design of Hedgehog:
  * Go
  * Odin
  * C#
+ * And many more!
 
 To all of the inventors and visionaries, thank you for your incredible languages!
