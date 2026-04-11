@@ -114,8 +114,8 @@ In release mode, limited-precision integers will wrap around in their ranges if 
 Floating-point numbers will always clamp at ∞ and -∞.
 
 `const` can be used to make a variable immutable.
-`volatile` can be used to tell the compiler a variable can change at any time externally.
-`constexpr` can be used to tell the compiler a variable's value can be computed at compile-time. 
+`volatile` can be used to tell the compiler that a variable can change at any time externally.
+`constexpr` can be used to tell the compiler that a variable's value can be computed at compile-time. 
 
 ## Arithmetic
 
@@ -389,10 +389,13 @@ if x > i32(y) {
 ```
 Which will print `-1 <= 1` as expected.
 
-Typed variable declarations also allow casting. This is preferred over manually casting and using type inference.
+Typed variable declarations/return values also allow casting. This is preferred over manually casting and then using type inference.
 ```python
 x = 10
 u8 y = x
+f32 func() {
+    return 1
+}
 ```
 
 ## Dictionaries/Hash Maps
@@ -760,11 +763,14 @@ print(len(l)) // 4
 print(sizeof(l)) // 16
 ```
 
-`error(message)` prints `message` and fails at runtime.
-Hedgehog uses it internally for out-of-memory errors, index out of bounds, and other unrecoverable errors.
+`error(message)`/`warning(message)` are the runtime versions of `#error`/`#warning`. They print `message` and cause the program to exit with an error code (non-zero) or a warning code (zero), respectively.
+Hedgehog uses `error`s internally for out-of-memory errors, index out of bounds, and other unrecoverable errors.
 ```c++
 if error {
     error("An error occurred!")
+}
+if warning {
+    warning("A warning occurred!")
 }
 ```
 
