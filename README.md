@@ -234,8 +234,7 @@ Nested functions are allowed, like Python but unlike C++. These are not closures
 `inline` **forces** the compiler to inline a function.
 
 ```
-@inline
-def swap(i32 &a, i32 &b) {
+inline def swap(i32 &a, i32 &b) {
     tmp = a
     a = b
     b = tmp
