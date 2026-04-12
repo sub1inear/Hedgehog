@@ -117,7 +117,15 @@ void hhg_code_gen_run(hhg_code_gen_t *code_gen, hhg_mir_gen_t *mir_gen)
     case HHG_CFG_BACKEND_QBE:
         hhg_qbe_gen_backend_run(code_gen->backend, code_gen, mir_gen);
         break;
+    default:
+        hhg_compiler_error(
+            "unknown code generation backend type: %i",
+            code_gen->backend->type
+        );
+        break;
     }
+    // flush output to ensure ext_build can read it
+    fflush(code_gen->file);
 }
 
 void hhg_code_gen_backend_print(hhg_code_gen_backend_t *backend)
