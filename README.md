@@ -665,8 +665,8 @@ constexpr x = 1
 `#run` runs a statement at compile time. The changes made to variables are permanent.
 ```c++
 x = 1
-#run x = 2
-constexpr x = #run { func() }
+#run { x = 2 }
+constexpr y = #run { func() }
 ```
 
 `#error(message)` prints `message` when encountered and fails to compile.
