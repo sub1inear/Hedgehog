@@ -170,7 +170,7 @@ void hhg_cmd_args_parse(
         hhg_cmd_args_parse_repl(cfg, subargv, prog_name);
         break;
     default:
-        hhg_compiler_error("unknown subcommand: `%s`", subcmd_str);
+        hhg_fatal_error("unknown subcommand: `%s`", subcmd_str);
         break;
     }
 }
