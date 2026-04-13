@@ -1073,7 +1073,7 @@ Hedgehog's QBE backend requires an installation of QBE.
 
 The Hedgehog standard library is split into several modules.
 
-| Module | Description | Automatically Imported? | Required |
+| Module | Description | Automatically Imported? | Required? |
 |--------|-------------|-------------------------|----------|
 | `core` | Core functionality needed for Hedgehog to run | Yes | Yes |
 | `std` | Built-in high-level Hedgehog features (heap allocation, lists, etc.) and functions (`print`, etc.) | Yes | No |
