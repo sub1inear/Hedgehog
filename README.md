@@ -602,7 +602,7 @@ typedef u32 int_t
 
 ## Tuples
 
-Tuples are declared by a comma separated list of items within a tuple. Unlike Python and like C++, they are mutable.
+Tuples are declared by a comma separated list of items within parentheses. Unlike Python and like C++, they are mutable.
 
 ```python
 t = (1, 2.0, '3')
