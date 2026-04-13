@@ -117,7 +117,7 @@ Floating-point numbers will always clamp at ∞ and -∞.
 `volatile` can be used to tell the compiler that a variable can change at any time externally.
 `constexpr` can be used to tell the compiler that a variable's value can be computed at compile-time.
 
-`'`s declare a character literal, unlike Python.
+`'`s declare a character literal, like C++ but unlike Python.
 ```python
 char x = 'h'
 ```
