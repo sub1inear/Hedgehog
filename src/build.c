@@ -151,17 +151,14 @@ bool hhg_build(hhg_cfg_t *cfg, hhg_arena_t *arena)
 
     // 4th stage: code generation
     hhg_code_gen_t code_gen;
-    hhg_code_gen_backend_t *backend =
-        hhg_code_gen_backend_new(arena, cfg->build.backend);
     hhg_code_gen_init(
         &code_gen,
-        backend,
-        cfg->build.entry,
+        cfg->build.backend,
         cfg->build.out_dir,
         arena
     );
 
-    hhg_code_gen_run(&code_gen, &mir_gen);
+    hhg_code_gen_run(&code_gen, &mir_gen, cfg->build.entry);
     
     hhg_build_check_exit_result_t code_gen_result = hhg_build_check_exit(
         cfg,
@@ -189,7 +186,7 @@ bool hhg_build(hhg_cfg_t *cfg, hhg_arena_t *arena)
     hhg_ext_build_run(
         &ext_build,
         &code_gen,
-        cfg->build.backend
+        cfg->project.name
     );
 
     hhg_build_check_exit_result_t ext_build_result =

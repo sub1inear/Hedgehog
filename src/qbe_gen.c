@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #include "qbe_gen.h"
 #include "code_gen.h"
 #include "cfg.h"
@@ -24,17 +26,18 @@ hhg_code_gen_backend_t *hhg_qbe_gen_backend_new(hhg_arena_t *arena)
 void hhg_qbe_gen_backend_run(
     hhg_code_gen_backend_t *backend,
     hhg_code_gen_t *code_gen,
-    hhg_mir_gen_t *mir_gen
+    hhg_mir_gen_t *mir_gen,
+    FILE *file
 )
 {
-    HHG_UNUSED(backend, mir_gen);
+    HHG_UNUSED(backend, code_gen, mir_gen);
     fputs(
         "export function w $main(w %argc, l %argv) {\n"
         "    @start\n"
         "        ret 0\n"
         "    }\n"
         "}\n",
-        code_gen->file
+        file
     );
 }
 void hhg_qbe_gen_backend_print(hhg_code_gen_backend_t *backend)

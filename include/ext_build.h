@@ -20,7 +20,7 @@ void hhg_ext_build_init(
 void hhg_ext_build_run(
     hhg_ext_build_t *ext_build,
     hhg_code_gen_t *code_gen,
-    hhg_cfg_backend_t backend
+    const char *project_name
 );
 
 

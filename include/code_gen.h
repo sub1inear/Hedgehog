@@ -19,30 +19,25 @@ typedef struct hhg_code_gen_backend {
 
 typedef struct hhg_code_gen {
     hhg_code_gen_backend_t *backend;
-    char *filename/*[LIBFS_MAX_PATH]*/; // ex. "out/main.cpp"
-    char *module; // ex. "main"
-    FILE *file;
+    const char *out_dir;
+    const char **filenames;
     hhg_arena_t *arena;
 } hhg_code_gen_t;
 
-hhg_code_gen_backend_t *hhg_code_gen_backend_new(
-    hhg_arena_t *arena,
-    hhg_cfg_backend_t type
-);
-
 void hhg_code_gen_init(
     hhg_code_gen_t *gen,
-    hhg_code_gen_backend_t *backend,
-    const char *in_filename,
+    hhg_cfg_backend_t backend_type,
     const char *out_dir,
     hhg_arena_t *arena
 );
 
-void hhg_code_gen_run(hhg_code_gen_t *code_gen, hhg_mir_gen_t *mir_gen);
+void hhg_code_gen_run(
+    hhg_code_gen_t *code_gen,
+    hhg_mir_gen_t *mir_gen,
+    const char *in_filename
+);
 
 void hhg_code_gen_backend_print(hhg_code_gen_backend_t *backend);
-
-void hhg_code_gen_backend_free(hhg_code_gen_backend_t *backend);
 
 void hhg_code_gen_del(hhg_code_gen_t *gen);
 

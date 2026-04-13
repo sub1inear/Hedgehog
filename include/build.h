@@ -1,5 +1,5 @@
-#ifndef HHG_RUN_H
-#define HHG_RUN_H
+#ifndef HHG_BUILD_H
+#define HHG_BUILD_H
 
 #include <stdbool.h>
 

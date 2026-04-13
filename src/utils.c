@@ -62,7 +62,9 @@ int hhg_utils_system(const char *fmt, ...)
     
     va_end(args);
 
-    return system(cmd);
+    int result = system(cmd);
+    hhg_free(cmd);
+    return result;
 #endif
 }
 
