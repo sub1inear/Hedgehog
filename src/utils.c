@@ -9,8 +9,6 @@
 #include "msg.h"
 #include "utils.h"
 
-// #define HHG_DEBUG_SYSTEM
-
 FILE *hhg_utils_fopen(const char *filename, const char *mode)
 {
     FILE *file = fopen(filename, mode);
