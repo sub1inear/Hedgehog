@@ -2,7 +2,7 @@
 
 ## Introduction
 Hedgehog is a general-purpose systems programming language.
-It is designed on three core principles, listed in order of importance.
+It is designed on three core principles, listed in order of importance (I > II > III).
 
 ### I: As Powerful as C++ with the Simplicity of Python and the Safety of Rust
 Make programming in Hedgehog and the resulting program as fast as possible, while maintaining safety.
@@ -76,18 +76,6 @@ x = 3
 x = "Hello, World"
 ```
 
-## Comments
-
-`//` denotes a one line comment. `/*` denotes a multi-line comment, with `*/` ending it.
-```c++
-// This comment is one line.
-
-/*
-The comment is very long,
-and so it needs more than one line.
-*/
-```
-
 ## Types
 
 Variable types are automatically inferred by default. However, if you want to explicitly set a type, it is appended before the variable name.
@@ -127,7 +115,24 @@ Floating-point numbers will always clamp at ∞ and -∞.
 
 `const` can be used to make a variable immutable.
 `volatile` can be used to tell the compiler that a variable can change at any time externally.
-`constexpr` can be used to tell the compiler that a variable's value can be computed at compile-time. 
+`constexpr` can be used to tell the compiler that a variable's value can be computed at compile-time.
+
+`'`s declare a character literal, unlike Python.
+```python
+char x = 'h'
+```
+
+## Comments
+
+`//` denotes a one line comment. `/*` denotes a multi-line comment, with `*/` ending it.
+```c++
+// This comment is one line.
+
+/*
+The comment is very long,
+and so it needs more than one line.
+*/
+```
 
 ## Arithmetic
 
@@ -185,15 +190,12 @@ Empty `case`s fallthrough automatically.
 `case`s automatically are scoped.
 Every enum case needs to be handled in some way.
 ```c++
-switch (x) {
+switch x {
 case 0:
 case 1:
     println("low")
 case 2:
     println("medium")
-case 4:
-    print("severely ")
-    fallthrough
 case 3:
     println("high")
 default:
@@ -288,7 +290,8 @@ print(len(a))
 
 ## Strings
 
-Strings are represented as null-terminated `char` arrays/lists with extended functionality.
+Strings are represented as `char` arrays (static strings) or lists (dynamic strings).
+Both types are null-terminated; lists also track their length.
 
 ## For Loops
 
@@ -309,7 +312,7 @@ for x in constants {
 ```
 
 
-The `for` loop can also be declared similarly to C++. This is intended for more complex loops, like iterating with a step or incrementing multiple variables.
+The `for` loop can also be declared similarly to C++. This is intended for **more complex loops**, like iterating with a step or incrementing multiple variables.
 ```python
 for i = x; i < y; i++ {
     print(i)
@@ -322,7 +325,7 @@ Like Python, code execution starts in the global scope. The function `main` is n
 
 ## Scope
 
-Variables declared in the global scope live forever. Variables declared inside a function/statement are only present inside it.
+Variables declared in the global scope live forever. Variables declared inside `{}` are only present inside it.
 
 ```python
 global_variable = 2
@@ -332,6 +335,15 @@ def func(i32 i) {
         inner_local_variable = 6
     }
 }
+```
+
+`{}` can be used on its own to limit the scope of variables.
+```python
+{
+    x = 5
+    print(x)
+}
+// x is not accessible here
 ```
 
 ## References
@@ -346,7 +358,7 @@ b = &a
 
 For arrays, put the size in the square brackets (e.g. `[4]`). This is known as a sized reference.
 To explicitly require lists, use `[*]`. This is known as a list reference.
-To take either arrays or lists, leave the square brackets empty (`[]`). This is known as an unsized reference.
+To take arrays or lists of any size, leave the square brackets empty (`[]`). This is known as an unsized reference.
 You must wrap the `&` and the variable in parenthesis to distinguish it from a list of references.
 
 ```
@@ -427,7 +439,7 @@ Accesses are the same as arrays/lists.
 d["!\n"] = 4
 ```
 
-Nested dictionaries can occur only with value. Dictionaries are unordered.
+Nested dictionaries can occur only with values. Dictionaries are unordered.
 
 ## Declaration
 
@@ -567,7 +579,7 @@ Hedgehog supports other `__*__` methods (known as dunder methods).
 | `bool __gt__(Object y)` | `>` operator | No |
 | `bool __ge__(Object y)` | `>=` operator | No |
 | `usize __len__()` | `len` function | No |
-| `u64 __hash__()` | hash function for dict keys | No |
+| `u64 __hash__()` | hash function for dictionary keys | No |
 | `void __del__()` | destructor | No |
 | `i32 __print__(File &stream)` | `print` function/f-string within | Yes |
 | `char (&)[*] __str__()` | f-strings | Yes |
@@ -655,11 +667,7 @@ constexpr x = 1
 ```c++
 x = 1
 #run x = 2
-```
-
-For simplicity, `constexpr` variables will always use `#run`.
-```c++
-constexpr u32 x = func()
+constexpr x = #run { func() }
 ```
 
 `#error(message)` prints `message` when encountered and fails to compile.
@@ -721,14 +729,6 @@ for i in range(10) {
 }
 ```
 
-`@parallel` makes a loop parallel, when possible.
-```c++
-@parallel
-for i in range(10) {
-    print(i)
-}
-```
-
 `@noreturn` marks a function as not returning.
 
 `@used` prevents a variable/function from being optimized away.
@@ -764,16 +764,11 @@ print(len(l)) // 4
 print(sizeof(l)) // 16
 ```
 
-`error(message)`/`warning(message)` are the runtime versions of `#error`/`#warning`. They print `message` and in the case of `error` exit.
+`error(message)` is the runtime version of `#error`. It prints `message` and exits the program.
 Hedgehog uses `error`s internally for out-of-memory, index out of bounds, and other unrecoverable errors.
-```c++
-if error {
-    error("An error occurred!")
-}
-if warning {
-    warning("A warning occurred!")
-}
-```
+`error` should only be used for unrecoverable errors; for recoverable errors, use `Result` instead, described below.
+
+In the Hedgehog REPL, `help(expr)` prints the documentation for `expr`.
 
 ## Import
 
@@ -791,42 +786,20 @@ c = module.Class()
 
 ## Variadic Functions
 
-Variadic functions are support with `...` syntax.
+Variadic functions are supported with `...` syntax.
+They are always typed.
+
 ```c++
 def sum(u32... args) {
     u32 total = 0
     for i in range(len(args)) {
-        total += args.arg<u32>()
+        total += args.get()
     }
     return total
 }
 
 println(sum(1, 2, 3, 4))
 ```
-
-`@fmt`/`@scan` are essentially variadic arguments.
-The core strings use the C format/scan string convention
-(see [here](https://en.cppreference.com/w/cpp/io/c/printf.html) for `@fmt` and [here](https://en.cppreference.com/w/cpp/io/c/scanf.html) for `@scan`).
-Because of this, the mapping between format specifiers can change based on the platform.
-They are mostly intended for use in the Hedgehog standard library.
-```python
-def print(@fmt const char (&fmt)[]) {
-    for i = 0; i < len(fmt); i++ {
-        c = fmt[i]
-        if c == '%' {
-            switch (fmt[i]++) {
-            case 'd':
-                print(fmt.arg<i32>())
-            ...
-            default:
-            }
-        } else {
-            printc(c)
-        }
-    }
-}
-```
-Variadic functions are only typesafe if a type is declared before `...`.
 
 ## Templates
 
@@ -860,10 +833,10 @@ def fibonacci() {
     return N * fibonacci<N - 1>()
 }
 
-result = fibonacci<10>()
+constexpr result = fibonacci<10>()
 ```
 This example calculates the 10th Fibonacci number at compile-time.
-However, because of Hedgehog's rules limited template wizardry, this will not compile.
+However, because of Hedgehog's rules limiting template wizardry, this will not compile.
 
 The correct way is to use Hedgehog's compile-time execution features:
 ```
@@ -874,7 +847,7 @@ def fibonacci(u32 n) {
         return n * fibonacci(n - 1)
     }
 }
-constexpr result = fibonacci(10)
+constexpr result = #run { fibonacci(10) }
 ```
 Much better.
 
@@ -894,83 +867,112 @@ This **will compile**, so be careful!
 Hedgehog uses a borrow checker to manage memory, similar to Rust.
 Hedgehog aims for an 80%/20% split of memory safety; that is, Hedgehog has 80% of Rust's memory safety at 20% of the complexity.
 
+Hedgehog's borrow checker tracks **ownership**. Only one object can own a value at a time. When the owner goes out of scope, the value is automatically deallocated.
+
+By default, primitives are copied on assignment.
+```python
+x = 5
+y = x
+z = x // ok
+```
+
+More complex types, like arrays, lists, dictionaries, and classes, are moved on assignment.
 ```python
 x = [1, 2, 3]
 y = x
+z = x // error! x has been moved to y
 ```
-Here, `x` is moved to `y`, and `x` becomes invalid.
+
+To explicitly copy a complex type, use the `copy` built-in function.
+```python
+x = [1, 2, 3]
+y = x.copy()
+z = x // ok
+```
+
+The borrow checker also tracks **references**.
+References are either immutable (`&const`) or mutable (`&`).
+Multiple immutable references can exist at a time, but only one mutable reference can exist at a time.
+Mutable and immutable references cannot coexist.
 
 ```python
 x = [1, 2, 3]
 y = &const x
 z = &const x
 ```
-You can have as many immutable references as you want, but only one mutable reference.
+
 ```python
 x = [1, 2, 3]
 y = &x
+y = &const x // error!
 ```
 
-To copy an object, use `.copy()`. The resulting object can have a new owner.
-```
-x = [1, 2, 3]
-y = x.copy()
-a = &x
-b = &y
-```
+By default, objects are allocated on the **stack**.
+This means that they will be automatically deallocated when they go out of scope.
+**Heap** allocations, on the other hand, can live beyond the scope of a single function.
+Hedgehog manages heap allocations through four smart pointer types: `unique`, `shared`, `arc`, and `weak`.
 
-To allocate something on the heap, use `unique`, `shared`, `arc`, or `weak`.
-
-`unique` is similar to `std::unique_ptr` in C++. It allocates memory on the heap. Only one owner can mutably reference it at a time.
+`unique` is similar to `std::unique_ptr` in C++ and `Box` in Rust.
+It uniquely owns a value on the heap, so no reference counting is needed.
 ```python
 def func() {
     unique x = [1, 2, 3]
-    return &x
+    return x
 }
 ```
 
-`shared` is similar to `std::shared_ptr` in C++. It allocates and reference counts memory on the heap. Multiple owners can mutably reference it at a time. It is not thread-safe.
-
+`shared` is similar to `std::shared_ptr` in C++ and `Rc` in Rust.
+It uses reference counting to allow for multiple owners of the same value on the heap.
+Use `.share()` to created a shared value to give to another variable.
 ```python
 shared x = [1, 2, 3]
-y = &x
-z = &x
+y = x.share()
+a = &y
+b = &y
 ```
 
-`arc` is the same as `shared` but thread-safe, similar to `std::atomic_shared_ptr` in C++.
+`arc` is the same as `shared` but thread-safe, similar to `std::atomic_shared_ptr` in C++ and `Arc` in Rust.
 ```python
 arc x = [1, 2, 3]
-y = &x
-z = &x
+y = x.share()
+a = &y
+b = &y
 ```
 
-`weak` is similar to `std::weak_ptr` in C++. It is used to break reference cycles caused by `std::shared_ptr`.
+`weak` is similar to `std::weak_ptr` in C++ and `Weak` in Rust. It is used to break reference cycles caused by `std::shared_ptr`. Use `.upgrade()` to get a `shared` reference to the value if it still exists.
 ```
 shared x = [1, 2, 3]
 weak y = &x
-```
-
-`unique` is automatically deallocated when they go out of scope. `shared` and `arc` are automatically deallocated when the last reference to it goes out of scope.
-
-Unlike Rust, Hedgehog does not use lifetimes, so it is possible to create dangling references.
-
-```python
-def danger() {
-    x = [1, 2, 3]
-    return &x
+if z = y.upgrade() {
+    print(z)
 }
 ```
 
-In simple cases like the one above, Hedgehog will detect this and produce an error. In more complex cases, it is the programmer's responsibility to avoid this.
+`unique` variables are automatically deallocated when they go out of scope. `shared` and `arc` are automatically deallocated when the last reference to them goes out of scope.
+
+
+Unlike Rust, Hedgehog does not use lifetimes for simplicity.
+Instead, it uses a simplified syntax combined with limited lifetime inference.
 
 ```python
-u32 &critical(u32 (&x)[]) {
+u32 &critical(u32 (&x)[]) -> &x {
     process(x)
     handle(x)
     return find(x, 0)
 }
 ```
-Here, it is possible to create a dangling reference without Hedgehog knowing.
+This function has to be manually annotated with `-> &x` to signify that the returned reference is from `x`, so the borrow checker can verify that the return value never outlives `x`.
+
+To annotate the possibility of returning either reference (or returning them both at the same time), use a comma-separated list of references.
+```python
+def longest(char (&a)[], char (&b)[]) -> &a, &b {
+    if len(a) > len(b) {
+        return &a
+    } else {
+        return &b
+    }
+}
+```
 
 ## Optional/Result
 `Optional<T>` allows for an optional result; it can be either a value or `None`.
@@ -980,7 +982,7 @@ Optional<i32> test(i32 x) {
     return if x >= 0 { x } else { None }
 }
 x = test(5)
-switch (x) {
+switch x {
 case v:
     println(v)
 case None:
@@ -1001,13 +1003,31 @@ Result<i32, TestError> test(i32 x) {
 }
 x = 5
 result = test(x)
-switch (result) {
+switch result {
 case v:
     println(v)
 case TestError.ZeroError:
     error(f"{x} was zero!")
 case TestError.NegativeError:
     error(f"{x} was negative!")
+}
+```
+
+Hedgehog also supports the following, for both `Optional` and `Result`:
+```
+if x.has_value() { ... }
+y = x.value() // returns value, otherwise errors
+z = x.error() // returns error, otherwise errors
+z = x.value_or(10) // 10 if x is None
+```
+
+
+
+The `?` operator can be used to propagate errors, similar to Rust. It can only be used in a function that returns a `Result`.
+```python
+Result<i32, TestError> func(i32 x) {
+    i32 x = test(x)?
+    return x * 2
 }
 ```
 
@@ -1026,6 +1046,29 @@ Hedgehog requires the C standard libraries.
 Hedgehog's C++ backend requires a C++11 compiler.
 Hedgehog's QBE backend requires an installation of QBE.
 
+
+## Hedgehog v0.1.0 Features
+- [ ] `print`
+- [ ] `println`
+- [ ] Formatted Input
+- [ ] Variables
+- [ ] Types (basic)
+- [ ] Comments
+- [ ] Arithmetic
+- [ ] `if`
+- [ ] `while`
+- [ ] `and`, `or`, `not`
+- [ ] Functions (basic)
+- [ ] Arrays and Lists
+- [ ] `len`
+- [ ] `for` (`range`, `in`, C++-style)
+- [ ] Scope
+- [ ] Casting
+- [ ] Semicolons
+- [ ] `break`/`continue` (not numbered)
+- [ ] Classes (basic)
+
+
 ## Appendix A: Hedgehog Standard Library Reference
 
 The Hedgehog standard library is split into several modules.
@@ -1033,13 +1076,12 @@ The Hedgehog standard library is split into several modules.
 | Module | Description | Automatically Imported? | Required |
 |--------|-------------|-------------------------|----------|
 | `core` | Core functionality needed for Hedgehog to run | Yes | Yes |
-| `std` | Built-in high-level Hedgehog functionality | Yes | No |
+| `std` | Built-in high-level Hedgehog features (heap allocation, lists, etc.) and functions (`print`, etc.) | Yes | No |
 | `fs` | Filesystem functions | No | No |
 | `math` | Common math functions | No | No |
 | `random` | Random number generation | No | No |
 | `time` | Time, date, and sleeping | No | No |
 | `collections` | Common data structures | No | No |
-| `sort` | Common sorting algorithms | No | No |
 | `sys` | System calls | No | No |
 
 ## Appendix B: Python Quick Start Guide
@@ -1060,4 +1102,3 @@ The following languages influenced the design of Hedgehog:
  * And many more!
 
 To all of the inventors and visionaries, thank you for your incredible languages!
-
