@@ -99,7 +99,6 @@ Variable types are automatically inferred by default. However, if you want to ex
 | char | unsigned 8-bit number | 0 to 255 |
 | usize | unsigned number able to store the maximum memory of machine | platform-specific |
 | isize | signed number able to store the maximum memory of machine | platform-specific |
-| time_t | number able to store a timestamp | platform-specific |
 ```
 u64 i = 0
 float j = 1
