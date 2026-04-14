@@ -6,7 +6,7 @@
 #include "mem.h"
 #include "cfg.h"
 #include "cmd_args.h"
-#include "driver.h"
+#include "cmd_exec.h"
 
 int hhg_main(int argc, char **argv)
 {
@@ -19,7 +19,7 @@ int hhg_main(int argc, char **argv)
 
     hhg_cmd_args_parse(&cfg, argc, argv);
 
-    bool result = hhg_driver_run(&cfg, arena);
+    bool result = hhg_cmd_exec_run(&cfg, arena);
 
     hhg_cfg_del(&cfg);
     hhg_arena_free(arena);

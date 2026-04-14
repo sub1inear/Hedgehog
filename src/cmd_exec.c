@@ -1,4 +1,4 @@
-#include "driver.h"
+#include "cmd_exec.h"
 #include "init.h"
 #include "build.h"
 #include "run.h"
@@ -6,7 +6,7 @@
 #include "msg.h"
 #include "utils.h"
 
-bool hhg_driver_run(hhg_cfg_t *cfg, hhg_arena_t *arena)
+bool hhg_cmd_exec_run(hhg_cfg_t *cfg, hhg_arena_t *arena)
 {
     HHG_UNUSED(arena);
     switch (cfg->subcmd) {
