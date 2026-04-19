@@ -66,7 +66,7 @@ static bool hhg_ext_build_run_core(
         const char *filename = code_gen->filenames[i];
         switch (code_gen->backend->type) {
         case HHG_CFG_BACKEND_CPP:
-            result |= hhg_utils_system("tcc %s -o %s" HHG_UTILS_EXEC_EXT, filename, project_name) == EXIT_FAILURE;
+            result |= hhg_utils_system("tcc %s -o %s", filename, project_name) == EXIT_FAILURE;
             break;
         case HHG_CFG_BACKEND_QBE:
             result |= hhg_utils_system("qbe %s -o %s.ssa", filename, project_name) == EXIT_FAILURE;
