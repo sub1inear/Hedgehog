@@ -6,12 +6,13 @@ It is designed on three core principles, listed in order of importance (I > II >
 
 ### I: As Powerful as C++ with the Simplicity of Python and the Safety of Rust
 Make programming in Hedgehog and the resulting program as fast as possible, while maintaining safety.
+When these conflict, speed > simplicity > safety.
 
 ### II: Don't Reinvent the Wheel
 No drastic changes from C++ or Python; Hedgehog should look familiar and be easy to learn from either.
 
-### III: There Should Be One, and Only One, Way to Do It
-Duplicates or slight reinventions should be avoided.
+### III: There Should Be One, and Only One, Obvious Way to Do It
+Duplicates or slight reinventions that cause perplexity when choosing between them should be avoided.
 
 ## Quick Starts
 
@@ -96,7 +97,7 @@ Variable types are automatically inferred by default. However, if you want to ex
 | f64 | 64-bit floating point number | -1.80 × 10<sup>308</sup> to 1.80 × 10<sup>308</sup>|
 | float | arbitrary-precision floating point number | memory of machine |
 | bool | 1 byte | 0 to 1 (`true` or `false`) |
-| char | unsigned 8-bit number | 0 to 255 |
+| char | unsigned 8-bit character | 0 to 255 (with UTF-8 for Unicode) |
 | usize | unsigned number able to store the maximum memory of machine | platform-specific |
 | isize | signed number able to store the maximum memory of machine | platform-specific |
 ```
@@ -187,7 +188,7 @@ while z {
 `fallthrough` is supported to fallthrough to the next case.
 Empty `case`s fallthrough automatically.
 `case`s automatically are scoped.
-Every enum case needs to be handled in some way.
+Every `enum`/`Result`/`Optional` needs to be handled in some way.
 ```c++
 switch x {
 case 0:
@@ -242,6 +243,14 @@ inline def swap(i32 &a, i32 &b) {
 }
 ```
 
+A function's return type can be declared by replacing `def` with the return type.
+Use `void` for no return value.
+```python
+void func() {
+    print("This function doesn't return anything.")
+}
+```
+
 ## Arrays and Lists
 
 An array is declared by adding square brackets with the size after the variable name. Square brackets are also used to initialize it, similar to Python but different than C++.
@@ -272,7 +281,17 @@ Items can be added to lists with `.append()`, similar to Python.
 constants.append(23.14)
 ```
 
-To index an array/list, use the square brackets with the index, which starts at 0.
+Lists can be added together with `+`.
+```python
+print([1, 2] + [3, 4])
+```
+
+Use `.extend()` to add all the items from one list to another.
+```python
+l.extend([9, 10])
+```
+
+To index an array/list, use square brackets with the index, which starts at 0.
 
 ```python
 print(a[0])
@@ -281,16 +300,23 @@ print(a[i])
 
 Array/list indexes are checked for overflow automatically in debug mode.
 
-To get the length of an array/list, use the `len` built-in function.
+To get the length of an array/list, use the `.len()` function.
 
 ```python
-print(len(a))
+print(a.len())
 ```
 
 ## Strings
 
 Strings are represented as `char` arrays (static strings) or lists (dynamic strings).
 Both types are null-terminated; lists also track their length.
+They each have special methods for string manipulation.
+
+```python
+char s[*] = "Hello, " + "World!"
+s.replace("World", "Hedgehog")
+print(s.to_lower())
+```
 
 ## For Loops
 
@@ -311,7 +337,7 @@ for x in constants {
 ```
 
 
-The `for` loop can also be declared similarly to C++. This is intended for **more complex loops**, like iterating with a step or incrementing multiple variables.
+The `for` loop can also be declared similarly to C++. This is intended for **more complex loops**, like iterating with a step, iterating between two variables, or incrementing multiple variables.
 ```python
 for i = x; i < y; i++ {
     print(i)
@@ -380,6 +406,18 @@ Function references are declared similarly to C++.
 i32 (&func)(i32 x, i32 y) = ...
 ```
 
+## Slices
+
+Slices are declared with `[start:end]`, similarly to Python.
+Unlike Python, they act like a unsized reference (`T (&)[]`); mutating a slice mutates the original array/list.
+They can only be passed to functions expecting an unsized reference.
+
+```python
+s = "Frobozz"
+a = s[0:4]
+b = s[4:7]
+```
+
 ## Casting
 
 Casting is done by calling the new type as a function and passing it the old type.
@@ -389,6 +427,7 @@ f32(10)
 ```
 
 In Hedgehog, casting rules are significantly strengthened. In expressions, nothing will ever be automatically promoted.
+An exception is made for implicit widening conversions (like `i32` to `i64` or `f32` to `f64`).
 
 ```c++
 i32 x = -1
@@ -438,7 +477,7 @@ Accesses are the same as arrays/lists.
 d["!\n"] = 4
 ```
 
-Nested dictionaries can occur only with values. Dictionaries are unordered.
+Dictionaries are unordered.
 
 ## Declaration
 
@@ -563,6 +602,7 @@ public:
 There is no inheritance or polymorphism in Hedgehog. It is recommended to use composition instead.
 
 Hedgehog supports other `__*__` methods (known as dunder methods).
+These are compiler-facing.
 
 | Method | Description | Default? |
 |--------|-------------|----------|
@@ -579,9 +619,20 @@ Hedgehog supports other `__*__` methods (known as dunder methods).
 | `bool __ge__(Object y)` | `>=` operator | No |
 | `usize __len__()` | `len` function | No |
 | `u64 __hash__()` | hash function for dictionary keys | No |
+| `template <class T> Optional<T> __bind__()` | binding function used in `if`/`switch` statements | No |
+| `Iterator<Object> __iter__()` | creates an iterator for use in `for` loops | No |
+| `Optional<Object> __next__()` | returns the next element in the iterator | No |
 | `void __del__()` | destructor | No |
 | `i32 __print__(File &stream)` | `print` function/f-string within | Yes |
 | `char (&)[*] __str__()` | f-strings | Yes |
+
+There are some standard user-facing methods as well by convention.
+
+| Method | Description | Use Case |
+|--------|-------------|----------|
+| `Object copy()` | creates a copy of the object | everything |
+| `usize len()` | gets the length of an object | arrays, lists, dictionaries |
+| `usize capacity()` | gets the capacity of an object | lists, dictionaries |
 
 Operator overloading should only be used if it logically makes sense to perform arithmetic (for example, `+` for adding two matrices).
 These should be quick and efficient, as no one expects `+` to be slow.
@@ -590,14 +641,13 @@ For other applications/speeds, please define a member function.
 Hedgehog will automatically generate `__print__` and `__str__` to output objects in the format `ClassName(member=value, ...)`.
 It is recommended to stick to this format if you choose to implement your own `__print__` and `__str__` for consistency.
 `__print__` is called by `print`/f-strings in `print`; `__str__` is called by f-strings in other context.
-This allows for greater optimization, as `__print__` can directly write to the console.
+This allows for greater optimization, as `__print__` can directly write to the file.
 
 ## Typedefs
 
-`typedef` creates a distinct alias for a type, similar to `using` in C++.
-Resulting types are not interchangeable with the original, although they can be casted back-and-forth.
+`using` creates a distinct alias for a type, similar to `using` in C++.
 ```
-typedef u32 int_t
+using int_t = u32
 ```
 
 ## Tuples
@@ -662,38 +712,19 @@ constexpr x = 1
 }
 ```
 
-`#run` runs a statement at compile time. The changes made to variables are permanent.
+`#run` runs statements at compile time. The changes made to variables are permanent.
+`constexpr` can internally execute functions with `#run`.
 ```c++
 x = 1
 #run { x = 2 }
-constexpr y = #run { func() }
+constexpr y = func()
 ```
 
 `#error(message)` prints `message` when encountered and fails to compile.
 `#warning(message)` prints `message` when encountered as a warning.
 
-`#assert(expr, message)` asserts that `expr` is true. `#assert`s will be enabled in debug mode and disabled in release mode. `#assert` can be run at compile-time or runtime (it is both `static_assert()` and `assert()` in C++). `#assert` will also optimize based on its condition being true (if supported by the backend).
-```c++
-x = 0
-#assert(x == 0, "x != 0, help!")
-
-if (x != 0) {
-    ... // ideally this will optimize away
-}
-```
-
-`#asm` allows for a programmer to directly use GCC-style inline assembly. Support is guaranteed for backend compilers supporting it.
-```
-i32 result
-#asm {
-    "mov $1, %%eax"
-        : "=a" (result) 
-}
-```
 
 `#version` can be used to determine the Hedgehog version, in SemVer (e.g. `1.0.0`).
-
-`#c` marks a section of code to be exported to the C programming language, similar to `extern "C"` in C++. Advanced features not supported in C, like classes or templates, within a `#c` block will cause an error.
 
 `#compiler` can be used to determine the compiler.
 
@@ -719,14 +750,6 @@ i32 result
 * ...
 
 ### Attributes
-
-`@unroll(times)` tells the compiler to unroll a loop `times` many iterations.
-```c++
-@unroll(10)
-for i in range(10) {
-    print(i)
-}
-```
 
 `@noreturn` marks a function as not returning.
 
@@ -756,11 +779,24 @@ print(sizeof(u32))
 }
 ```
 
-As discussed above, `len(obj)` gets the length of an array/list. `len` counts **elements**, not **size**.
+
+`assert(expr, message)` asserts that `expr` is true. `assert`s will be enabled in debug mode and disabled in release mode. `assert` can be run at compile-time or runtime (it is both `static_assert()` and `assert()` in C++). `assert` will also optimize based on its condition being true (if supported by the backend).
 ```c++
-l = [1, 2, 3, 4]
-print(len(l)) // 4
-print(sizeof(l)) // 16
+x = 0
+assert(x == 0, "x != 0, help!")
+
+if (x != 0) {
+    ... // ideally this will optimize away
+}
+```
+
+`asm` allows for a programmer to directly use GCC-style inline assembly, similarly to `asm volatile` in C++. Support is guaranteed for backend compilers supporting it.
+```
+i32 result
+asm (
+    "mov $1, %%eax"
+        : "=a" (result) 
+)
 ```
 
 `error(message)` is the runtime version of `#error`. It prints `message` and exits the program.
@@ -768,6 +804,15 @@ Hedgehog uses `error`s internally for out-of-memory, index out of bounds, and ot
 `error` should only be used for unrecoverable errors; for recoverable errors, use `Result` instead, described below.
 
 In the Hedgehog REPL, `help(expr)` prints the documentation for `expr`.
+
+## Extern
+
+`extern "language"` allows for interoperability with other languages besides C++.
+```c++
+extern "C" {
+   i32 func(i32 a, i32 b)
+}
+```
 
 ## Import
 
@@ -791,14 +836,16 @@ They are always typed.
 ```c++
 def sum(u32... args) {
     u32 total = 0
-    for i in range(len(args)) {
-        total += args.get()
+    for arg in args {
+        total += arg
     }
     return total
 }
 
 println(sum(1, 2, 3, 4))
 ```
+
+To individually get items from a variadic argument, use `.arg()`.
 
 ## Templates
 
@@ -814,7 +861,7 @@ def add(T a, T b) {
 Templates can be specialized, like C++.
 ```c++
 template <>
-u32 add<i32>(i32 a, i32 b) {
+i32 add<i32>(i32 a, i32 b) {
     return a + b
 }
 ```
@@ -846,9 +893,65 @@ def fibonacci(u32 n) {
         return n * fibonacci(n - 1)
     }
 }
-constexpr result = #run { fibonacci(10) }
+constexpr result = fibonacci(10)
 ```
 Much better.
+
+## Named Arguments
+
+In Hedgehog, you can optionally name every paramter in a function call.
+This also applies to constructors.
+```
+def foo(i32 a, i32 b, i32 c) {
+    ...
+}
+foo(a=1, b=2, c=3)
+p = Player(x=1, y=2, health=3)
+```
+
+## Default Parameters
+
+Default parameters are supported in function definitions and in templates. They must be the last parameters in the parameter list.
+```
+def foo(i32 a, i32 b = 1, i32 c = 2) {
+    ...
+}
+foo(3)
+foo(3, 4)
+
+template <T = u32>
+class LinkedList {
+    ...
+}
+```
+
+## Deletion
+
+To manually call a destructor, use `del`, like Python.
+```python
+list[*] = [1, 2, 3]
+del list
+```
+
+## Interfaces
+
+Interfaces are declared with the `interface` keyword and are similar to Go interfaces.
+```
+interface Drawable {
+    def draw()
+}
+void render(Drawable &d) {
+    d.draw()
+}
+```
+
+For compile-time dispatch, add in templates.
+```
+template <Drawable T>
+void render(T &d) {
+    d.draw()
+}
+```
 
 ## Unsafe
 
@@ -860,6 +963,23 @@ unsafe {
 }
 ```
 This **will compile**, so be careful!
+
+`unsafe` can also be applied to a function, variable, class, etc.
+
+By default, `unsafe` turns off all safety features. To selectively disable them, use a comma-separated list of strings.
+```python
+unsafe "init", "bounds" {
+    u32 x[4]
+    print(x[10])
+} 
+```
+| `unsafe` String | Description |
+|-----------------|-------------|
+| `init` | allows for uninitialized variables/arrays |
+| `bounds` | allows for out-of-bounds array/list accesses |
+| `ptr` | allows for raw pointer manipulation |
+| `borrow` | allows for bypassing the borrow checker |
+| `cast` | allows for relaxed type casting rules |
 
 ## Borrow Checker
 
@@ -882,7 +1002,7 @@ y = x
 z = x // error! x has been moved to y
 ```
 
-To explicitly copy a complex type, use the `copy` built-in function.
+To explicitly copy a complex type, use the `.copy()` built-in function.
 ```python
 x = [1, 2, 3]
 y = x.copy()
@@ -890,20 +1010,12 @@ z = x // ok
 ```
 
 The borrow checker also tracks **references**.
-References are either immutable (`&const`) or mutable (`&`).
-Multiple immutable references can exist at a time, but only one mutable reference can exist at a time.
-Mutable and immutable references cannot coexist.
-
-```python
-x = [1, 2, 3]
-y = &const x
-z = &const x
-```
+References are either mutable (`&`) or immutable (`&const`).
 
 ```python
 x = [1, 2, 3]
 y = &x
-y = &const x // error!
+z = &const x
 ```
 
 By default, objects are allocated on the **stack**.
@@ -941,14 +1053,13 @@ b = &y
 `weak` is similar to `std::weak_ptr` in C++ and `Weak` in Rust. It is used to break reference cycles caused by `std::shared_ptr`. Use `.upgrade()` to get a `shared` reference to the value if it still exists.
 ```
 shared x = [1, 2, 3]
-weak y = &x
-if z = y.upgrade() {
+weak y = x
+if shared z = y.upgrade() {
     print(z)
 }
 ```
 
 `unique` variables are automatically deallocated when they go out of scope. `shared` and `arc` are automatically deallocated when the last reference to them goes out of scope.
-
 
 Unlike Rust, Hedgehog does not use lifetimes for simplicity.
 Instead, it uses a simplified syntax combined with limited lifetime inference.
@@ -973,6 +1084,8 @@ def longest(char (&a)[], char (&b)[]) -> &a, &b {
 }
 ```
 
+Cases that would require more complex lifetimes have to be annotated with `unsafe`.
+
 ## Optional/Result
 `Optional<T>` allows for an optional result; it can be either a value or `None`.
 
@@ -982,14 +1095,14 @@ Optional<i32> test(i32 x) {
 }
 x = test(5)
 switch x {
-case v:
+case i32 v:
     println(v)
 case None:
     println("None")
 }
 ```
 
-`Result<T, E>` allows for a result that can be either a value or an error (an enum).
+`Result<T, E>` allows for a result that can be either a value or an error.
 ```python
 enum TestError {
     ZeroError,
@@ -1003,7 +1116,7 @@ Result<i32, TestError> test(i32 x) {
 x = 5
 result = test(x)
 switch result {
-case v:
+case i32 v:
     println(v)
 case TestError.ZeroError:
     error(f"{x} was zero!")
@@ -1012,17 +1125,21 @@ case TestError.NegativeError:
 }
 ```
 
-Hedgehog also supports the following, for both `Optional` and `Result`:
+`switch` bindings require an explicit type, like `case i32 v:`.
+
+Additionally, `Optional`/`Result` can be bound with `if type name = expr` syntax.
 ```
-if x.has_value() { ... }
-y = x.value() // returns value, otherwise errors
-z = x.error() // returns error, otherwise errors
-z = x.value_or(10) // 10 if x is None
+if i32 v = x {
+    println(v)
+} else {
+    println("None")
+}
 ```
 
+These sorts of bindings only work in `if`/`switch` statements.
+To see if a `Result`/`Optional` has a value without binding it, call `.has_value()`.
 
-
-The `?` operator can be used to propagate errors, similar to Rust. It can only be used in a function that returns a `Result`.
+The `?` operator can be used to propagate `Result`s/`Optional`s, similar to Rust. It can only be used in a function that returns either of those types and cannot convert between them.
 ```python
 Result<i32, TestError> func(i32 x) {
     i32 x = test(x)?
@@ -1045,6 +1162,40 @@ Hedgehog requires the C standard libraries.
 Hedgehog's C++ backend requires a C++11 compiler.
 Hedgehog's QBE backend requires an installation of QBE.
 
+The Hedgehog compiler can currently only run on Windows and POSIX operating systems.
+
+## Hedgehog Demo
+
+```python
+println("Hello, World!")
+for i in range(100) {
+    if i % 15 == 0 {
+        println("FizzBuzz")
+    } else if i % 3 == 0 {
+        println("Fizz")
+    } else if i % 5 == 0 {
+        println("Buzz")
+    } else {
+        println(i)
+    }
+}
+def factorial(u32 n) {
+    if n == 0 {
+        return 1
+    } else {
+        return n * factorial(n - 1)
+    }
+}
+n = input("Factorial: ").parse<u32>()
+println(f"{n}! = {factorial(n)}")
+
+l = [1, 2, 3, 4]
+l.append(5)
+println(l.reverse())
+
+d = { "one" : 1, "two" : 2, "three" : 3 }
+println(d["two"])
+```
 
 ## Hedgehog v0.1.0 Features
 - [ ] `print`
@@ -1082,6 +1233,8 @@ The Hedgehog standard library is split into several modules.
 | `time` | Time, date, and sleeping | No | No |
 | `collections` | Common data structures | No | No |
 | `sys` | System calls | No | No |
+| `thread` | Multithreading | No | No |
+| `sync` | Synchronization primitives | No | No |
 
 ## Appendix B: Python Quick Start Guide
 
@@ -1100,4 +1253,4 @@ The following languages influenced the design of Hedgehog:
  * C#
  * And many more!
 
-To all of the inventors and visionaries, thank you for your incredible languages!
+To all of these inventors and visionaries, thank you for your incredible languages!
