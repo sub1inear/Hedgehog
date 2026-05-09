@@ -1,3 +1,12 @@
+![Build](https://img.shields.io/github/actions/workflow/status/sub1inear/Hedgehog/build.yml?label=build)
+![Coverage](https://img.shields.io/codecov/c/github/sub1inear/Hedgehog)
+![License](https://img.shields.io/github/license/sub1inear/Hedgehog)
+![Version](https://img.shields.io/github/v/release/sub1inear/Hedgehog)
+
+![Self-hosting](https://img.shields.io/badge/self--hosting-yes-success)
+![Compiler Size](https://img.shields.io/badge/compiler-<100_lines-blue)
+![Platforms](https://img.shields.io/badge/platforms-linux%20%7C%20windows%20%7C%20macOS-lightgrey)
+![Last Commit](https://img.shields.io/github/last-commit/yourname/Hedgehog)
 # The Hedgehog Programming Language
 
 ## Introduction
@@ -91,11 +100,8 @@ Variable types are automatically inferred by default. However, if you want to ex
 | u32 | unsigned 32-bit number | 0 to 4,294,967,295 |
 | i64 | signed 64-bit number | -9,223,372,036,854,775,808 to 9,223,372,036,854,775,807 |
 | u64 | unsigned 64-bit number | 0 to 18,446,744,073,709,551,615 |
-| int | signed arbitrary-precision number | memory of machine |
-| uint | unsigned arbitrary-precision number | memory of machine |
 | f32 | 32-bit floating point number | -3.40 × 10<sup>38</sup> to 3.40 × 10<sup>38</sup> |
 | f64 | 64-bit floating point number | -1.80 × 10<sup>308</sup> to 1.80 × 10<sup>308</sup>|
-| float | arbitrary-precision floating point number | memory of machine |
 | bool | 1 byte | 0 to 1 (`true` or `false`) |
 | char | unsigned 8-bit character | 0 to 255 (with UTF-8 for Unicode) |
 | usize | unsigned number able to store the maximum memory of machine | platform-specific |
@@ -111,7 +117,7 @@ Numbers are inferred to be the smallest type possible, with deduction starting a
 In debug mode, limited-precision integers will error if they exceed their ranges.
 In release mode, limited-precision integers will wrap around in their ranges if they exceed them.
 
-Floating-point numbers will always clamp at ∞ and -∞.
+Floating-point numbers will overflow/underflow to ∞/-∞.
 
 `const` can be used to make a variable immutable.
 `volatile` can be used to tell the compiler that a variable can change at any time externally.
@@ -233,7 +239,7 @@ print(foo(4))
 
 Nested functions are allowed, like Python but unlike C++. These are not closures, just scope-limited functions.
 
-`inline` **forces** the compiler to inline a function.
+`inline` hints to the compiler to inline a function.
 
 ```
 inline def swap(i32 &a, i32 &b) {
@@ -321,26 +327,24 @@ print(s.to_lower())
 ## For Loops
 
 The `for` loop is declared similarly to Python.
+Looping over `range(stop)`, `range(start, stop)`, or `range(start, stop, step)` iterates from `0` or `start` to `stop - 1` with `step` (defaults to `1`). Note that unlike Python, this is a syntactical construct and not a function.
 ```python
 for i in range(10) {
     print(i)
 }
-```
-
-Looping over `range(stop)` or `range(start, stop)` iterates from `0` or `start` to `stop - 1`. Note that unlike Python, this is a syntactical construct and not a function.
-
-Using `in`, the `for` loop can also iterate over a collection of items:
-```python
-for x in constants {
-    print(x)
+for i in range(5, 10) {
+    print(i)
+}
+for i in range(0, 10, 2) {
+    print(i)
 }
 ```
 
 
-The `for` loop can also be declared similarly to C++. This is intended for **more complex loops**, like iterating with a step, iterating between two variables, or incrementing multiple variables.
+With `in`, the `for` loop can also iterate over a collection of items:
 ```python
-for i = x; i < y; i++ {
-    print(i)
+for x in constants {
+    print(x)
 }
 ```
 
@@ -409,8 +413,7 @@ i32 (&func)(i32 x, i32 y) = ...
 ## Slices
 
 Slices are declared with `[start:end]`, similarly to Python.
-Unlike Python, they act like a unsized reference (`T (&)[]`); mutating a slice mutates the original array/list.
-They can only be passed to functions expecting an unsized reference.
+Unlike Python, they are an unsized reference (`T (&)[]`); mutating a slice mutates the original array/list.
 
 ```python
 s = "Frobozz"
@@ -498,10 +501,6 @@ def danger() {
 
 Lists and dictionaries are not allowed to be declared without being defined.
 
-## Semicolons
-
-For compatibility with C++, Hedgehog supports putting a semicolon at the end of a line. Semicolons can also be used to put more than one statement on a line.
-
 ## Break and Continue
 
 The `break` statement is used to exit early from a loop. The `continue` statement jumps to the bottom.
@@ -518,13 +517,14 @@ while running {
 }
 ```
 
-Unlike C++ and Python, `break` and `continue` can also be used with a number after it. This specifies how many loops to `break` out of/which loop to apply the `continue` to.
-
+Unlike C++ and Python, `break` and `continue` can also a label. This specifies which loop to apply the `break`/`continue`.
+Labels are scoped to the loop they are attached to.
 ```python
+outer:
 for x in range(100) {
     for y in range(100) {
         if i > x * 100 + y {
-            break 2
+            break outer
         }
     }
 }
@@ -545,20 +545,6 @@ A `for` loop can be used inside an array/list to dynamically set its contents, s
 
 ```python
 x[8] = [ for i in range(8) { i } ]
-```
-
-Finally, this can also be used like the comma operator in C++.
-
-```python
-value = 0
-def func() {
-    ...
-    return { value = y; x }
-}
-
-for i = 0; i < 10; { i++; value++ } {
-    println(f"i: {i}\nvalue: {value}")
-}
 ```
 
 ## Classes
@@ -586,7 +572,7 @@ player = Player(1, 1, 3)
 print(player)
 ```
 
-Class variables default to public, like Python. To explicitly set a variable's visibility, use `public:` or `private:`, like C++.
+Class variables default to `public`, like Python. To explicitly set a variable's visibility, use `public:` or `private:`, like C++.
 
 ```c++
 class Encapsulated {
@@ -617,7 +603,6 @@ These are compiler-facing.
 | `bool __le__(Object y)` | `<=` operator | No |
 | `bool __gt__(Object y)` | `>` operator | No |
 | `bool __ge__(Object y)` | `>=` operator | No |
-| `usize __len__()` | `len` function | No |
 | `u64 __hash__()` | hash function for dictionary keys | No |
 | `template <class T> Optional<T> __bind__()` | binding function used in `if`/`switch` statements | No |
 | `Iterator<Object> __iter__()` | creates an iterator for use in `for` loops | No |
@@ -802,6 +787,7 @@ asm (
 `error(message)` is the runtime version of `#error`. It prints `message` and exits the program.
 Hedgehog uses `error`s internally for out-of-memory, index out of bounds, and other unrecoverable errors.
 `error` should only be used for unrecoverable errors; for recoverable errors, use `Result` instead, described below.
+`error` is only meant for application code, not libraries.
 
 In the Hedgehog REPL, `help(expr)` prints the documentation for `expr`.
 
@@ -845,7 +831,8 @@ def sum(u32... args) {
 println(sum(1, 2, 3, 4))
 ```
 
-To individually get items from a variadic argument, use `.arg()`.
+To individually get items from a variadic argument, use `.arg()`; this returns the next argument (similar to `va_arg` in C++) in the sequence.
+To reset the sequence, use `.reset()`. To get the total number of arguments, use `.len()`.
 
 ## Templates
 
@@ -1151,7 +1138,7 @@ Result<i32, TestError> func(i32 x) {
 
 To use Hedgehog with C/C++, simply `import` the `.h`/`.hpp` files and access the variables/functions/classes similarly as if it was a Hedgehog file. C header files must be surrounded with an `extern "C"`.
 
-To use C/C++ with Hedgehog, simply `#include` the `.h`/`.hpp` files generated for each Hedgehog file and access the functions similarly as if it were C/C++. Functions in Hedgehog meant to export to C must be surrounded by an `#c` block, as described above.
+To use C/C++ with Hedgehog, simply `#include` the `.h`/`.hpp` files generated for each Hedgehog file and access the functions similarly as if it were C/C++. Functions in Hedgehog meant to export to C must be surrounded by an `extern "C"` block, as described above.
 
 For streamlined compatibility, use `#include "hstdlib.h"` in C/C++ to be able to access references, arrays, lists, tuples, and dictionaries.
 
@@ -1211,7 +1198,7 @@ println(d["two"])
 - [ ] Functions (basic)
 - [ ] Arrays and Lists
 - [ ] `len`
-- [ ] `for` (`range`, `in`, C++-style)
+- [ ] `for`
 - [ ] Scope
 - [ ] Casting
 - [ ] Semicolons
