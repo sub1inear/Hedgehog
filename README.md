@@ -1,12 +1,9 @@
 ![Build](https://img.shields.io/github/actions/workflow/status/sub1inear/Hedgehog/build.yml?label=build)
-![Coverage](https://img.shields.io/codecov/c/github/sub1inear/Hedgehog)
 ![License](https://img.shields.io/github/license/sub1inear/Hedgehog)
-![Version](https://img.shields.io/github/v/release/sub1inear/Hedgehog)
-
-![Self-hosting](https://img.shields.io/badge/self--hosting-yes-success)
-![Compiler Size](https://img.shields.io/badge/compiler-<100_lines-blue)
+![Version](https://img.shields.io/badge/version-v1.0-blue)
 ![Platforms](https://img.shields.io/badge/platforms-linux%20%7C%20windows%20%7C%20macOS-lightgrey)
 ![Last Commit](https://img.shields.io/github/last-commit/yourname/Hedgehog)
+
 # The Hedgehog Programming Language
 
 ## Introduction
