@@ -11,6 +11,12 @@
 #define HHG_ANSI_COLOR_RED "\x1b[1;31m"
 #define HHG_ANSI_COLOR_YELLOW "\x1b[1;33m"
 
+#ifdef _WIN32
+#define HHG_UTILS_EXEC_EXT ".exe"
+#elif defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__))
+#define HHG_UTILS_EXEC_EXT ""
+#endif
+
 #define hhg_assert(expr) if (!(expr)) hhg_utils_assert(#expr, __FILE__, __LINE__)
 
 // safe fopen of a file

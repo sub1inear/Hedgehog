@@ -10,6 +10,5 @@
 bool hhg_run(hhg_cfg_t *cfg, hhg_arena_t *arena)
 {
     HHG_UNUSED(arena);
-    // use %s to avoid security risk for printing user strings
-    return hhg_utils_system("%s", cfg->project.name) == EXIT_FAILURE;
+    return hhg_utils_system("%s" HHG_UTILS_EXEC_EXT, cfg->project.name) == EXIT_FAILURE;
 }
