@@ -65,6 +65,7 @@ bool hhg_clean(hhg_cfg_t *cfg, hhg_msg_ctx_t *msg_ctx)
     hhg_clean_iter_out_dir(hhg_clean_check_dir, cfg, msg_ctx);
     
     if (!cfg->clean.force) {
+        // not a hhg_clean_basic_* because those may be buffered
         printf(
             "delete files in output directory `%s`? [y/N]: ",
             cfg->build.out_dir
@@ -73,8 +74,10 @@ bool hhg_clean(hhg_cfg_t *cfg, hhg_msg_ctx_t *msg_ctx)
         if (fgets(input, sizeof(input), stdin) == NULL)
             hhg_fatal_error("failed to read input");
         
-        if (input[0] != 'y' && input[0] != 'Y')
+        if (input[0] != 'y' && input[0] != 'Y') {
+            hhg_clean_basic_info(msg_ctx, "aborting clean");
             return true;
+        }
     }
 
     hhg_clean_iter_out_dir(hhg_clean_del_file, cfg, msg_ctx);

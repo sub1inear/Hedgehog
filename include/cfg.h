@@ -119,7 +119,7 @@ typedef struct hhg_cfg {
     hhg_cmd_args_subcmd_t subcmd;
 } hhg_cfg_t;
 
-// msg_ctx may be uninitialized
+// note: msg_ctx may be uninitialized
 void hhg_cfg_init(hhg_cfg_t *cfg, hhg_msg_ctx_t *msg_ctx, hhg_arena_t *arena);
 
 // parses filename into cfg
