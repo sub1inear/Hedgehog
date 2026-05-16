@@ -21,7 +21,7 @@ typedef enum hhg_msg_type {
 // note: cfg may be uninitialized
 void hhg_msg_ctx_init(hhg_msg_ctx_t *msg_ctx, hhg_cfg_t *cfg);
 
-// note: in the future, the following functions may be buffered
+// note: in the future, hhg_msg and hhg_basic_msg may be buffered
 
 void hhg_msg(
     hhg_msg_ctx_t *msg_ctx,
