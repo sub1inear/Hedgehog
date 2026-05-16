@@ -95,9 +95,12 @@ Variable types are automatically inferred by default. However, if you want to ex
 | i32 | signed 32-bit number | -2,147,483,648 to 2,147,483,647 |
 | u32 | unsigned 32-bit number | 0 to 4,294,967,295 |
 | i64 | signed 64-bit number | -9,223,372,036,854,775,808 to 9,223,372,036,854,775,807 |
+| int | signed arbitrary-precision number | memory of machine |
+| uint | unsigned arbitrary-precision number | memory of machine |
 | u64 | unsigned 64-bit number | 0 to 18,446,744,073,709,551,615 |
 | f32 | 32-bit floating point number | -3.40 × 10<sup>38</sup> to 3.40 × 10<sup>38</sup> |
 | f64 | 64-bit floating point number | -1.80 × 10<sup>308</sup> to 1.80 × 10<sup>308</sup>|
+| float | arbitrary-precision floating point number | memory of machine |
 | bool | 1 byte | 0 to 1 (`true` or `false`) |
 | char | unsigned 8-bit character | 0 to 255 (with UTF-8 for Unicode) |
 | usize | unsigned number able to store the maximum memory of machine | platform-specific |
