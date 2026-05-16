@@ -70,8 +70,6 @@ enum hhg_token_type {
     HHG_TOKEN_ISIZE,
     HHG_TOKEN_USIZE,
 
-    HHG_TOKEN_TIME_T,
-
     // type modifiers
     HHG_TOKEN_CONST,
     HHG_TOKEN_VOLATILE,
@@ -85,7 +83,7 @@ enum hhg_token_type {
     HHG_TOKEN_LT_EQ,
     HHG_TOKEN_GT_EQ,
 
-    HHG_TOKEN_PLUS_EQ,
+    HHG_TOKEN_ADD_EQ,
     HHG_TOKEN_SUB_EQ,
     HHG_TOKEN_MUL_EQ,
     HHG_TOKEN_DIV_EQ,

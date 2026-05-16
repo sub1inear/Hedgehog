@@ -11,44 +11,41 @@
 #include "sym.h"
 
 static const char *const base_type_to_str[] = {
-    "none",
+    [HHG_TYPE_NONE] = "none",
 
-    "i8",
-    "u8",
+    [HHG_TYPE_I8] = "i8",
+    [HHG_TYPE_U8] = "u8",
 
-    "i16",
-    "u16",
+    [HHG_TYPE_I16] = "i16",
+    [HHG_TYPE_U16] = "u16",
 
-    "i32",
-    "u32",
+    [HHG_TYPE_I32] = "i32",
+    [HHG_TYPE_U32] = "u32",
 
-    "i64",
-    "u64",
+    [HHG_TYPE_I64] = "i64",
+    [HHG_TYPE_U64] = "u64",
 
-    "int",
+    [HHG_TYPE_INT] = "int",
 
-    "f32",
-    "f64",
+    [HHG_TYPE_F32] = "f32",
+    [HHG_TYPE_F64] = "f64",
 
-    "float",
+    [HHG_TYPE_FLOAT] = "float",
 
-    "bool",
+    [HHG_TYPE_BOOL] = "bool",
+    [HHG_TYPE_CHAR] = "char",
 
-    "char",
+    [HHG_TYPE_ISIZE] = "isize",
+    [HHG_TYPE_USIZE] = "usize",
 
-    "isize",
-    "usize",
+    [HHG_TYPE_REF] = "ref",
+    [HHG_TYPE_ARR] = "arr",
 
-    "time_t",
+    [HHG_TYPE_FUNC] = "func",
+    [HHG_TYPE_CLASS] = "class",
+    [HHG_TYPE_ENUM] = "enum",
 
-    "ref",
-    "arr",
-
-    "func",
-    "class",
-    "enum",
-
-    "id",
+    [HHG_TYPE_ID] = "id",
 };
 
 void hhg_type_init(hhg_type_t *type, hhg_base_type_t base)
@@ -102,8 +99,6 @@ hhg_base_type_t hhg_token_type_to_base_type(hhg_token_type_t token_type)
         return HHG_TYPE_ISIZE;
     case HHG_TOKEN_USIZE:
         return HHG_TYPE_USIZE;
-    case HHG_TOKEN_TIME_T:
-        return HHG_TYPE_TIME_T;
     default:
         return HHG_TYPE_NONE;
     }
@@ -172,7 +167,7 @@ void hhg_type_fprint(hhg_type_t *type, FILE *stream)
 
     if (type->is_const)
         fputs("const ", stream);
-    
+
     if (type->is_volatile)
         fputs("volatile ", stream);
 

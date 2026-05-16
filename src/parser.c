@@ -107,7 +107,7 @@ hhg_node_t *hhg_parser_parse(hhg_parser_t *parser)
     hhg_sym_tab_enter_scope(parser->sym_tab);
 
     hhg_lexer_next(parser->lexer);
-    
+
     hhg_file_pos_t start_pos = parser->lexer->token.range.start;
 
     while (parser->lexer->token.type != EOF) {
@@ -158,7 +158,7 @@ static hhg_node_t *hhg_parser_parse_expr(
         };
 
         left = new_left;
-    
+
     }
 
     return left;
@@ -180,7 +180,7 @@ static hhg_node_t *hhg_parser_parse_unary_core(hhg_parser_t *parser) {
         hhg_type_t *type = hhg_parser_parse_type(parser);
         switch (parser->lexer->token.type) {
         case HHG_TOKEN_ID:
-            return hhg_parser_parse_var_decl(parser, type); 
+            return hhg_parser_parse_var_decl(parser, type);
         case '(':
             return hhg_parser_parse_obj_init(parser, type);
         default:
@@ -254,7 +254,6 @@ static bool hhg_parser_is_type(hhg_parser_t *parser, hhg_token_t *token)
     case HHG_TOKEN_CHAR:
     case HHG_TOKEN_ISIZE:
     case HHG_TOKEN_USIZE:
-    case HHG_TOKEN_TIME_T:
         return true;
     default:
         return false;
@@ -331,7 +330,7 @@ static hhg_type_t *hhg_parser_parse_base_type(hhg_parser_t *parser)
             );
             return NULL;
         }
-        
+
         if (sym->value.sym_type != HHG_SYM_CLASS &&
             sym->value.sym_type != HHG_SYM_ENUM) {
             hhg_parser_error(
@@ -413,7 +412,7 @@ static hhg_node_t *hhg_parser_parse_obj_init(
 )
 {
     hhg_lexer_next(parser->lexer);
-    
+
     hhg_node_t *obj_init = hhg_parser_node_new(parser, HHG_NODE_OBJ_INIT);
     obj_init->value_type = type;
 
@@ -470,18 +469,18 @@ static hhg_node_t *hhg_parser_parse_id(hhg_parser_t *parser)
 
         hhg_node_t *id = hhg_parser_node_new(parser, HHG_TOKEN_ID);
         id->value.id.str = str;
-        
+
         inc_dec->value.expr.left = id;
         hhg_lexer_next(parser->lexer);
         return inc_dec;
     }
     case '.': {
         hhg_lexer_next(parser->lexer);
-        
+
         hhg_node_t *field_access = hhg_parser_node_new(parser, '.');
         field_access->value.field_access.str = str;
 
-        field_access->value.field_access.next = 
+        field_access->value.field_access.next =
             hhg_parser_parse_unary(parser);
 
         return field_access;
@@ -616,13 +615,13 @@ static hhg_node_t *hhg_parser_parse_class_decl(hhg_parser_t *parser)
     if (parser->lexer->token.type == HHG_TOKEN_ID) {
         class_decl->value.class_decl.id.str =
             hhg_parser_strdup(parser, parser->lexer->token.str.str);
-        
+
         hhg_type_t *class_type = hhg_type_new(HHG_TYPE_ID, parser->arena);
 
         class_type->info.id = class_decl->value.class_decl.id.str;
 
         hhg_sym_tab_insert(
-            parser->sym_tab, 
+            parser->sym_tab,
             (hhg_sym_t) {
                 .key = class_decl->value.class_decl.id.str,
                 .value = (hhg_sym_value_t) {
@@ -647,14 +646,14 @@ static hhg_node_t *hhg_parser_parse_class_decl(hhg_parser_t *parser)
             hhg_node_t *var_decl = hhg_parser_node_new(parser, '=');
             var_decl->range.start = parser->lexer->token.range.start;
             var_decl->value_type = hhg_parser_parse_type(parser);
-            
+
             if (var_decl->value_type == NULL)
                 hhg_parser_error(
                     parser,
                     "expected type in class variable declaration",
                     "here"
                 );
-            
+
             if (parser->lexer->token.type == HHG_TOKEN_ID)
                 var_decl->value.var_decl.id.str =
                     hhg_parser_strdup(parser, parser->lexer->token.str.str);
@@ -663,7 +662,7 @@ static hhg_node_t *hhg_parser_parse_class_decl(hhg_parser_t *parser)
 
             hhg_lexer_match(parser->lexer, HHG_TOKEN_ID);
             arrput(class_decl->value.class_decl.var_decls, var_decl);
-        }          
+        }
         if (!parser->lexer->newline)
             break;
     }
@@ -673,7 +672,7 @@ static hhg_node_t *hhg_parser_parse_class_decl(hhg_parser_t *parser)
 
 static hhg_node_t *hhg_parser_parse_block(hhg_parser_t *parser)
 {
-    hhg_node_t *block = hhg_parser_node_new(parser, HHG_NODE_BLOCK);           
+    hhg_node_t *block = hhg_parser_node_new(parser, HHG_NODE_BLOCK);
 
     hhg_lexer_next(parser->lexer);
 

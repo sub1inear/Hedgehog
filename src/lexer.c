@@ -37,7 +37,7 @@ static const hhg_op_data_t op_data[] = {
     { { '<' , '<' , '='  },  HHG_TOKEN_LSHIFT_EQ, 1  },
     { { '>' , '>' , '='  },  HHG_TOKEN_RSHIFT_EQ, 1  },
                                                   
-    { { '+' , '=' , '\0' },  HHG_TOKEN_PLUS_EQ,   1  },
+    { { '+' , '=' , '\0' },  HHG_TOKEN_ADD_EQ,    1  },
     { { '-' , '=' , '\0' },  HHG_TOKEN_SUB_EQ,    1  },
     { { '*' , '=' , '\0' },  HHG_TOKEN_MUL_EQ,    1  },
     { { '/' , '=' , '\0' },  HHG_TOKEN_DIV_EQ,    1  },
@@ -124,8 +124,6 @@ static const hhg_keyword_data_t keyword_data[] = {
       
     { "isize",    HHG_TOKEN_ISIZE    },
     { "usize",    HHG_TOKEN_USIZE    },
-      
-    { "time_t",   HHG_TOKEN_TIME_T   },
 
     // ----------------------------- //
     

@@ -17,7 +17,7 @@ enum hhg_base_type {
 
     HHG_TYPE_I16,
     HHG_TYPE_U16,
-    
+
     HHG_TYPE_I32,
     HHG_TYPE_U32,
 
@@ -38,11 +38,9 @@ enum hhg_base_type {
     HHG_TYPE_ISIZE,
     HHG_TYPE_USIZE,
 
-    HHG_TYPE_TIME_T,
-    
     HHG_TYPE_REF,
     HHG_TYPE_ARR,
-    
+
     HHG_TYPE_FUNC,
     HHG_TYPE_CLASS,
     HHG_TYPE_ENUM,
@@ -52,7 +50,7 @@ enum hhg_base_type {
 };
 
 #define HHG_BUILTIN_TYPE_START HHG_TYPE_I8
-#define HHG_BUILTIN_TYPE_END (HHG_TYPE_TIME_T + 1)
+#define HHG_BUILTIN_TYPE_END (HHG_TYPE_ID + 1)
 #define HHG_BUILTIN_TYPE_COUNT (HHG_BUILTIN_TYPE_END - HHG_BUILTIN_TYPE_START)
 
 // guarantee being unsigned to not overflow bit-field

@@ -180,7 +180,7 @@ void hhg_node_print(hhg_node_t *node, int32_t indent, bool use_sym)
     case HHG_TOKEN_NOT_EQ:
     case HHG_TOKEN_LT_EQ:
     case HHG_TOKEN_GT_EQ:
-    case HHG_TOKEN_PLUS_EQ:
+    case HHG_TOKEN_ADD_EQ:
     case HHG_TOKEN_SUB_EQ:
     case HHG_TOKEN_MUL_EQ:
     case HHG_TOKEN_DIV_EQ:

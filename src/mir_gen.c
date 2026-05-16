@@ -231,7 +231,7 @@ static hhg_mir_opnd_t hhg_mir_gen_run_core(
     case HHG_TOKEN_NOT_EQ:
     case HHG_TOKEN_LT_EQ:
     case HHG_TOKEN_GT_EQ:
-    case HHG_TOKEN_PLUS_EQ:
+    case HHG_TOKEN_ADD_EQ:
     case HHG_TOKEN_SUB_EQ:
     case HHG_TOKEN_MUL_EQ:
     case HHG_TOKEN_DIV_EQ:

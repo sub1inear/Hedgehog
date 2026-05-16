@@ -2,6 +2,7 @@
 #include <stdio.h>
 
 #include "token.h"
+#include "node.h"
 #include "sym_tab.h"
 #include "sym.h"
 #include "file_range.h"
@@ -26,110 +27,107 @@ const char *const token_type_to_str[] = {
     "?", "?", "?",  "?", "?",  "?", "?", "?", "?", "?", "?",       "?", "?", "?", "?",
     "?", "?", "?",  "?", "?",  "?", "?", "?", "?", "?", "?",       "?", "?", "?", "?",
 
-    "none",
-    "id",
+    [HHG_TOKEN_NONE] = "none",
+    [HHG_TOKEN_ID] = "id",
 
     // literals
-    "int literal",
-    "float literal",
-
-    "char literal",
-    "string literal",
+    [HHG_TOKEN_INT_LITERAL] = "int literal",
+    [HHG_TOKEN_FLOAT_LITERAL] = "float literal",
+    [HHG_TOKEN_CHAR_LITERAL] = "char literal",
+    [HHG_TOKEN_STRING_LITERAL] = "string literal",
 
     // keywords
-    "if",
-    "while",
-    "for",
+    [HHG_TOKEN_IF] = "if",
+    [HHG_TOKEN_WHILE] = "while",
+    [HHG_TOKEN_FOR] = "for",
 
-    "break",
-    "continue",
+    [HHG_TOKEN_BREAK] = "break",
+    [HHG_TOKEN_CONTINUE] = "continue",
 
-    "and",
-    "or",
-    "not",
+    [HHG_TOKEN_AND] = "and",
+    [HHG_TOKEN_OR] = "or",
+    [HHG_TOKEN_NOT] = "not",
 
-    "true",
-    "false",
+    [HHG_TOKEN_TRUE] = "true",
+    [HHG_TOKEN_FALSE] = "false",
 
-    "in",
-    "range",
+    [HHG_TOKEN_IN] = "in",
+    [HHG_TOKEN_RANGE] = "range",
 
-    "enum",
+    [HHG_TOKEN_ENUM] = "enum",
 
-    "def",
-    "return",
+    [HHG_TOKEN_DEF] = "def",
+    [HHG_TOKEN_RETURN] = "return",
 
-    "class",
-    
+    [HHG_TOKEN_CLASS] = "class",
+
     // types
-    "i8",
-    "u8",
+    [HHG_TOKEN_I8] = "i8",
+    [HHG_TOKEN_U8] = "u8",
 
-    "i16",
-    "u16",
+    [HHG_TOKEN_I16] = "i16",
+    [HHG_TOKEN_U16] = "u16",
 
-    "i32",
-    "u32",
+    [HHG_TOKEN_I32] = "i32",
+    [HHG_TOKEN_U32] = "u32",
 
-    "i64",
-    "u64",
+    [HHG_TOKEN_I64] = "i64",
+    [HHG_TOKEN_U64] = "u64",
 
-    "int",
+    [HHG_TOKEN_INT] = "int",
 
-    "f32",
-    "f64",
+    [HHG_TOKEN_F32] = "f32",
+    [HHG_TOKEN_F64] = "f64",
 
-    "float",
+    [HHG_TOKEN_FLOAT] = "float",
 
-    "bool",
+    [HHG_TOKEN_BOOL] = "bool",
 
-    "char",
+    [HHG_TOKEN_CHAR] = "char",
 
-    "isize",
-    "usize",
-
-    "time_t",
+    [HHG_TOKEN_ISIZE] = "isize",
+    [HHG_TOKEN_USIZE] = "usize",
 
     // type modifiers
-    "const",
-    "volatile",
+    [HHG_TOKEN_CONST] = "const",
+    [HHG_TOKEN_VOLATILE] = "volatile",
 
     // composite operators
-    "<<",
-    ">>",
+    [HHG_TOKEN_LSHIFT] = "<<",
+    [HHG_TOKEN_RSHIFT] = ">>",
 
-    "==",
-    "!=",
-    "<=",
-    ">=",
+    [HHG_TOKEN_EQ] = "==",
+    [HHG_TOKEN_NOT_EQ] = "!=",
+    [HHG_TOKEN_LT_EQ] = "<=",
+    [HHG_TOKEN_GT_EQ] = ">=",
 
-    "+=",
-    "-=",
-    "*=",
-    "/=",
-    "%=",
+    [HHG_TOKEN_ADD_EQ] = "+=",
+    [HHG_TOKEN_SUB_EQ] = "-=",
+    [HHG_TOKEN_MUL_EQ] = "*=",
+    [HHG_TOKEN_DIV_EQ] = "/=",
+    [HHG_TOKEN_MOD_EQ] = "%=",
 
-    "&=",
-    "|=",
-    "^=",
+    [HHG_TOKEN_AND_EQ] = "&=",
+    [HHG_TOKEN_OR_EQ] = "|=",
+    [HHG_TOKEN_XOR_EQ] = "^=",
 
-    "<<=",
-    ">>=",
+    [HHG_TOKEN_LSHIFT_EQ] = "<<=",
+    [HHG_TOKEN_RSHIFT_EQ] = ">>=",
 
-    "++",
-    "--",
-    
+    [HHG_TOKEN_INC] = "++",
+    [HHG_TOKEN_DEC] = "--",
+
     // node types
-    "block",
-    "param",
-    "func call",
-    "arr literal",
-    "obj init",
+    [HHG_NODE_BLOCK] = "block",
+    [HHG_NODE_PARAM] = "param",
+    [HHG_NODE_FUNC_CALL] = "func call",
+    [HHG_NODE_ARR_LITERAL] = "arr literal",
+    [HHG_NODE_OBJ_INIT] = "obj init",
 };
 
 const char *hhg_token_type_to_str(hhg_token_type_t type)
 {
-    if (type == EOF) 
+    if (type == EOF)
         return "EOF";
     else
         return token_type_to_str[type];
@@ -168,7 +166,7 @@ void hhg_token_print(hhg_token_t *token)
     case HHG_TOKEN_STRING_LITERAL:
     case HHG_TOKEN_ID:
         if (token->str.str)
-            fputs(token->str.str, stdout); 
+            fputs(token->str.str, stdout);
         break;
     default:
         fputs("null", stdout);
