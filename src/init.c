@@ -44,7 +44,6 @@ static const char cfg_txt[] =
     "filter = \"\" # filter test cases (regex)"                                                                       "\n"
                                                                                                                       "\n"
     "[clean]"                                                                                                         "\n"
-    "mode = \"all\" # clean mode: all | build | gen"                                                                  "\n"
     "force = false # force clean without confirmation"                                                                "\n"
     "dry-run = false # print files to be deleted without deleting them"                                               "\n"
                                                                                                                       "\n"
@@ -68,9 +67,9 @@ bool hhg_init(hhg_cfg_t *cfg)
             hhg_fatal_error("failed to get current directory");
         cfg->init.name = (char *)fs_basename(cwd);
 
-        if (fs_exist(HHG_CONFIG_FILENAME))
-            hhg_fatal_error("config file already exists: " HHG_CONFIG_FILENAME);
-        cfg_filename = HHG_CONFIG_FILENAME;
+        if (fs_exist(HHG_CFG_FILENAME))
+            hhg_fatal_error("config file already exists: " HHG_CFG_FILENAME);
+        cfg_filename = HHG_CFG_FILENAME;
         main_filename = HHG_MAIN_FILENAME;
     } else {
         if (fs_exist(cfg->init.name))
@@ -90,11 +89,11 @@ bool hhg_init(hhg_cfg_t *cfg)
                 cfg_path,
                 LIBFS_MAX_PATH,
                 cfg->init.name,
-                HHG_CONFIG_FILENAME
+                HHG_CFG_FILENAME
             );
         if (cfg_result >= LIBFS_MAX_PATH)
             hhg_fatal_error(
-                "path too long: %s " HHG_CONFIG_FILENAME,
+                "path too long: %s " HHG_CFG_FILENAME,
                 cfg->init.name
             );
 

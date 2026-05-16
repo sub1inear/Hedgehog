@@ -464,10 +464,9 @@ static void hhg_cmd_args_print_clean_usage(char *prog_name)
     printf(
         "usage: %s clean [options]\n"
         "options:\n"
-        "    --help                 -h    show help\n"
-        "    --mode <all|build|gen> -m    clean mode\n"
-        "    --force [true|false]   -f    force clean without confirmation\n"
-        "    --dry-run [true|false] -n    print files to be deleted without deleting them\n",
+        "    --help                          -h    show help\n"
+        "    --force [true|false]            -f    force clean without confirmation\n"
+        "    --dry-run [true|false]          -n    print files to be deleted without deleting them\n",
         prog_name
     );
 }
@@ -482,7 +481,6 @@ static void hhg_cmd_args_parse_clean(
     optparse_init(&opts, argv);
     static const struct optparse_long longopts[] = {
         { "help",    'h', OPTPARSE_NONE,     },
-        { "mode",    'm', OPTPARSE_REQUIRED, },
         { "force",   'f', OPTPARSE_OPTIONAL, },
         { "dry-run", 'n', OPTPARSE_OPTIONAL, },
         { NULL,                              },
@@ -493,9 +491,6 @@ static void hhg_cmd_args_parse_clean(
         case 'h':
             hhg_cmd_args_print_clean_usage(prog_name);
             exit(EXIT_SUCCESS);
-            break;
-        case 'm':
-            cfg->clean.mode = hhg_cfg_parse_clean_mode(opts.optarg);
             break;
         case 'f':
             cfg->clean.force =

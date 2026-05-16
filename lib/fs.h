@@ -265,7 +265,7 @@ fs_file_size(const char *path);
     * Checks if a path corresponds to a directory.
     *
     * @code{.c}
-    * if (!fs_is_directory("./somedirectory"))
+    * if (!fs_is_dir("./somedirectory"))
     * {
     *     print("path is not a directory");
     * }
@@ -279,7 +279,7 @@ fs_file_size(const char *path);
     * @return If path points to an existing directory.
     */
 bool
-fs_is_directory(const char *path);
+fs_is_dir(const char *path);
 
 /**
     * Checks if a path corresponds to a file.
@@ -487,21 +487,6 @@ fs_temp_dir(char *buf, size_t size);
     */
 bool
 fs_delete_dir(const char *path);
-
-/**
-    * Recursively deletes a directory if it exists.
-    *
-    * @code
-    * if (!fs_delete_dir_r("foo"))
-    * {
-    *     printf("fs_delete_dir_r failed");
-    * }
-    * @endcode
-    * @param[in] path Some null-terminated path
-    * @return If the directory was deleted.
-    */
-bool
-fs_delete_dir_r(const char *path);
 
 /**
     * Deletes a file if it exists.
@@ -790,7 +775,7 @@ fs_exist(const char *path)
 }
 
 bool
-fs_is_directory(const char *path)
+fs_is_dir(const char *path)
 {
 	struct stat s;
 	return (stat(path, &s) == 0) && S_ISDIR(s.st_mode);

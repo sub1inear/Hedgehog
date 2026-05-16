@@ -41,6 +41,25 @@ void hhg_code_gen_init(
         if (!fs_make_dir(out_dir))
             hhg_fatal_error("failed to create output directory: %s", out_dir);
 
+    // create sentinel file to mark this as the output directory
+    char sentinel_filename[LIBFS_MAX_PATH];
+    int join_path_result = fs_join_path(
+        sentinel_filename,
+        LIBFS_MAX_PATH,
+        out_dir,
+        ".hhg_out_dir"
+    );
+    if (join_path_result >= LIBFS_MAX_PATH)
+        hhg_fatal_error("output path is too long: %s .hhg_out_dir", out_dir);
+
+    FILE *sentinel_file = hhg_utils_fopen(sentinel_filename, "w");
+    fputs(
+        "This file marks the Hedgehog build output directory.\n"
+        "Do not remove it.\n"
+        "Without it, `hhg clean` will refuse to delete this directory.\n",
+        sentinel_file
+    );
+    fclose(sentinel_file);
 }
 
 void hhg_code_gen_run(

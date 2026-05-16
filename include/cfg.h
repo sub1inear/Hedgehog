@@ -94,16 +94,7 @@ typedef struct hhg_cfg_test {
     const char *filter;
 } hhg_cfg_test_t;
 
-enum hhg_cfg_clean_mode {
-    HHG_CFG_CLEAN_MODE_UNKNOWN,
-    HHG_CFG_CLEAN_MODE_ALL,
-    HHG_CFG_CLEAN_MODE_BUILD,
-    HHG_CFG_CLEAN_MODE_GEN,
-};
-typedef hhg_cfg_enum_type_t hhg_cfg_clean_mode_t;
-
 typedef struct hhg_cfg_clean {
-    hhg_cfg_clean_mode_t mode;
     bool force;
     bool dry_run;
 } hhg_cfg_clean_t;
@@ -123,12 +114,13 @@ typedef struct hhg_cfg {
     hhg_cfg_test_t test;
     hhg_cfg_clean_t clean;
     hhg_cfg_repl_t repl;
-    hhg_msg_ctx_t msg_ctx;
+    hhg_msg_ctx_t *msg_ctx;
     hhg_arena_t *arena;
     hhg_cmd_args_subcmd_t subcmd;
 } hhg_cfg_t;
 
-void hhg_cfg_init(hhg_cfg_t *cfg, hhg_arena_t *arena);
+// msg_ctx may be uninitialized
+void hhg_cfg_init(hhg_cfg_t *cfg, hhg_msg_ctx_t *msg_ctx, hhg_arena_t *arena);
 
 // parses filename into cfg
 // returns true if there were parsing errors,
@@ -141,6 +133,5 @@ hhg_cfg_build_mode_t hhg_cfg_parse_build_mode(const char *str);
 hhg_cfg_build_stage_t hhg_cfg_parse_build_stage(const char *str);
 hhg_cfg_build_warnings_t hhg_cfg_parse_build_warnings(const char *str);
 hhg_cfg_backend_t hhg_cfg_parse_backend(const char *str);
-hhg_cfg_clean_mode_t hhg_cfg_parse_clean_mode(const char *str);
 
 #endif

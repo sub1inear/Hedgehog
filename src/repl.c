@@ -3,15 +3,15 @@
 #include <signal.h>
 
 #include "repl.h"
+#include "cfg.h"
+#include "msg.h"
 #include "main.h"
 #include "utils.h"
 
 static void hhg_repl_sigint(int signum);
 
-void hhg_repl(hhg_cfg_t *cfg)
+void hhg_repl()
 {
-    HHG_UNUSED(cfg);
-    
     // catch Ctrl+C to exit
     signal(SIGINT, hhg_repl_sigint);
     

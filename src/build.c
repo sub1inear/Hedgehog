@@ -50,18 +50,15 @@ static void hhg_build_debug_print_mir_gen(hhg_mir_gen_t *mir_gen);
 static void hhg_build_debug_print_code_gen(hhg_code_gen_t *code_gen);
 static void hhg_build_debug_print_ext_build(void *arg);
 
-bool hhg_build(hhg_cfg_t *cfg, hhg_arena_t *arena)
+bool hhg_build(hhg_cfg_t *cfg, hhg_msg_ctx_t *msg_ctx, hhg_arena_t *arena)
 {
     // 0th stage: init
-    hhg_msg_ctx_t msg_ctx;
-    hhg_msg_ctx_init(&msg_ctx, cfg);
-
     hhg_lexer_t lexer;
-    hhg_lexer_init(&lexer, &msg_ctx, cfg->build.entry);
+    hhg_lexer_init(&lexer, msg_ctx, cfg->build.entry);
 
     hhg_build_check_exit_result_t lexer_result = hhg_build_check_exit(
         cfg,
-        &msg_ctx,
+        msg_ctx,
         &(hhg_build_stage_desc_t) {
             .stage = HHG_CFG_BUILD_STAGE_LEXER,
             .debug_func = hhg_build_debug_print_lexer,
@@ -83,13 +80,13 @@ bool hhg_build(hhg_cfg_t *cfg, hhg_arena_t *arena)
 
     // 1st stage: lexing, parsing
     hhg_parser_t parser;
-    hhg_parser_init(&parser, &lexer, &sym_tab, &type_ctx, &msg_ctx, arena);
+    hhg_parser_init(&parser, &lexer, &sym_tab, &type_ctx, msg_ctx, arena);
 
     hhg_node_t *prog = hhg_parser_parse(&parser);
 
     hhg_build_check_exit_result_t parser_result = hhg_build_check_exit(
         cfg,
-        &msg_ctx,
+        msg_ctx,
         &(hhg_build_stage_desc_t) {
             .stage = HHG_CFG_BUILD_STAGE_PARSER,
             .debug_func = hhg_build_debug_print_parser,
@@ -105,13 +102,13 @@ bool hhg_build(hhg_cfg_t *cfg, hhg_arena_t *arena)
 
     // 2nd stage: semantic analysis
     hhg_sem_an_t sem_an;
-    hhg_sem_an_init(&sem_an, &sym_tab, &type_ctx, &msg_ctx, arena);
+    hhg_sem_an_init(&sem_an, &sym_tab, &type_ctx, msg_ctx, arena);
 
     hhg_sem_an_run(&sem_an, prog);
 
     hhg_build_check_exit_result_t sem_an_result = hhg_build_check_exit(
         cfg,
-        &msg_ctx,
+        msg_ctx,
         &(hhg_build_stage_desc_t) {
             .stage = HHG_CFG_BUILD_STAGE_SEM_AN,
             .debug_func = hhg_build_debug_print_sem_an,
@@ -133,7 +130,7 @@ bool hhg_build(hhg_cfg_t *cfg, hhg_arena_t *arena)
     
     hhg_build_check_exit_result_t mir_gen_result = hhg_build_check_exit(
         cfg,
-        &msg_ctx,
+        msg_ctx,
         &(hhg_build_stage_desc_t) {
             .stage = HHG_CFG_BUILD_STAGE_MIR_GEN,
             .debug_func = hhg_build_debug_print_mir_gen,
@@ -162,7 +159,7 @@ bool hhg_build(hhg_cfg_t *cfg, hhg_arena_t *arena)
     
     hhg_build_check_exit_result_t code_gen_result = hhg_build_check_exit(
         cfg,
-        &msg_ctx,
+        msg_ctx,
         &(hhg_build_stage_desc_t) {
               .stage = HHG_CFG_BUILD_STAGE_CODE_GEN,
               .debug_func = hhg_build_debug_print_code_gen,
@@ -181,7 +178,7 @@ bool hhg_build(hhg_cfg_t *cfg, hhg_arena_t *arena)
 
     // 5th stage: external build
     hhg_ext_build_t ext_build;
-    hhg_ext_build_init(&ext_build, &msg_ctx);
+    hhg_ext_build_init(&ext_build, msg_ctx);
 
     hhg_ext_build_run(
         &ext_build,
@@ -192,7 +189,7 @@ bool hhg_build(hhg_cfg_t *cfg, hhg_arena_t *arena)
     hhg_build_check_exit_result_t ext_build_result =
         hhg_build_check_exit(
             cfg,
-            &msg_ctx,
+            msg_ctx,
             &(hhg_build_stage_desc_t) {
                 .stage = HHG_CFG_BUILD_STAGE_EXT_BUILD,
                 .debug_func = hhg_build_debug_print_ext_build,

@@ -25,11 +25,9 @@ warnings = "default" # warnings settings: default | all | none | pedantic
 error-warnings = false # treat warnings as errors
 
 [run]
-
 args = [] # arguments to pass to program
 
 [test]
-
 test-dir = "test" # directory with test cases
 list = false # list test cases without running them
 fail-fast = false # stop on first failure
@@ -37,8 +35,6 @@ threads = -1 # number of threads to use (-1 => auto)
 filter = "" # filter test cases (regex)
 
 [clean]
-mode = "all" # clean mode: all | build | gen
-
 force = false # force clean without confirmation
 dry-run = false # print files to be deleted without deleting them
 

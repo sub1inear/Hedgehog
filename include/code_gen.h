@@ -6,6 +6,8 @@
 #include "cfg.h"
 #include "mem.h" // hhg_arena_t is based off arena_t so can't forward declare
 
+typedef struct hhg_mir_gen hhg_mir_gen_t;
+
 // uses layout trick to simulate inheritance
 // first member of all backends must be hhg_code_gen_backend_t
 // so that backend can be accessed

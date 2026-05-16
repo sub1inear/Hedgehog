@@ -1,8 +1,9 @@
 #ifndef HHG_REPL_H
 #define HHG_REPL_H
 
-#include "cfg.h"
+#include <stdbool.h>
 
-void hhg_repl(hhg_cfg_t *cfg);
+// never exits except with abort() on Ctrl+C
+void hhg_repl();
 
 #endif

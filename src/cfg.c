@@ -1,4 +1,5 @@
 #include <string.h>
+#include <ctype.h>
 
 #include "mem.h"
 
@@ -16,7 +17,7 @@
 #include "utils.h"
 
 #define hhg_cfg_basic_msg(cfg, type, msg, ...) \
-    hhg_basic_msg(&cfg->msg_ctx, type, msg, __VA_ARGS__)
+    hhg_basic_msg(cfg->msg_ctx, type, msg, __VA_ARGS__)
 
 #define hhg_cfg_basic_error(cfg, msg, ...) \
     hhg_cfg_basic_msg(cfg, HHG_MSG_ERROR, msg, __VA_ARGS__)
@@ -68,7 +69,6 @@ static const hhg_cfg_data_t cfg_data[] = {
     { "test.fail-fast",       offsetof(hhg_cfg_t, test.fail_fast),       TOML_BOOLEAN, NULL },
     { "test.threads",         offsetof(hhg_cfg_t, test.threads),         TOML_INT64,   NULL },
     { "test.filter",          offsetof(hhg_cfg_t, test.filter),          TOML_STRING,  NULL },
-    { "clean.mode",           offsetof(hhg_cfg_t, clean.mode),           TOML_STRING,  hhg_cfg_parse_clean_mode },
     { "clean.force",          offsetof(hhg_cfg_t, clean.force),          TOML_BOOLEAN, NULL },
     { "clean.dry-run",        offsetof(hhg_cfg_t, clean.dry_run),        TOML_BOOLEAN, NULL },
     { "repl.tmp-dir",         offsetof(hhg_cfg_t, repl.tmp_dir),         TOML_STRING,  NULL },
@@ -90,7 +90,7 @@ static hhg_cfg_enum_type_t hhg_cfg_parse_enum(
     hhg_cfg_enum_type_t unknown
 );
 
-void hhg_cfg_init(hhg_cfg_t *cfg, hhg_arena_t *arena)
+void hhg_cfg_init(hhg_cfg_t *cfg, hhg_msg_ctx_t *msg_ctx, hhg_arena_t *arena)
 {
     *cfg = (hhg_cfg_t) {
         .project = (hhg_cfg_project_t) {
@@ -130,7 +130,6 @@ void hhg_cfg_init(hhg_cfg_t *cfg, hhg_arena_t *arena)
             .filter = "",
         },
         .clean = (hhg_cfg_clean_t) {
-            .mode = HHG_CFG_CLEAN_MODE_ALL,
             .force = false,
             .dry_run = false,
         },
@@ -139,10 +138,10 @@ void hhg_cfg_init(hhg_cfg_t *cfg, hhg_arena_t *arena)
             .target = "auto",
             .backend = HHG_CFG_BACKEND_CPP,
         },
+        .msg_ctx = msg_ctx,
         .arena = arena,
         .subcmd = HHG_CMD_ARGS_SUBCMD_NONE,
     };
-    hhg_msg_ctx_init(&cfg->msg_ctx, cfg);
 }
 
 bool hhg_cfg_parse(hhg_cfg_t *cfg, const char *filename)
@@ -206,7 +205,7 @@ bool hhg_cfg_parse(hhg_cfg_t *cfg, const char *filename)
     toml_free(result);
 
     fclose(file);
-    return cfg->msg_ctx.error_count > 0;
+    return cfg->msg_ctx->error_count > 0;
 }
 
 void hhg_cfg_del(hhg_cfg_t *cfg)
@@ -280,23 +279,6 @@ hhg_cfg_backend_t hhg_cfg_parse_backend(const char *str)
         "backend",
         HHG_CFG_BACKEND_UNKNOWN
     );
-}
-
-hhg_cfg_clean_mode_t hhg_cfg_parse_clean_mode(const char *str)
-{
-    static const hhg_cfg_enum_type_data_t clean_mode_data[] = {
-        { "all",   HHG_CFG_CLEAN_MODE_ALL   },
-        { "build", HHG_CFG_CLEAN_MODE_BUILD },
-        { "gen",   HHG_CFG_CLEAN_MODE_GEN   },
-    };
-    return hhg_cfg_parse_enum(
-        str,
-        clean_mode_data,
-        HHG_ARR_SIZE(clean_mode_data),
-        "clean mode",
-        HHG_CFG_CLEAN_MODE_UNKNOWN
-    );
-
 }
 
 static toml_datum_t hhg_cfg_match(
