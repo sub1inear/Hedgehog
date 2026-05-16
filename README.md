@@ -1,7 +1,7 @@
 ![Build]( https://img.shields.io/badge/build-passing-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Version](https://img.shields.io/badge/version-v0.1.0-blue)
-![Platforms](https://img.shields.io/badge/platforms-linux%20%7C%20windows%20%7C%20macOS-lightgrey)
+![Platforms](https://img.shields.io/badge/platforms-windows%20%7C%20linux%20%7C%20macOS-lightgrey)
 
 # The Hedgehog Programming Language
 
