@@ -83,7 +83,11 @@ bool hhg_clean(hhg_cfg_t *cfg, hhg_msg_ctx_t *msg_ctx)
     hhg_clean_iter_out_dir(hhg_clean_del_file, cfg, msg_ctx);
     
     if (cfg->clean.dry_run)
-        hhg_clean_basic_info(msg_ctx, "would delete: `%s`", cfg->build.out_dir);
+        hhg_clean_basic_info(
+            msg_ctx,
+            "would delete output directory: `%s`",
+            cfg->build.out_dir
+        );
     else if (!fs_delete_dir(cfg->build.out_dir))
         hhg_fatal_error(
             "failed to delete output directory: %s",
