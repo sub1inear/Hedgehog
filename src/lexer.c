@@ -33,6 +33,14 @@
 #define hhg_lexer_info(lexer, ...) \
     hhg_lexer_msg(lexer, HHG_MSG_INFO, __VA_ARGS__)
 
+static int hhg_lexer_next_char(hhg_lexer_t *lexer);
+static void hhg_lexer_back_char(hhg_lexer_t *lexer);
+static void hhg_lexer_lex_id(hhg_lexer_t *lexer, int c);
+static void hhg_lexer_lex_num(hhg_lexer_t *lexer, int c);
+static void hhg_lexer_lex_str_literal(hhg_lexer_t *lexer, int c);
+static void hhg_lexer_lex_char_literal(hhg_lexer_t *lexer, int c);
+static bool hhg_lexer_lex_default(hhg_lexer_t *lexer, int c);
+
 static const hhg_op_data_t op_data[] = {                                         
     { { '<' , '<' , '='  },  HHG_TOKEN_LSHIFT_EQ, 1  },
     { { '>' , '>' , '='  },  HHG_TOKEN_RSHIFT_EQ, 1  },
@@ -130,14 +138,6 @@ static const hhg_keyword_data_t keyword_data[] = {
     { "const",    HHG_TOKEN_CONST    },
     { "volatile", HHG_TOKEN_VOLATILE },
 };
-
-static int hhg_lexer_next_char(hhg_lexer_t *lexer);
-static void hhg_lexer_back_char(hhg_lexer_t *lexer);
-static void hhg_lexer_lex_id(hhg_lexer_t *lexer, int c);
-static void hhg_lexer_lex_num(hhg_lexer_t *lexer, int c);
-static void hhg_lexer_lex_str_literal(hhg_lexer_t *lexer, int c);
-static void hhg_lexer_lex_char_literal(hhg_lexer_t *lexer, int c);
-static bool hhg_lexer_lex_default(hhg_lexer_t *lexer, int c);
 
 void hhg_lexer_init(
     hhg_lexer_t *lexer,

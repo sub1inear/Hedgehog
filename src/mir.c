@@ -102,17 +102,17 @@ void hhg_mir_instr_print(hhg_mir_instr_t *instr)
     case HHG_MIR_NOT:
     case HHG_MIR_NEG: {
         hhg_mir_expr_t *expr = &instr->value->expr;
-        printf("%%%" HHG_PRIreg " = ", expr->dest);
+        printf("%%%" HHG_PRIreg " = ", expr->dst);
         break;
     }
     case HHG_MIR_LOAD: {
         hhg_mir_load_t *load = &instr->value->load;
-        printf("%%%" HHG_PRIreg " = ", load->dest);
+        printf("%%%" HHG_PRIreg " = ", load->dst);
         break;
     }
     case HHG_MIR_STORE: {
         hhg_mir_store_t *store = &instr->value->store;
-        printf("$%s = ", store->dest->key);
+        printf("$%s = ", store->dst->key);
         break;
     }
     default:

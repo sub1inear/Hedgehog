@@ -31,20 +31,6 @@
 #define hhg_sem_an_info(sem_an, node, ...) \
     hhg_sem_an_msg(sem_an, HHG_MSG_INFO, node, __VA_ARGS__)
 
-static hhg_base_type_t int_literal_base_types[] = {
-    HHG_TYPE_I32,
-    HHG_TYPE_U32,
-    HHG_TYPE_I64,
-    HHG_TYPE_U64
-};
-
-static uint64_t int_literal_base_maxes[] = {
-    INT32_MAX,
-    UINT32_MAX,
-    INT64_MAX,
-    UINT64_MAX
-};
-
 static void hhg_sem_an_run_children(
     hhg_sem_an_t *sem_an,
     hhg_node_t **children
@@ -87,6 +73,20 @@ static void hhg_sem_an_run_float_literal(
     hhg_sem_an_t *sem_an,
     hhg_node_t *node
 );
+
+static hhg_base_type_t int_literal_base_types[] = {
+    HHG_TYPE_I32,
+    HHG_TYPE_U32,
+    HHG_TYPE_I64,
+    HHG_TYPE_U64
+};
+
+static uint64_t int_literal_base_maxes[] = {
+    INT32_MAX,
+    UINT32_MAX,
+    INT64_MAX,
+    UINT64_MAX
+};
 
 void hhg_sem_an_init(
     hhg_sem_an_t *sem_an,

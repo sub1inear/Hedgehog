@@ -7,6 +7,7 @@
 
 typedef struct hhg_msg_ctx hhg_msg_ctx_t;
 typedef struct hhg_code_gen hhg_code_gen_t;
+typedef struct hhg_cfg hhg_cfg_t;
 
 typedef struct hhg_ext_build {
     hhg_msg_ctx_t *msg_ctx;
@@ -20,7 +21,7 @@ void hhg_ext_build_init(
 void hhg_ext_build_run(
     hhg_ext_build_t *ext_build,
     hhg_code_gen_t *code_gen,
-    const char *project_name
+    hhg_cfg_t *cfg
 );
 
 

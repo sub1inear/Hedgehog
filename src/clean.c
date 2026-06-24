@@ -1,4 +1,6 @@
 #include <stdbool.h>
+#include <stdio.h>
+#include <string.h>
 
 #include <fs.h>
 
@@ -41,19 +43,13 @@ bool hhg_clean(hhg_cfg_t *cfg, hhg_msg_ctx_t *msg_ctx)
             cfg->build.out_dir
         );
 
-    char sentinel_filename[LIBFS_MAX_PATH];
-    int join_path_result = fs_join_path(
+    char sentinel_filename[FS_MAX_PATH];
+    hhg_utils_join_path(
         sentinel_filename,
-        LIBFS_MAX_PATH,
+        HHG_ARR_SIZE(sentinel_filename),
         cfg->build.out_dir,
         ".hhg_out_dir"
     );
-    if (join_path_result >= LIBFS_MAX_PATH ||
-        join_path_result < 0)
-        hhg_fatal_error(
-            "failure to construct path: %s .hhg_out_dir",
-            cfg->build.out_dir
-        );
 
     if (!fs_exist(sentinel_filename))
         hhg_fatal_error(
@@ -111,24 +107,18 @@ static void hhg_clean_iter_out_dir(
         );
     while (fs_read_dir(it)) {
         const char *dir_subpath = it->path;
-        if (strcmp(dir_subpath, ".") == 0 ||
+        if (strcmp(dir_subpath, ".")  == 0 ||
             strcmp(dir_subpath, "..") == 0)
             continue;
 
-        char subpath[LIBFS_MAX_PATH];
-        int join_path_result = fs_join_path(
+        char subpath[FS_MAX_PATH];
+        hhg_utils_join_path(
             subpath,
-            LIBFS_MAX_PATH,
+            HHG_ARR_SIZE(subpath),
             cfg->build.out_dir,
             dir_subpath
         );
-        if (join_path_result >= LIBFS_MAX_PATH ||
-            join_path_result < 0)
-            hhg_fatal_error(
-                "failure to construct path: %s %s",
-                cfg->build.out_dir,
-                dir_subpath
-            );
+        
         func(subpath, cfg, msg_ctx);
     }
     fs_close_dir(it);

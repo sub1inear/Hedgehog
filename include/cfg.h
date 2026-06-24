@@ -105,7 +105,35 @@ typedef struct hhg_cfg_repl {
     hhg_cfg_backend_t backend;
 } hhg_cfg_repl_t;
 
+typedef struct hhg_cfg_toolchain_tool_mode {
+    const char *flags;
+} hhg_cfg_toolchain_tool_mode_t;
+
+typedef struct hhg_cfg_toolchain_tool {
+    const char *cmd;
+    const char *flags;
+    hhg_cfg_toolchain_tool_mode_t debug;
+    hhg_cfg_toolchain_tool_mode_t release;
+} hhg_cfg_toolchain_tool_t;
+
+typedef struct hhg_cfg_toolchain_cpp {
+    hhg_cfg_toolchain_tool_t compiler;
+    hhg_cfg_toolchain_tool_t linker;
+} hhg_cfg_toolchain_cpp_t;
+
+typedef struct hhg_cfg_toolchain_qbe {
+    hhg_cfg_toolchain_tool_t compiler;
+    hhg_cfg_toolchain_tool_t assembler;
+    hhg_cfg_toolchain_tool_t linker;
+} hhg_cfg_toolchain_qbe_t;
+
+typedef struct hhg_cfg_toolchain {
+    hhg_cfg_toolchain_cpp_t cpp;
+    hhg_cfg_toolchain_qbe_t qbe;
+} hhg_cfg_toolchain_t;
+
 typedef struct hhg_cfg {
+    // stored in `hhg.toml` in project root
     hhg_cfg_project_t project;
     hhg_cfg_global_t global;
     hhg_cfg_init_t init;
@@ -114,6 +142,11 @@ typedef struct hhg_cfg {
     hhg_cfg_test_t test;
     hhg_cfg_clean_t clean;
     hhg_cfg_repl_t repl;
+    
+    // stored in `toolchain.toml` next to Hedgehog executable
+    // for security reasons (hhg.toml can be downloaded from untrusted sources)
+    hhg_cfg_toolchain_t toolchain;
+    
     hhg_msg_ctx_t *msg_ctx;
     hhg_arena_t *arena;
     hhg_cmd_args_subcmd_t subcmd;
@@ -122,10 +155,10 @@ typedef struct hhg_cfg {
 // note: msg_ctx may be uninitialized
 void hhg_cfg_init(hhg_cfg_t *cfg, hhg_msg_ctx_t *msg_ctx, hhg_arena_t *arena);
 
-// parses filename into cfg
+// parses cfg files into cfg
 // returns true if there were parsing errors,
 // false otherwise (including file not found)
-bool hhg_cfg_parse(hhg_cfg_t *cfg, const char *filename);
+bool hhg_cfg_parse(hhg_cfg_t *cfg);
 
 void hhg_cfg_del(hhg_cfg_t *cfg);
 

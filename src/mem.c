@@ -102,25 +102,8 @@ typedef struct hhg_mem_arena_alloc {
     hhg_mem_alloc_loc_t value; // location of arena creation
 } hhg_mem_arena_alloc_t;
 
-// hashmap of allocations to their allocation locations
-static hhg_mem_alloc_t *mem_alloc_tab = NULL;
 
-// hashmap of arena allocations to their allocation location
-static hhg_mem_arena_alloc_t *mem_arena_alloc_tab = NULL;
-
-// to prevent recursion in debug functions
-// not perfect but is the simplest way
-static bool mem_debug = false;
-
-// allocation statistics
-static size_t mem_mallocs = 0;
-static size_t mem_reallocs = 0;
-static size_t mem_frees = 0;
-static size_t mem_strdups = 0;
-static size_t mem_arena_news = 0;
-static size_t mem_arena_mallocs = 0;
-static size_t mem_arena_strdups = 0;
-static size_t mem_arena_frees = 0;
+static void hhg_mem_alloc_tab_add(void *ptr, hhg_mem_alloc_loc_t loc);
 
 static void hhg_mem_alloc_loc_print(hhg_mem_alloc_loc_t loc);
 
@@ -191,6 +174,26 @@ static void hhg_debug_arena_free_core(
     size_t size,
     hhg_mem_alloc_loc_t loc
 );
+
+// hashmap of allocations to their allocation locations
+static hhg_mem_alloc_t *mem_alloc_tab = NULL;
+
+// hashmap of arena allocations to their allocation location
+static hhg_mem_arena_alloc_t *mem_arena_alloc_tab = NULL;
+
+// to prevent recursion in debug functions
+// not perfect but is the simplest way
+static bool mem_debug = false;
+
+// allocation statistics
+static size_t mem_mallocs = 0;
+static size_t mem_reallocs = 0;
+static size_t mem_frees = 0;
+static size_t mem_strdups = 0;
+static size_t mem_arena_news = 0;
+static size_t mem_arena_mallocs = 0;
+static size_t mem_arena_strdups = 0;
+static size_t mem_arena_frees = 0;
 
 void *hhg_debug_malloc(size_t size, hhg_mem_alloc_loc_t loc)
 {
@@ -326,14 +329,14 @@ void hhg_mem_print_summary(void)
     bool prev_mem_debug = mem_debug;
     mem_debug = true;
     
-    size_t num_mem_leaks = hmlen(mem_alloc_tab);
+    size_t num_mem_leaks = hmlenu(mem_alloc_tab);
     if (num_mem_leaks > 0) {
         printf("%zu memory leaks detected:\n", num_mem_leaks);
         for (size_t i = 0; i < num_mem_leaks; i++) {
             hhg_mem_alloc_t alloc = mem_alloc_tab[i];
             hhg_mem_alloc_loc_t *locs = alloc.value;
 
-            size_t locs_len = arrlen(locs);
+            size_t locs_len = arrlenu(locs);
             hhg_assert(locs_len > 0);
             if (locs_len == 1) {
                 printf("  leak at %p allocated at ", alloc.key);
@@ -390,6 +393,13 @@ void hhg_mem_print_summary(void)
     mem_debug = prev_mem_debug;
 }
 
+static void hhg_mem_alloc_tab_add(void *ptr, hhg_mem_alloc_loc_t loc)
+{
+    hhg_mem_alloc_loc_t *loc_arr = NULL;
+    arrput(loc_arr, loc);
+    hmput(mem_alloc_tab, ptr, loc_arr);
+}
+
 static void hhg_mem_alloc_loc_print(hhg_mem_alloc_loc_t loc) {
     printf("%s:%i (%s)", loc.file, loc.line, loc.func);
 }
@@ -418,10 +428,6 @@ static void *hhg_debug_mem_run_func(
 
     // truncate file path (affects downstream printing)
     loc.file = fs_basename(loc.file);
-
-    (*func_counter)++;
-
-    func(ptr1, ptr2, size, loc);
     
     printf("%s: ", func_name);
 
@@ -436,6 +442,10 @@ static void *hhg_debug_mem_run_func(
     hhg_mem_alloc_loc_print(loc);
     putchar('\n');
 
+    func(ptr1, ptr2, size, loc);
+
+    (*func_counter)++;
+
     mem_debug = prev_mem_debug;
 
     return ptr1;
@@ -449,8 +459,7 @@ static void hhg_debug_malloc_core(
 )
 {
     HHG_UNUSED(null, size);
-    hhg_mem_alloc_loc_t *loc_arr = hmput(mem_alloc_tab, ptr, NULL);
-    arrput(loc_arr, loc);
+    hhg_mem_alloc_tab_add(ptr, loc);
 }
 
 static void hhg_debug_realloc_core(
@@ -464,12 +473,10 @@ static void hhg_debug_realloc_core(
 
     if (ptr != next) {
         if (ptr == NULL) {
-            // equivalent to malloc for new pointer, make new entry
-            hhg_mem_alloc_loc_t *loc_arr = hmput(mem_alloc_tab, next, NULL);
-            arrput(loc_arr, loc);
+            // equivalent to malloc for new pointer
+            hhg_debug_malloc_core(next, NULL, size, loc);
         } else {
             // transfer loc array to new pointer
-
             hhg_mem_alloc_t *prev_entry = hmgetp_null(mem_alloc_tab, ptr);
             // hhg_realloc should catch this but just in case
             hhg_assert(prev_entry != NULL);
@@ -479,7 +486,6 @@ static void hhg_debug_realloc_core(
             arrput(locs, loc);
 
             hmput(mem_alloc_tab, next, locs);
-
 
             // delete previous entry
             hmdel(mem_alloc_tab, ptr);
@@ -499,6 +505,9 @@ static void hhg_debug_free_core(
 )
 {
     HHG_UNUSED(null, size, loc);
+    // can free NULL
+    if (ptr == NULL)
+        return;
     hhg_mem_alloc_t *entry = hmgetp_null(mem_alloc_tab, ptr);
     // hhg_free should catch this but just in case
     hhg_assert(entry != NULL);
@@ -515,7 +524,7 @@ static void hhg_debug_strdup_core(
     hhg_mem_alloc_loc_t loc
 )
 {
-    hhg_debug_arena_malloc_core(buf, null, size, loc);
+    hhg_debug_malloc_core(buf, null, size, loc);
 }
 
 static void hhg_debug_arena_new_core(

@@ -57,14 +57,15 @@ static void hhg_msg_print_msg_type_str(
 simplified vfprintf with support for hhg-specific types
 
 supported format specifiers:
-%s - string
-%i - int
-%c - char
-%b - bool
-%% - %
-%t - hhg_token_type_t
-%n - hhg_node_type_t 
-%T - hhg_type_t *
+%s  - string
+%i  - int
+%lu - long unsigned int
+%c  - char
+%b  - bool
+%%  - %
+%t  - hhg_token_type_t
+%n  - hhg_node_type_t 
+%T  - hhg_type_t *
 */
 static void hhg_vfprintf(FILE *stream, const char *fmt, va_list va);
 
@@ -296,6 +297,18 @@ static void hhg_vfprintf(FILE *stream, const char *fmt, va_list va)
             case 'i': {
                 int int_arg = va_arg(va, int);
                 fprintf(stream, "%i", int_arg);
+                break;
+            }
+            case 'l': {
+                fmt++;
+                c = *fmt;
+                if (c == 'u') {
+                    unsigned long int_arg = va_arg(va, unsigned long);
+                    fprintf(stream, "%lu", int_arg);
+                } else {
+                    fputs("%l", stream);
+                    fmt--;
+                }
                 break;
             }
             case 'c': {

@@ -326,7 +326,7 @@ print(s.to_lower())
 ## For Loops
 
 The `for` loop is declared similarly to Python.
-Looping over `range(stop)`, `range(start, stop)`, or `range(start, stop, step)` iterates from `0` or `start` to `stop - 1` with `step` (defaults to `1`). Note that unlike Python, this is a syntactical construct and not a function.
+Looping over `range(stop)`, `range(start, stop)`, or `range(start, stop, step)` iterates from `0` or `start` to `stop - 1` with `step` (defaults to `1`).
 ```python
 for i in range(10) {
     print(i)

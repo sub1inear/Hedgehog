@@ -58,12 +58,12 @@ bool hhg_init(hhg_cfg_t *cfg)
 {
     const char *cfg_filename;
     const char *main_filename;
-    char cfg_path[LIBFS_MAX_PATH];
-    char main_path[LIBFS_MAX_PATH];
+    char cfg_path[FS_MAX_PATH];
+    char main_path[FS_MAX_PATH];
 
     if (cfg->init.name == NULL) {
-        char cwd[LIBFS_MAX_PATH];
-        if (!fs_current_dir(cwd, LIBFS_MAX_PATH))
+        char cwd[FS_MAX_PATH];
+        if (!fs_current_dir(cwd, sizeof(cwd)))
             hhg_fatal_error("failed to get current directory");
         cfg->init.name = (char *)fs_basename(cwd);
 
@@ -84,31 +84,19 @@ bool hhg_init(hhg_cfg_t *cfg)
                 cfg->init.name
             );
 
-        int cfg_result =
-            fs_join_path(
-                cfg_path,
-                LIBFS_MAX_PATH,
-                cfg->init.name,
-                HHG_CFG_FILENAME
-            );
-        if (cfg_result >= LIBFS_MAX_PATH)
-            hhg_fatal_error(
-                "path too long: %s " HHG_CFG_FILENAME,
-                cfg->init.name
-            );
-
-        int main_result =
-            fs_join_path(
-                main_path,
-                LIBFS_MAX_PATH,
-                cfg->init.name,
-                HHG_MAIN_FILENAME
-            );
-        if (main_result >= LIBFS_MAX_PATH)
-            hhg_fatal_error(
-                "path too long: %s " HHG_MAIN_FILENAME,
-                cfg->init.name
-            );
+        hhg_utils_join_path(
+            cfg_path,
+            HHG_ARR_SIZE(cfg_path),
+            cfg->init.name,
+            HHG_CFG_FILENAME
+        );
+        
+        hhg_utils_join_path(
+            main_path,
+            HHG_ARR_SIZE(main_path),
+            cfg->init.name,
+            HHG_MAIN_FILENAME
+        );
 
         // must not exist, we just created the directory
         cfg_filename = cfg_path;

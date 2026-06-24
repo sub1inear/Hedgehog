@@ -1,5 +1,6 @@
+#include <stdarg.h>
+#include <stdio.h>
 #include <string.h>
-#include <assert.h>
 
 #include "str.h"
 #include "mem.h"
@@ -7,7 +8,7 @@
 
 void hhg_str_init(hhg_str_t *str)
 {
-    str->len = 1;
+    str->len = 0;
     str->cap = 8;
     
     str->str = hhg_malloc(str->cap * sizeof(*str->str));
@@ -16,10 +17,8 @@ void hhg_str_init(hhg_str_t *str)
 
 void hhg_str_init_len(hhg_str_t *str, size_t len)
 {
-    hhg_assert(len > 0);
-
-    str->len = len + 1;
-    str->cap = str->len;
+    str->len = 0;
+    str->cap = len + 1;
 
     str->str = hhg_malloc(str->cap * sizeof(*str->str));
     str->str[0] = '\0';
@@ -29,67 +28,116 @@ void hhg_str_init_str(hhg_str_t *str, const char *init)
 {
     hhg_assert(init != NULL);
 
-    str->len = strlen(init) + 1;
-    str->cap = str->len;
+    str->len = strlen(init);
+    str->cap = str->len + 1;
 
     str->str = hhg_malloc(str->cap * sizeof(*str->str));
     strcpy(str->str, init);
 }
 
-void hhg_str_init_copy(hhg_str_t *dest, hhg_str_t *src)
+void hhg_str_init_copy(hhg_str_t *dst, hhg_str_t *src)
 {
-    dest->len = src->len;
-    dest->cap = src->cap;
-    dest->str = hhg_malloc(dest->cap * sizeof(*dest->str));
-    strcpy(dest->str, src->str);
+    dst->len = src->len;
+    dst->cap = src->cap;
+    dst->str = hhg_malloc(dst->cap * sizeof(*dst->str));
+    strcpy(dst->str, src->str);
+}
+
+hhg_str_t *hhg_str_new(void)
+{
+    hhg_str_t *str = hhg_malloc(sizeof(*str));
+    hhg_str_init(str);
+    return str;
+}
+
+hhg_str_t *hhg_str_new_len(size_t len)
+{
+    hhg_str_t *str = hhg_malloc(sizeof(*str));
+    hhg_str_init_len(str, len);
+    return str;
+}
+
+hhg_str_t *hhg_str_new_str(const char *init)
+{
+    hhg_str_t *str = hhg_malloc(sizeof(*str));
+    hhg_str_init_str(str, init);
+    return str;
+}
+
+hhg_str_t *hhg_str_new_copy(hhg_str_t *src)
+{
+    hhg_str_t *str = hhg_malloc(sizeof(*str));
+    hhg_str_init_copy(str, src);
+    return str;
 }
 
 void hhg_str_reset(hhg_str_t *str)
 {
-    str->len = 1;
+    str->len = 0;
     str->str[0] = '\0';
 }
 
-void hhg_str_copy(hhg_str_t *dest, hhg_str_t *src)
+void hhg_str_copy(hhg_str_t *dst, hhg_str_t *src)
 {
-    dest->len = src->len;
-    if (dest->cap < src->cap)
-        hhg_str_set_cap(dest, src->cap);
-    strcpy(dest->str, src->str);
+    dst->len = src->len;
+    if (dst->cap <= src->len)
+        hhg_str_set_cap(dst, src->cap);
+    strcpy(dst->str, src->str);
 }
 
 void hhg_str_append_char(hhg_str_t *str, int c)
 {
     str->len++;
-    if (str->len > str->cap)
+    if (str->len >= str->cap)
         hhg_str_set_cap(str, str->len * 2);
 
-    str->str[str->len - 2] = (char)c;
-    str->str[str->len - 1] = '\0';
-
+    str->str[str->len - 1] = (char)c;
+    str->str[str->len] = '\0';
 }
 
 void hhg_str_append_str(hhg_str_t *str, const char *append)
 {
-    hhg_assert(append != NULL);
+    hhg_str_append_str_len(str, append, strlen(append));
+}
 
-    size_t len = str->len - 1;
+void hhg_str_append_hhg_str(hhg_str_t *dst, hhg_str_t *append)
+{
+    hhg_str_append_str_len(dst, append->str, append->len);
+}
 
-    str->len += strlen(append);
-    if (str->len > str->cap)
+void hhg_str_append_str_len(hhg_str_t *str, const char *append, size_t len)
+{
+    size_t prev_len = str->len;
+
+    str->len += len;
+
+    if (str->len >= str->cap)
         hhg_str_set_cap(str, str->len * 2);
 
-    strcpy(str->str + len, append);
+    memcpy(str->str + prev_len, append, len);
+    str->str[str->len] = '\0';
 }
 
 void hhg_str_set_cap(hhg_str_t *str, size_t cap)
 {
     hhg_assert(cap > 0);
     str->cap = cap;
-    str->str = hhg_realloc(str->str, str->cap);
+    if (str->len >= str->cap) {
+        str->len = str->cap - 1;
+        str->str[str->len] = '\0';
+    }
+
+    str->str = hhg_realloc(str->str, str->cap * sizeof(*str->str));
 }
 
 void hhg_str_del(hhg_str_t *str)
 {
+    HHG_UNUSED(str);
     hhg_free_s(str->str);
+}
+
+void hhg_str_free(hhg_str_t *str)
+{
+    hhg_str_del(str);
+    hhg_free(str);
 }

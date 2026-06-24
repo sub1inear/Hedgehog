@@ -7,7 +7,7 @@
 #define OPTPARSE_API static
 #include <optparse.h>
 #include <stb_ds.h>
-#define LIBFS_IMPLEMENTATION
+#define FS_IMPLEMENTATION
 #include <fs.h>
 
 #include "cmd_args.h"

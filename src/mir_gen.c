@@ -314,7 +314,7 @@ static hhg_mir_reg_t hhg_mir_gen_get_global(hhg_mir_gen_t *gen, hhg_sym_t *sym, 
     hhg_mir_reg_t tmp_reg = hhg_mir_gen_new_tmp(gen, sym->value.type);
 
     hhg_mir_load_t *load_value = hhg_mir_gen_new_instr_value(gen, hhg_mir_load_t);
-    load_value->dest = tmp_reg;
+    load_value->dst = tmp_reg;
     load_value->src = sym;
     hhg_mir_gen_add_instr(gen, node, HHG_MIR_LOAD, load_value);
 
@@ -423,7 +423,7 @@ static hhg_mir_opnd_t hhg_mir_gen_run_var_decl(
     if (ctx->in_global_scope) {
         hhg_mir_store_t *store_value =
             hhg_mir_gen_new_instr_value(gen, hhg_mir_store_t);
-        store_value->dest = node->value.var_decl.id.sym;
+        store_value->dst = node->value.var_decl.id.sym;
         store_value->src = expr_opnd;
         hhg_mir_gen_add_instr(gen, node, HHG_MIR_STORE, store_value);
     } else {
@@ -431,7 +431,7 @@ static hhg_mir_opnd_t hhg_mir_gen_run_var_decl(
             hhg_mir_gen_get_local(gen, node->value.var_decl.id.sym);
         hhg_mir_copy_t *copy_value =
             hhg_mir_gen_new_instr_value(gen, hhg_mir_copy_t);
-        copy_value->dest = local_reg;
+        copy_value->dst = local_reg;
         copy_value->src = expr_opnd;
         hhg_mir_gen_add_instr(gen, node, HHG_MIR_COPY, copy_value);
     }

@@ -117,7 +117,9 @@ DOCUMENTATION
         size_t arraddnindex(T* a, int n)
           Appends n uninitialized items onto array at the end.
           Returns the index of the first uninitialized item added.
-
+      arrcat:
+        void arrcat(T* a, T* b);
+          Appends the items in array b to the end of array a.
       arrdel:
         void arrdel(T* a, int p);
           Deletes the element at a[p], moving the rest of the array over.
@@ -405,6 +407,7 @@ CREDITS
 #define arraddn     stbds_arraddn // deprecated, use one of the following instead:
 #define arraddnptr  stbds_arraddnptr
 #define arraddnindex stbds_arraddnindex
+#define arrcat      stbds_arrcat
 #define arrsetlen   stbds_arrsetlen
 #define arrlast     stbds_arrlast
 #define arrins      stbds_arrins
@@ -553,6 +556,7 @@ extern void * stbds_shmode_func(size_t elemsize, int mode);
 #define stbds_arraddn(a,n)     ((void)(stbds_arraddnindex(a, n)))    // deprecated, use one of the following instead:
 #define stbds_arraddnptr(a,n)  (stbds_arrmaybegrow(a,n), (n) ? (stbds_header(a)->length += (n), &(a)[stbds_header(a)->length-(n)]) : (a))
 #define stbds_arraddnindex(a,n)(stbds_arrmaybegrow(a,n), (n) ? (stbds_header(a)->length += (n), stbds_header(a)->length-(n)) : stbds_arrlen(a))
+#define stbds_arrcat(a,b)      ((void)(stbds_arrmaybegrow(a,stbds_arrlen(b)), memmove((a)+stbds_arrlen(a), (b), sizeof *(a)*stbds_arrlen(b)), stbds_header(a)->length += stbds_arrlen(b))) // stbds_arrlen for NULL safety
 #define stbds_arraddnoff       stbds_arraddnindex
 #define stbds_arrlast(a)       ((a)[stbds_header(a)->length-1])
 #define stbds_arrfree(a)       ((void) ((a) ? stbds_arrfreef(a) : (void)0), (a)=NULL)

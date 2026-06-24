@@ -22,29 +22,24 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#ifndef LIBFS__h
-#define LIBFS__h
+#ifndef FS_H
+#define FS_H
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-/** Major version of libfs. */
-#define LIBFS_VERSION_MAJOR 0
-/** Minor version of libfs. */
-#define LIBFS_VERSION_MINOR 2
-/** Patch version of libfs. */
-#define LIBFS_VERSION_PATCH 3
+/** Major version of fs. */
+#define FS_VERSION_MAJOR 0
+/** Minor version of fs. */
+#define FS_VERSION_MINOR 2
+/** Patch version of fs. */
+#define FS_VERSION_PATCH 3
 
-/* Define to 1 if you build with Doxygen. */
-#ifndef LIBFS_DOXYGEN
-/* #undef LIBFS_DOXYGEN */
-#endif
-
-#if !defined(LIBFS_MALLOC) && !defined(LIBFS_FREE)
+#if !defined(FS_MALLOC) && !defined(FS_FREE)
 /**
- * Defines the malloc function used by libfs at compile time.
+ * Defines the malloc function used by fs at compile time.
  *
  * @code
  * void* my_malloc(size_t size)
@@ -52,12 +47,12 @@ extern "C"
  *     // do something
  * }
  *
- * #define LIBFS_MALLOC my_malloc
+ * #define FS_MALLOC my_malloc
  * @endcode
  */
-#define LIBFS_MALLOC malloc
+#define FS_MALLOC malloc
 /**
- * Defines the free function used by libfs at compile time.
+ * Defines the free function used by fs at compile time.
  *
  * @code
  * void my_free(void* ptr)
@@ -65,23 +60,27 @@ extern "C"
  *     // do something
  * }
  *
- * #define LIBFS_FREE my_free
+ * #define FS_FREE my_free
  * @endcode
  */
-#define LIBFS_FREE free
+#define FS_FREE free
 #endif
-
 
 #ifdef _WIN32
-#define LIBFS_WINDOWS
-#define LIBFS_MAX_PATH 260
-#elif defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__))
-#define LIBFS_POSIX
-#define LIBFS_MAX_PATH 4096
-
+#define FS_WINDOWS
+#define FS_MAX_PATH 260
+#elif defined(__linux__)
+#define FS_LINUX
+#define FS_POSIX
+#define FS_MAX_PATH 4096
+#elif defined(__APPLE__) && defined(__MACH__)
+#define FS_MACOS
+#define FS_POSIX
+#define FS_MAX_PATH 1024
 #else
-#error "unsupported platform"
+#error "unsupported OS"
 #endif
+
 
 #include <stddef.h>    // for size_t
 #include <stdbool.h>   // for bool
@@ -89,11 +88,12 @@ extern "C"
 
 
 /**
-    * Composes an absolute path.
+    * Composes an absolute path, resolving symlinks.
+    * Due to `realpath` limitations, `buf` must be at least `FS_MAX_PATH` bytes long.
     *
     * @code{.c}
-    * char buf[MAX_PATH];
-    * if (!fs_absolute("./relative", buf, MAX_PATH))
+    * char buf[FS_MAX_PATH];
+    * if (!fs_absolute("./relative", buf))
     * {
     *     print("fs_absolute failed");
     * }
@@ -104,88 +104,87 @@ extern "C"
     * @endcode
     *
     * @param[in] path Some null-terminated path
-    * @param[out] buf Buffer for storing the result path
-    * @param[in] size Buffer size
+    * @param[out] buf Buffer for storing the result path. Must be at least `FS_MAX_PATH` bytes long
     * @return A pointer to buf if there is no error, NULL otherwise.
     */
 char *
-fs_absolute(const char *path, char *buf, size_t size);
+fs_absolute(const char *path, char buf[FS_MAX_PATH]);
 
 /**
     * Gets a pointer to the rightmost path separator.
     *
     * @code{.c}
-    * const char* c = fs_rsplit("./path/to/foo.txt");
+    * char* c = fs_rsplit("./path/to/foo.txt");
     * @endcode
     *
     * @param[in] path Some null-terminated path
     * @return A pointer to the rightmost separator.
     */
-const char*
+char *
 fs_rsplit(const char* path);
 
 /**
     * Gets the directory name of path.
     *
     * @code{.c}
-    * char dirname[256];
-    * fs_dirname("./foo.txt", dirname, 256);
+    * char dirname[FS_MAX_PATH];
+    * fs_dirname("./foo.txt", dirname, sizeof(dirname));
     * @endcode
     *
     * @param[in] path Some null-terminated path
     * @param[out] buf Buffer for storing the result path
     * @param[in] size Buffer size
-    * @return The number of bytes that would have been written if
-    * buf was large enough (excluding the null-terminating character).
+    * @return The number of bytes written to buf, < 0 if there was an error, or >= size if the result was truncated.
     */
 size_t
-fs_dirname(const char* path, char *buf, size_t size);
+fs_dirname(const char *path, char *buf, size_t size);
 
 /**
     * Gets the base name of path.
     *
     * @code{.c}
-    * const char* basename = fs_basename("./foo.txt");
+    * char *basename = fs_basename("./foo.txt");
     * @endcode
     *
     * @param[in] path Some null-terminated path
     * @return A pointer to the base name.
     */
-const char*
+char *
 fs_basename(const char* path);
 
 /**
     * Gets the extension of path.
     *
     * @code{.c}
-    * const char* ext = fs_extention("./foo.txt");
+    * char *ext = fs_extention("./foo.txt");
     * @endcode
     *
     * @param[in] path Some null-terminated path
     * @return A pointer to the extension, or NULL if there is no extension.
     */
-const char*
-fs_extention(const char* path);
+char *
+fs_extention(const char *path);
 
 /**
-    * Copies files or directories.
+    * Copies files, preserving permissions.
     *
     * @code{.c}
     * fs_copy("foo.txt", "bar.txt");
     * @endcode
     *
-    * @param[in] from Some null-terminated path to the source file, directory, or symlink
-    * @param[in] to Some null-terminated path to the destination file, directory, or symlink
+    * @param[in] from Some null-terminated path to the source file. Must exist
+    * @param[in] to Some null-terminated path to the destination file. Can not exist (will be created)
+    * @return true if the copy was successful, false otherwise.
     */
-void
+bool
 fs_copy(const char *from, const char *to);
 
 /**
     * Get the current working directory.
     *
     * @code{.c}
-    * char buf[MAX_PATH];
-    * if (!fs_current_dir(buf, MAX_PATH))
+    * char buf[FS_MAX_PATH];
+    * if (!fs_current_dir(buf, sizeof(buf)))
     * {
     *     print("fs_current_dir failed");
     * }
@@ -203,18 +202,40 @@ char *
 fs_current_dir(char *buf, size_t size);
 
 /**
+    * Get the path of the currently running executable, following symlinks if necessary.
+    * Due to `realpath` limitations, `buf` must be at least `FS_MAX_PATH` bytes long.
+    *
+    * @code{.c}
+    * char buf[FS_MAX_PATH];
+    * if (!fs_exec_path(buf))
+    * {
+    *     print("fs_exec_path failed");
+    * }
+    * else
+    * {
+    *     printf("%s", buf);
+    * }
+    * @endcode
+    *
+    * @param[out] buf Buffer for storing the result path. Must be at least `FS_MAX_PATH` bytes long
+    * @return A pointer to buf if there is no error, NULL otherwise.
+    */
+char *
+fs_exec_path(char buf[FS_MAX_PATH]);
+
+/**
     * Concatenates two paths together with the platform specific separator.
     *
     * @code{.c}
-    * char cwd[LIBFS_MAX_PATH];
-    * if (!fs_current_dir(cwd, LIBFS_MAX_PATH))
+    * char cwd[FS_MAX_PATH];
+    * if (!fs_current_dir(cwd, sizeof(buf)))
     * {
     *     print("fs_current_dir failed");
     *     return;
     * }
     *
-    * char buf[LIBFS_MAX_PATH];
-    * fs_join_path(buf, LIBFS_MAX_PATH, cwd, "foo.txt");
+    * char buf[FS_MAX_PATH];
+    * fs_join_path(buf, sizeof(buf), cwd, "foo.txt");
     * printf("%s", buf);
     * @endcode
     *
@@ -222,7 +243,7 @@ fs_current_dir(char *buf, size_t size);
     * @param[in] size Buffer size
     * @param[in] left Left part null-terminated path
     * @param[in] right Right part null-terminated path
-    * @return The number of bytes written to buf, < 0 if there is an error, or >= size if the result was truncated.
+    * @return The number of bytes written to buf, < 0 if there was an error, or >= size if the result was truncated.
     */
 int
 fs_join_path(char *buf, size_t size, const char *left, const char *right);
@@ -256,7 +277,7 @@ fs_exist(const char *path);
     * @endcode
     *
     * @param[in] path Some null-terminated path
-    * @return The size of the file, in bytes
+    * @return The size of the file, in bytes, or -1 for an error.
     */
 off_t
 fs_file_size(const char *path);
@@ -604,14 +625,15 @@ fs_close_dir(struct fs_directory_iterator *it);
 }
 #endif
 
-#ifdef LIBFS_IMPLEMENTATION
+#ifdef FS_IMPLEMENTATION
 
-#ifdef LIBFS_WINDOWS
+#ifdef FS_WINDOWS
 #include <direct.h>
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <winioctl.h> // for FSCTL_GET_REPARSE_POINT
+#include <aclapi.h> // for GetNamedSecurityInfo and SetNamedSecurityInfo
 #include <strsafe.h>
 
 #ifndef S_ISDIR
@@ -621,45 +643,49 @@ fs_close_dir(struct fs_directory_iterator *it);
 #define S_ISREG(x) ((x & _S_IFREG) == _S_IFREG)
 #endif
 
-#elif LIBFS_POSIX
+#elif defined(FS_POSIX)
 #include <errno.h>
 #include <unistd.h>
 #include <dirent.h>
+#include <fcntl.h>
 #include <sys/sendfile.h>
+
+#ifdef FS_MACOS
+#include <mach-o/dyld.h>
+#include <copyfile.h>
 #endif
 
-#if defined(LIBFS_POSIX) || defined(LIBFS_WINDOWS)
+#endif
+
+#if defined(FS_WINDOWS) || defined(FS_POSIX)
 #include <sys/stat.h>
 #endif
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
-#define LIBFS_MKDIR_PERMISSIONS 0700
-#define LIBFS_UNUSED(x) (void)(x)
+#define FS_MKDIR_PERMISSIONS 0700
 
 typedef struct fs_directory_iterator fs_directory_iterator;
 
-const char *
+char *
 fs_rsplit(const char *path)
 {
-	char *c1;
-	char *c2;
-
-	c1 = strrchr(path, '/');
+	char *c1 = strrchr(path, '/');
 	if (!c1)
 	{
 		return strrchr(path, '\\');
 	}
 
-	c2 = strrchr(c1, '\\');
+	char *c2 = strrchr(c1, '\\');
 	return c2 ? c2 : c1;
 }
 
 size_t
 fs_dirname(const char *path, char *buf, size_t size)
 {
-	const char *c = fs_rsplit(path);
+	char *c = fs_rsplit(path);
 	if (!c)
 	{
 		snprintf(buf, size, "%s", "");
@@ -669,22 +695,22 @@ fs_dirname(const char *path, char *buf, size_t size)
 	return snprintf(buf, size, "%.*s", (int)(c - path), path);
 }
 
-const char *
+char *
 fs_basename(const char *path)
 {
-	const char *c = fs_rsplit(path);
+	char *c = fs_rsplit(path);
 	if (!c)
 	{
-		return path;
+		return (char *)path;
 	}
 
 	return c + 1;
 }
 
-const char *
+char *
 fs_extention(const char *path)
 {
-    char *c = strrchr(path, '.');
+    char *c = strrchr(fs_basename(path), '.');
     if (!c)
     {
         return NULL;
@@ -692,28 +718,37 @@ fs_extention(const char *path)
     return c + 1;
 }
 
-#ifdef LIBFS_WINDOWS
+#ifdef FS_WINDOWS
 char *
-fs_absolute(const char *path, char *buf, size_t size)
+fs_absolute(const char *path, char *buf)
 {
-	if (!GetFullPathName(path, (DWORD)size, buf, NULL))
-	{
-		return NULL;
-	}
-
-	return buf;
+    HANDLE h = CreateFileA(
+        path,
+        0,
+        FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+        NULL,
+        OPEN_EXISTING,
+        FILE_FLAG_BACKUP_SEMANTICS,
+        NULL
+    );
+    if (h == INVALID_HANDLE_VALUE)
+    {
+        return NULL;
+    }
+    DWORD len = GetFinalPathNameByHandleA(h, buf, FS_MAX_PATH, FILE_NAME_NORMALIZED | VOLUME_NAME_DOS);
+    CloseHandle(h);
+    if (len == 0 || len >= FS_MAX_PATH)
+    {
+        return NULL;
+    }
+    // remove "\\?\" prefix
+    memmove(buf, buf + 4, len - 3);
+    return buf;
 }
-
-void
-fs_copy(const char *from, const char *to)
-{
-	CopyFile(from, to, 0);
-}
-#elif LIBFS_POSIX
+#elif defined(FS_POSIX)
 char *
-fs_absolute(const char *path, char *buf, size_t size)
+fs_absolute(const char *path, char *buf)
 {
-	LIBFS_UNUSED(size);
 	if (!realpath(path, buf))
 	{
 		return NULL;
@@ -721,49 +756,154 @@ fs_absolute(const char *path, char *buf, size_t size)
 
 	return buf;
 }
+#endif
 
-void
+#ifdef FS_WINDOWS
+bool
 fs_copy(const char *from, const char *to)
 {
-	FILE *ffrom = fopen(from, "rb");
-	if (!ffrom)
-	{
-		return;
-	}
+    if (!CopyFileA(from, to, false))
+    {
+        return false;
+    }
 
-	FILE *fto = fopen(to, "wb");
-	if (!fto)
-	{
-		return;
-	}
+    // copy permissions
+    PACL dacl = NULL;
+    PSECURITY_DESCRIPTOR sd = NULL;
+    DWORD err = GetNamedSecurityInfoA(
+        from,
+        SE_FILE_OBJECT,
+        DACL_SECURITY_INFORMATION,
+        NULL,
+        NULL,
+        &dacl,
+        NULL,
+        &sd
+    );
 
-	fseek(ffrom, 0, SEEK_END);
-	long size = ftell(ffrom);
-	fseek(ffrom, 0, 0);
+    if (err != ERROR_SUCCESS)
+    {
+        return false;
+    }
 
-	sendfile(ffrom, fto, 0, size);
+    err = SetNamedSecurityInfoA(
+        (LPSTR)to,
+        SE_FILE_OBJECT,
+        DACL_SECURITY_INFORMATION,
+        NULL,
+        NULL,
+        dacl,
+        NULL
+    );
 
-	fclose(ffrom);
-	fclose(fto);
+    LocalFree(sd);
+    return err == ERROR_SUCCESS;
+}
+#elif defined(FS_LINUX)
+bool
+fs_copy(const char *from, const char *to)
+{
+    int ffrom = open(from, O_RDONLY);
+    if (ffrom == -1)
+    {
+        return false;
+    }
+
+    struct stat s;
+    if (fstat(ffrom, &s) == -1)
+    {
+        close(ffrom);
+        return false;
+    }
+
+    int fto = open(to, O_CREAT | O_WRONLY | O_TRUNC, s.st_mode);
+    if (fto == -1)
+    {
+        close(ffrom);
+        return false;
+    }
+
+    off_t offset = 0;
+    while (offset < s.st_size)
+    {
+        ssize_t result = sendfile(fto, ffrom, &offset, s.st_size - offset);
+        if (result <= 0)
+        {
+            close(fto);
+            close(ffrom);
+            return false;
+        }
+    }
+    close(fto);
+    close(ffrom);
+    return true;
+}
+#elif defined(FS_MACOS)
+bool
+fs_copy(const char *from, const char *to)
+{
+    return !copyfile(from, to, NULL, COPYFILE_ALL);
 }
 #endif
 
-#ifdef LIBFS_WINDOWS
+#ifdef FS_WINDOWS
 char *
 fs_current_dir(char *buf, size_t size)
 {
-	if (GetCurrentDirectory((DWORD)size, buf))
+    DWORD len = GetCurrentDirectoryA((DWORD)size, buf);
+	if (len == 0 || len >= (DWORD)size)
 	{
-		return buf;
+		return NULL;
 	}
 
-	return NULL;
+	return buf;
 }
-#else
+#elif defined(FS_POSIX)
 char *
 fs_current_dir(char *buf, size_t size)
 {
 	return getcwd(buf, size);
+}
+#endif
+
+/*
+The Linux version `readlink("/proc/self/exe")` follows symlinks,
+so Windows and MacOS versions must do the same manually to be consistent.
+*/
+#ifdef FS_WINDOWS
+char *
+fs_exec_path(char *buf)
+{
+    char tmp_buf[FS_MAX_PATH];
+    if (!GetModuleFileNameA(NULL, tmp_buf, (DWORD)sizeof(tmp_buf)))
+    {
+        return NULL;
+    }
+    return fs_absolute(tmp_buf, buf);
+}
+#elif defined(FS_LINUX)
+char *
+fs_exec_path(char *buf)
+{
+    ssize_t len = readlink("/proc/self/exe", buf, FS_MAX_PATH - 1);
+    if (len == -1)
+    {
+        return NULL;
+    }
+    buf[len] = '\0';
+    return buf;
+}
+#elif defined(FS_MACOS)
+char *
+fs_exec_path(char *buf)
+{
+    char tmp_buf[FS_MAX_PATH];
+    uint32_t tmp_buf_size = (uint32_t)sizeof(tmp_buf);
+    if (_NSGetExecutablePath(tmp_buf, &tmp_buf_size) != 0)
+    {
+        return NULL;
+    }
+    return fs_absolute(tmp_buf, buf);
 }
 #endif
 
@@ -788,10 +928,16 @@ fs_is_file(const char *path)
 	return (stat(path, &s) == 0) && S_ISREG(s.st_mode);
 }
 
+
+#ifdef FS_WINDOWS
+typedef struct reparse_data_buffer_header {
+    DWORD reparse_tag;
+    WORD  reparse_data_length;
+    WORD  reserved;
+} reparse_data_buffer_header;
 bool
 fs_is_symlink(const char *path)
 {
-#ifdef LIBFS_WINDOWS
     DWORD attrs = GetFileAttributesA(path);
     if (attrs == INVALID_FILE_ATTRIBUTES)
         return false;
@@ -812,86 +958,72 @@ fs_is_symlink(const char *path)
     if (h == INVALID_HANDLE_VALUE)
         return false;
 
-    BYTE buffer[MAXIMUM_REPARSE_DATA_BUFFER_SIZE];
+    BYTE buf[MAXIMUM_REPARSE_DATA_BUFFER_SIZE];
     DWORD bytes;
 
-    BOOL ok = DeviceIoControl(
+    BOOL result = DeviceIoControl(
         h,
         FSCTL_GET_REPARSE_POINT,
         NULL,
         0,
-        buffer,
-        sizeof(buffer),
+        buf,
+        sizeof(buf),
         &bytes,
         NULL
     );
 
     CloseHandle(h);
 
-    if (!ok)
+    if (!result)
         return false;
 
-    typedef struct {
-        DWORD ReparseTag;
-        WORD  ReparseDataLength;
-        WORD  Reserved;
-    } REPARSE_DATA_BUFFER_HEADER;
-
-    REPARSE_DATA_BUFFER_HEADER *hdr =
-        (REPARSE_DATA_BUFFER_HEADER *)buffer;
-
-    return hdr->ReparseTag == IO_REPARSE_TAG_SYMLINK;
-#elif defined(LIBFS_POSIX)
+    reparse_data_buffer_header *hdr =
+        (reparse_data_buffer_header *)buf;
+    return hdr->reparse_tag == IO_REPARSE_TAG_SYMLINK;
+}
+#elif defined(FS_POSIX)
+bool
+fs_is_symlink(const char *path)
+{
     struct stat s;
 	return (lstat(path, &s) == 0) && S_ISLNK(s.st_mode);
-#endif
 }
+#endif
 
 off_t
 fs_file_size(const char *path)
 {
 	struct stat s;
-	FILE *file = fopen(path, "rb");
-	if (!file)
-	{
-		return -1L;
-	}
-
-	if (fstat(fileno(file), &s) == -1)
-	{
-		return -1L;
-	}
-
-	fclose(file);
-	return s.st_size;
+    return (stat(path, &s) == 0) ? s.st_size : -1;
 }
 
 static void *
 fs_read_file_internal(const char *path, void *buf, size_t size, size_t *readen)
 {
-	void *data;
-	size_t file_size;
-	size_t read_size;
 	FILE *file = fopen(path, "rb");
 	if (!file)
 	{
 		return NULL;
 	}
 
-	/* File size */
-	fseek(file, 0, SEEK_END);
-	file_size = ftell(file);
-	fseek(file, 0, SEEK_SET);
+	// file size
+    off_t file_size = fs_file_size(path);
 
-	data = buf;
-	read_size = size;
+    if (file_size == -1)
+    {
+        fclose(file);
+        return NULL;
+    }
+
+	void *data = buf;
+	size_t read_size = size;
 	if (!data)
 	{
 		read_size = file_size;
 		size = file_size + 1;
 
-		/* Create a buffer large enough */
-		data = LIBFS_MALLOC(size);
+		// create a buffer large enough
+		data = FS_MALLOC(size);
 		if (!data)
 		{
 			fclose(file);
@@ -903,7 +1035,7 @@ fs_read_file_internal(const char *path, void *buf, size_t size, size_t *readen)
 	{
 		read_size = fread(data, 1, read_size, file);
 
-		/* Append \0 */
+		// append '\0'
 		if (read_size < size)
 		{
 			((char *)data)[read_size] = '\0';
@@ -943,9 +1075,9 @@ fs_write_file(const char *path, const void *buf, size_t size)
 		return false;
 	}
 
-	fwrite(buf, size, 1, file);
+	size_t result = fwrite(buf, sizeof(char), size, file);
 	fclose(file);
-	return true;
+	return result == size;
 }
 
 typedef struct fs_file_iterator
@@ -957,13 +1089,18 @@ fs_file_iterator *
 fs_iter_file(const char *path)
 {
 	fs_file_iterator *it;
-	FILE *f = fopen(path, "r");
+	FILE *f = fopen(path, "rb");
 	if (!f)
 	{
 		return NULL;
 	}
 
-	it = (fs_file_iterator *)LIBFS_MALLOC(sizeof(fs_file_iterator));
+	it = (fs_file_iterator *)FS_MALLOC(sizeof(fs_file_iterator));
+    if (!it)
+    {
+        fclose(f);
+        return NULL;
+    }
 	memset(it, 0, sizeof(fs_file_iterator));
 	it->file = f;
 	return it;
@@ -984,24 +1121,25 @@ void
 fs_close_file(fs_file_iterator *it)
 {
 	fclose(it->file);
-	LIBFS_FREE(it);
+	FS_FREE(it);
 }
 
 int
 fs_join_path(char *buf, size_t size, const char *left, const char *right)
 {
-#ifdef LIBFS_WINDOWS
+#ifdef FS_WINDOWS
 	return snprintf(buf, size, "%s\\%s", left, right);
-#else
+#elif defined(FS_POSIX)
     return snprintf(buf, size, "%s/%s", left, right);
 #endif
 }
 
-#ifdef LIBFS_WINDOWS
+#ifdef FS_WINDOWS
 char *
 fs_temp_dir(char *buf, size_t size)
 {
-	if (!GetTempPath((DWORD)size, buf))
+    DWORD len = GetTempPathA((DWORD)size, buf);
+	if (len == 0 || len >= (DWORD)size)
 	{
 		return NULL;
 	}
@@ -1012,9 +1150,11 @@ fs_temp_dir(char *buf, size_t size)
 bool
 fs_delete_dir(const char *path)
 {
-	if (RemoveDirectory(path) == 0)
+	if (RemoveDirectoryA(path) == 0)
 	{
-		return ERROR_FILE_NOT_FOUND == GetLastError();
+        DWORD err = GetLastError();
+		return err == ERROR_FILE_NOT_FOUND ||
+               err == ERROR_PATH_NOT_FOUND;
 	}
 
 	return true;
@@ -1023,9 +1163,11 @@ fs_delete_dir(const char *path)
 bool
 fs_delete_file(const char *path)
 {
-	if (DeleteFile(path) == 0)
+	if (DeleteFileA(path) == 0)
 	{
-		return ERROR_FILE_NOT_FOUND == GetLastError();
+		DWORD err = GetLastError();
+		return err == ERROR_FILE_NOT_FOUND ||
+               err == ERROR_PATH_NOT_FOUND;
 	}
 
 	return true;
@@ -1034,25 +1176,28 @@ fs_delete_file(const char *path)
 bool
 fs_make_dir(const char *path)
 {
-	if (CreateDirectory(path, NULL) == 0)
+	if (CreateDirectoryA(path, NULL) == 0)
 	{
-		return ERROR_ALREADY_EXISTS == GetLastError();
+		return GetLastError() == ERROR_ALREADY_EXISTS;
 	}
 
 	return true;
 }
-#elif defined(LIBFS_POSIX)
+#elif defined(FS_POSIX)
 char *
 fs_temp_dir(char *buf, size_t size)
 {
 	const char *path = getenv("TMPDIR");
 	if (!path)
 	{
-		return NULL;
+        path = "/tmp";
 	}
 
-	snprintf(buf, size, "%s", path);
-	return buf;
+	if (snprintf(buf, size, "%s", path) >= (int)size)
+    {
+        return NULL;
+    }
+    return buf;
 }
 
 bool
@@ -1069,38 +1214,42 @@ fs_delete_file(const char *path)
 bool
 fs_make_dir(const char *path)
 {
-    return (mkdir(path, LIBFS_MKDIR_PERMISSIONS) == 0) || (EEXIST == errno);
+    return (mkdir(path, FS_MKDIR_PERMISSIONS) == 0) || (EEXIST == errno);
 }
 #endif
 
-#ifdef LIBFS_WINDOWS
+#ifdef FS_WINDOWS
 typedef struct fs_win_directory_iterator
 {
 	fs_directory_iterator base;
-	WIN32_FIND_DATA fdFile;
-	HANDLE hFind;
+	WIN32_FIND_DATA file;
+	HANDLE h;
 	bool started;
 } fs_win_directory_iterator;
 
 fs_directory_iterator *
 fs_open_dir(const char *path)
 {
-	fs_win_directory_iterator *it;
-	TCHAR szDir[MAX_PATH];
-	WIN32_FIND_DATA fdFile;
-	HANDLE hFind;
-	StringCchCopy(szDir, MAX_PATH, path);
-	StringCchCat(szDir, MAX_PATH, TEXT("\\*"));
-	hFind = FindFirstFile(szDir, &fdFile);
-	if (hFind == INVALID_HANDLE_VALUE)
+    char dir[FS_MAX_PATH];
+    StringCchCopyA(dir, FS_MAX_PATH, path);
+	StringCchCatA(dir, FS_MAX_PATH, "\\*");
+
+    WIN32_FIND_DATA file;
+    HANDLE h = FindFirstFileA(dir, &file);
+	if (h == INVALID_HANDLE_VALUE)
 	{
 		return NULL;
 	}
 
-	it = (fs_win_directory_iterator *)LIBFS_MALLOC(sizeof(fs_win_directory_iterator));
-	memset(it, 0, sizeof(fs_win_directory_iterator));
-	it->fdFile = fdFile;
-	it->hFind = hFind;
+	fs_win_directory_iterator *it =
+        (fs_win_directory_iterator *)FS_MALLOC(sizeof(fs_win_directory_iterator));
+    if (!it) {
+        FindClose(h);
+        return NULL;
+    }
+    memset(it, 0, sizeof(fs_win_directory_iterator));
+	it->file = file;
+	it->h = h;
 	return (fs_directory_iterator *)it;
 }
 
@@ -1113,12 +1262,12 @@ fs_read_dir(fs_directory_iterator *it)
 	{
 		_it->started = true;
 	}
-	else if (!FindNextFile(_it->hFind, &_it->fdFile))
+	else if (!FindNextFileA(_it->h, &_it->file))
 	{
 		return NULL;
 	}
 
-	_it->base.path = _it->fdFile.cFileName;
+	_it->base.path = _it->file.cFileName;
 	return it;
 }
 
@@ -1126,10 +1275,10 @@ void
 fs_close_dir(fs_directory_iterator *it)
 {
 	fs_win_directory_iterator *_it = (fs_win_directory_iterator *)it;
-	FindClose(_it->hFind);
-	LIBFS_FREE(_it);
+	FindClose(_it->h);
+	FS_FREE(_it);
 }
-#elif defined(LIBFS_POSIX)
+#elif defined(FS_POSIX)
 typedef struct fs_posix_directory_iterator
 {
 	fs_directory_iterator base;
@@ -1147,8 +1296,12 @@ fs_open_dir(const char *path)
 		return NULL;
 	}
 
-	it = (fs_posix_directory_iterator *)LIBFS_MALLOC(sizeof(fs_posix_directory_iterator));
-	memset(it, 0, sizeof(fs_posix_directory_iterator));
+	it = (fs_posix_directory_iterator *)FS_MALLOC(sizeof(fs_posix_directory_iterator));
+    if (!it) {
+        closedir(d);
+        return NULL;
+    }
+    memset(it, 0, sizeof(fs_posix_directory_iterator));
 	it->dir = d;
 	return (fs_directory_iterator *)it;
 }
@@ -1171,7 +1324,7 @@ fs_close_dir(fs_directory_iterator *it)
 {
 	fs_posix_directory_iterator *_it = (fs_posix_directory_iterator *)it;
 	closedir(_it->dir);
-	LIBFS_FREE(_it);
+	FS_FREE(_it);
 }
 #endif
 

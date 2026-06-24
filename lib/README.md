@@ -1,8 +1,7 @@
-
-| Header     | Repository                                        | License       | Commit ID | Date                | Modified? |
-| ---------- | ------------------------------------------------- | ------------- | --------- | ------------------- | --------- |
-| arena.h    | [arena.h](https://github.com/thejefflarson/arena) | MIT           | f0a359c   | 10/18/2025 09:40 AM | Yes       | 
-| stb_ds.h   | [stb_ds.h](https://github.com/nothings/stb)       | Public Domain | 40adb99   | 09/12/2025 03:53 PM | Yes       |
-| optparse.h | [optparse.h](https://github.com/skeeto/optparse)  | Unlicense     | a86877e   | 09/30/2025 05:01 PM | No        |
-| toml.h     | [toml.h](https://github.com/cktan/tomlc17)        | MIT           | 60066df   | 02/08/2026 10:03 AM | Yes       |
-| fs.h       | [fs.h](https://github.com/Nauja/libfs)            | MIT           | ae9855d   | 02/15/2026 04:01 PM | Yes       |
+| Header       | Repository                                                                                           | License       | Modified? |
+| ------------ | ---------------------------------------------------------------------------------------------------- | ------------- | --------- |
+| arena.h      | [arena](https://github.com/thejefflarson/arena/tree/f0a359c8276b41c2661ff1f0a010267cf02efd8b)        | MIT           | Yes       | 
+| stb_ds.h     | [stb](https://github.com/nothings/stb/tree/40adb995abeea13612ad73bda031c90e3c0cf821)                 | Public Domain | Yes       |
+| optparse.h   | [optparse](https://github.com/skeeto/optparse/tree/a86877ed301d89a4eb64feb08f23af395aede2ed)         | Unlicense     | No        |
+| toml.h       | [tomlc17](https://github.com/cktan/tomlc17/tree/60066df8256cfd5f459f015a64f2f89e3821dd3c)            | MIT           | Yes       |
+| fs.h         | [libfs](https://github.com/Nauja/libfs/tree/ae9855d587e9605029796e45df4e670568c52ef1)                | MIT           | Yes       |

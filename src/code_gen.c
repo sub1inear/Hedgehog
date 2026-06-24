@@ -42,16 +42,14 @@ void hhg_code_gen_init(
             hhg_fatal_error("failed to create output directory: %s", out_dir);
 
     // create sentinel file to mark this as the output directory
-    char sentinel_filename[LIBFS_MAX_PATH];
-    int join_path_result = fs_join_path(
+    char sentinel_filename[FS_MAX_PATH];
+    hhg_utils_join_path(
         sentinel_filename,
-        LIBFS_MAX_PATH,
+        HHG_ARR_SIZE(sentinel_filename),
         out_dir,
         ".hhg_out_dir"
     );
-    if (join_path_result >= LIBFS_MAX_PATH)
-        hhg_fatal_error("output path is too long: %s .hhg_out_dir", out_dir);
-
+    
     FILE *sentinel_file = hhg_utils_fopen(sentinel_filename, "w");
     fputs(
         "This file marks the Hedgehog build output directory.\n"
@@ -179,8 +177,9 @@ static const char *hhg_code_gen_replace_ext(
             in_basename,
             gen->backend->ext
         );
-
+    
     if (snprintf_result >= out_filename_ext_len)
+        // buffer is dynamically sized so should never fail, but just in case
         hhg_compiler_error(
             "snprintf output truncated: %.*s.%s",
             (int)in_basename_ext_len,
@@ -189,20 +188,14 @@ static const char *hhg_code_gen_replace_ext(
         );
 
     // "out/file.cpp" or "out\file.cpp"
-    char *out_filename = hhg_arena_malloc(gen->arena, LIBFS_MAX_PATH);
+    char *out_filename = hhg_arena_malloc(gen->arena, FS_MAX_PATH);
 
-    int join_path_result = fs_join_path(
+    hhg_utils_join_path(
         out_filename,
-        LIBFS_MAX_PATH,
+        FS_MAX_PATH,
         gen->out_dir,
         out_filename_ext
     );
     
-    if (join_path_result >= LIBFS_MAX_PATH)
-        hhg_fatal_error(
-            "output path is too long: %s %s",
-            gen->out_dir,
-            out_filename_ext
-        );
     return out_filename;
 }

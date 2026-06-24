@@ -114,7 +114,7 @@ typedef struct hhg_mir_opnd {
 typedef struct hhg_mir_expr {
     hhg_mir_opnd_t left;
     hhg_mir_opnd_t right;
-    hhg_mir_reg_t dest;
+    hhg_mir_reg_t dst;
 } hhg_mir_expr_t;
 
 typedef enum hhg_mir_cmp_type {
@@ -130,7 +130,7 @@ typedef struct hhg_mir_cmp {
     hhg_mir_cmp_type_t cmp;
     hhg_mir_opnd_t left;
     hhg_mir_opnd_t right;
-    hhg_mir_reg_t dest;
+    hhg_mir_reg_t dst;
 } hhg_mir_cmp_t;
 
 typedef struct hhg_mir_jmp {
@@ -146,7 +146,7 @@ typedef struct hhg_mir_br {
 typedef struct hhg_mir_call {
     hhg_sym_t *func;
     hhg_mir_opnd_t *args;
-    hhg_mir_reg_t dest;
+    hhg_mir_reg_t dst;
 } hhg_mir_call_t;
 
 typedef struct hhg_mir_ret {
@@ -155,28 +155,28 @@ typedef struct hhg_mir_ret {
 
 typedef struct hhg_mir_load {
     hhg_sym_t *src;
-    hhg_mir_reg_t dest;
+    hhg_mir_reg_t dst;
 } hhg_mir_load_t;
 
 typedef struct hhg_mir_store {
     hhg_mir_opnd_t src;
-    hhg_sym_t *dest;
+    hhg_sym_t *dst;
 } hhg_mir_store_t;
 
 typedef struct hhg_mir_alloca {
     hhg_type_t *type;
-    hhg_mir_reg_t dest;
+    hhg_mir_reg_t dst;
 } hhg_mir_alloca_t;
 
 typedef struct hhg_mir_malloc {
     hhg_mir_opnd_t size;
-    hhg_mir_reg_t dest;
+    hhg_mir_reg_t dst;
 } hhg_mir_malloc_t;
 
 typedef struct hhg_mir_realloc {
     hhg_mir_reg_t ptr;
     hhg_mir_opnd_t size;
-    hhg_mir_reg_t dest;
+    hhg_mir_reg_t dst;
 } hhg_mir_realloc_t;
 
 typedef struct hhg_mir_free {
@@ -189,22 +189,22 @@ typedef struct hhg_mir_arc {
 
 typedef struct hhg_mir_move {
     hhg_mir_reg_t src;
-    hhg_mir_reg_t dest;
+    hhg_mir_reg_t dst;
 } hhg_mir_move_t;
 
 typedef struct hhg_mir_copy {
     hhg_mir_opnd_t src;
-    hhg_mir_reg_t dest;
+    hhg_mir_reg_t dst;
 } hhg_mir_copy_t;
 
 typedef struct hhg_mir_borrow {
     hhg_mir_reg_t src;
-    hhg_mir_reg_t dest;
+    hhg_mir_reg_t dst;
 } hhg_mir_borrow_t;
 
 typedef struct hhg_mir_reborrow {
     hhg_mir_reg_t src;
-    hhg_mir_reg_t dest;
+    hhg_mir_reg_t dst;
 } hhg_mir_reborrow_t;
 
 typedef struct hhg_mir_release {
@@ -214,19 +214,19 @@ typedef struct hhg_mir_release {
 typedef struct hhg_mir_cast {
     hhg_mir_reg_t src;
     hhg_type_t *dest_type;
-    hhg_mir_reg_t dest;
+    hhg_mir_reg_t dst;
 } hhg_mir_cast_t;
 
 typedef struct hhg_mir_struct_init {
     hhg_sym_t *type;
     hhg_mir_opnd_t *fields;
-    hhg_mir_reg_t dest;
+    hhg_mir_reg_t dst;
 } hhg_mir_struct_init_t;
 
 typedef struct hhg_mir_struct_load {
     hhg_mir_reg_t ptr;
     hhg_mir_field_t field_idx;
-    hhg_mir_reg_t dest;
+    hhg_mir_reg_t dst;
 } hhg_mir_struct_load_t;
 
 typedef struct hhg_mir_struct_store {
@@ -238,13 +238,13 @@ typedef struct hhg_mir_struct_store {
 typedef struct hhg_mir_arr_init {
     hhg_type_t *elem_type;
     hhg_mir_opnd_t *elems;
-    hhg_mir_reg_t dest;
+    hhg_mir_reg_t dst;
 } hhg_mir_arr_init_t;
 
 typedef struct hhg_mir_arr_load {
     hhg_mir_reg_t arr;
     hhg_mir_reg_t idx;
-    hhg_mir_reg_t dest;
+    hhg_mir_reg_t dst;
 } hhg_mir_arr_load_t;
 
 typedef struct hhg_mir_arr_store {

@@ -183,7 +183,7 @@ bool hhg_build(hhg_cfg_t *cfg, hhg_msg_ctx_t *msg_ctx, hhg_arena_t *arena)
     hhg_ext_build_run(
         &ext_build,
         &code_gen,
-        cfg->project.name
+        cfg
     );
 
     hhg_build_check_exit_result_t ext_build_result =

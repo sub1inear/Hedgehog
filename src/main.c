@@ -17,7 +17,7 @@ int hhg_main(int argc, char **argv)
     hhg_msg_ctx_init(&msg_ctx, &cfg);
     hhg_cfg_init(&cfg, &msg_ctx, arena);
 
-    if (hhg_cfg_parse(&cfg, HHG_CFG_FILENAME))
+    if (hhg_cfg_parse(&cfg))
         return EXIT_FAILURE;
 
     hhg_cmd_args_parse(&cfg, argc, argv);
