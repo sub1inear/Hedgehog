@@ -1,0 +1,29 @@
+import std.time
+
+pub class Random {
+    seed: u32
+
+    pub fn Random(&self) {
+        self.seed = time.time()
+    }
+
+    pub fn Random(&self, seed: u32) {
+        self.seed = seed
+    }
+
+    pub fn random(&self) -> u32 {
+        return self.seed = self.seed * 69069 + 1
+    }
+
+    pub fn random(&self, max: u32) -> u32 {
+        return self.random() % max
+    }
+
+    pub fn random(&self, min: u32, max: u32) -> u32 {
+        return min + self.random(max - min)
+    }
+
+    pub fn random(&self, min: i32, max: i32) -> i32 {
+        return min + self.random(max - min)
+    }
+}

@@ -1,0 +1,31 @@
+import libc
+
+pub const args = #builtin_args
+
+pub const stdout = std.fs.File(libc.stdio.stdout)
+pub const stdin = std.fs.File(libc.stdio.stdin)
+pub const stderr = std.fs.File(libc.stdio.stderr)
+
+enum ExitCode : libc.c_int {
+    Success = libc.stdlib.EXIT_SUCCESS,
+    Failure = libc.stdlib.EXIT_FAILURE,
+}
+
+pub fn exit(code: ExitCode) {
+    unsafe { libc.stdlib.exit(code) }
+}
+
+pub fn abort() {
+    unsafe { libc.stdlib.abort() }
+}
+
+pub fn system(cmd: strview) -> ExitCode {
+    return unsafe { libc.stdlib.system(cmd) }
+}
+
+pub fn getenv(name: strview) -> strview | null {
+    unsafe {
+        ptr = libc.stdlib.getenv(name)?
+    }
+    return strview(ptr)
+}

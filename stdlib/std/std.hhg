@@ -1,0 +1,70 @@
+import std.interfaces
+
+import libc.stdio
+
+pub fn print<T: std.interfaces.Print>(obj: T) {
+    obj.print()
+}
+
+pub fn print(s: strview) {
+    unsafe { libc.stdio.printf("%s", s) }
+}
+
+pub fn print(str: @fmt strview) {
+    unsafe { libc.stdio.vprintf(str, str.args()) }
+}
+
+pub fn println<T: std.interfaces.Print>(obj: T) {
+    obj.print()
+    unsafe { libc.stdio.putchar('\n') }
+}
+
+pub fn println(s: strview) {
+    unsafe { libc.stdio.printf("%s\n", s) }
+}
+
+pub fn println(str: @fmt strview) {
+    unsafe { libc.stdio.vprintf(str, str.args()) }
+    unsafe { libc.stdio.putchar('\n') }
+}
+
+pub fn read() -> str {
+    s: str = ""
+    while (c = libc.stdio.getchar()) != libc.stdio.EOF {
+        s.append(c)
+    }
+    return s
+}
+
+pub fn read(size: usize) -> str {
+    s: str = ""
+    for i in 0..size {
+        unsafe { c = libc.stdio.getchar() }
+        if c == libc.stdio.EOF {
+            break
+        }
+        s.append(c)
+    }
+    return s
+}
+
+pub fn readln() -> str {
+    s: str = ""
+    while unsafe { c = libc.stdio.getchar() } {
+        if c == libc.stdio.EOF || c == '\n' {
+            break
+        }
+        s.append(c)
+    }
+    return s
+}
+
+pub fn input(prompt: strview) -> str {
+    print(prompt)
+    return readln()
+}
+
+pub fn input(prompt: @fmt strview) -> str {
+    print(prompt)
+    return readln()
+}

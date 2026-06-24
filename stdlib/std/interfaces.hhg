@@ -1,0 +1,29 @@
+pub import core.interfaces
+
+pub interface Allocator {
+    fn malloc(&self, size: usize) -> *u8 | null
+    fn realloc(&self, ptr: *u8 | null, size: usize) -> *u8 | null
+    fn free(&self, ptr: *u8 | null)
+}
+
+pub interface Read {
+    fn read(...)
+}
+
+pub interface Write {
+    fn write(...)
+}
+
+pub interface Close {
+    fn close(...)
+}
+
+pub interface Stream {
+    Read,
+    Write,
+    Close
+}
+
+pub interface Print {
+    fn print(&const self, &const Write)
+}

@@ -1,0 +1,8 @@
+pub class LinkedList<T> {
+}
+
+pub class BinaryHeap<T> {
+}
+
+pub class Deque<T> {
+}

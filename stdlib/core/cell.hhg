@@ -1,0 +1,15 @@
+pub class Cell<T> {
+
+}
+
+pub class Ref<T> {
+
+}
+
+pub class ConstRef<T> {
+
+}
+
+pub class RefCell<T> {
+
+}

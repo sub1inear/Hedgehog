@@ -1,0 +1,52 @@
+import libc.string
+
+pub fn sizeof<T>() -> usize {
+    return #builtin_sizeof<T>()
+}
+
+pub fn sizeof<T>(expr: T) -> usize {
+    return #builtin_sizeof<T>()
+}
+
+pub fn alignof<T>() -> usize {
+    return #builtin_alignof<T>()
+}
+
+pub fn alignof<T>(expr: T) -> usize {
+    return #builtin_alignof<T>()
+}
+
+pub fn copy(dst: *u8, src: *u8, size: usize) {
+    unsafe {
+        libc.string.memcpy(dst, src, size)
+    }
+}
+
+pub fn move(dst: *u8, src: *u8, size: usize) {
+    unsafe {
+        libc.string.memmove(dst, src, size)
+    }
+}
+
+pub fn set(dst: *u8, value: u8, size: usize) {
+    unsafe {
+        libc.string.memset(dst, value, size)
+    }
+}
+
+pub fn swap<T>(a: &mut T, b: &mut T) {
+    unsafe {
+        tmp: T
+        libc.string.memcpy(&tmp, a, sizeof(T))
+        libc.string.memcpy(a, b, sizeof(T))
+        libc.string.memcpy(b, &tmp, sizeof(T))
+    }
+}
+
+pub fn bitcast<T, U>(t: T) -> U {
+    unsafe {
+        u: U
+        libc.string.memcpy(&u, &t, sizeof(T))
+        return u
+    }
+}

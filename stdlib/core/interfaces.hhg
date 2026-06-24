@@ -1,0 +1,101 @@
+
+pub interface Add {
+    fn add(&self, other: Self) -> Self
+}
+
+pub interface Sub {
+    fn sub(&self, other: Self) -> Self
+}
+
+pub interface Mul {
+    fn mul(&self, other: Self) -> Self
+}
+
+pub interface Div {
+    fn div(&self, other: Self) -> Self
+}
+
+pub interface Mod {
+    fn mod(&self, other: Self) -> Self
+}
+
+pub interface Neg {
+    fn neg(&self) -> Self
+}
+
+pub interface Eq {
+    fn eq(&self, other: Self) -> bool
+}
+
+pub interface Ne {
+    fn ne(&self, other: Self) -> bool
+}
+
+pub interface Lt {
+    fn lt(&self, other: Self) -> bool
+}
+
+pub interface Le {
+    fn le(&self, other: Self) -> bool
+}
+
+pub interface Gt {
+    fn gt(&self, other: Self) -> bool
+}
+
+pub interface Ge {
+    fn ge(&self, other: Self) -> bool
+}
+
+pub interface BitAnd {
+    fn bitand(&self, other: Self) -> Self
+}
+
+pub interface BitOr {
+    fn bitor(&self, other: Self) -> Self
+}
+
+pub interface BitXor {
+    fn bitxor(&self, other: Self) -> Self
+}
+
+pub interface BitNot {
+    fn bitnot(&self) -> Self
+}
+
+pub interface Shl {
+    fn shl(&self, count: Self) -> Self
+}
+
+pub interface Shr {
+    fn shr(&self, count: Self) -> Self
+}
+
+pub interface Ordered {
+    Eq,
+    Ne,
+    Lt,
+    Le,
+    Gt,
+    Ge
+}
+
+pub interface Num {
+    Add,
+    Sub,
+    Mul,
+    Div,
+    Mod,
+    Neg,
+    Ordered
+}
+
+pub interface Int {
+    Num,
+    BitAnd,
+    BitOr,
+    BitXor,
+    BitNot,
+    Shl,
+    Shr
+}

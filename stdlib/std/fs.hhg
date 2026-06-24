@@ -1,0 +1,41 @@
+import libc
+
+pub class File {
+    libc.stdio.FILE *fptr
+
+    fn get_file_error() -> &u8[] {
+        unsafe {
+            let err: *u8 = libc.stdio.strerror(libc.errno)!
+            return strview(err)
+        }
+    }
+
+    pub type OpenError = !&u8[]
+    static pub fn open(path: strview, mode: strview) -> File | OpenError {
+        unsafe {
+            let fp = libc.stdio.fopen(path, mode)
+            match fp {
+                libc.stdio.FILE * => FILE(fp),
+                _ => OpenError(get_file_error())
+            }
+        }
+    }
+
+    pub fn ~File(&self) {
+        unsafe {
+            libc.stdio.fclose(self.fptr)
+        }
+    }
+
+    pub type ReadError = !&[u8]
+    pub fn read(&self, buffer: &mut [u8]) -> usize | ReadError {
+        unsafe {
+            read = libc.stdio.fread(buffer, 1, buffer.len(), self.fptr)
+            if read == 0 {
+                return ReadError(get_file_error())
+            }
+            read
+        }
+    }
+
+}

@@ -1,0 +1,197 @@
+import libc.math
+
+fn sin(x: f32) -> f32 {
+    return unsafe { libc.math.fsinf(x) }
+}
+
+fn cos(x: f32) -> f32 {
+    return unsafe { libc.math.fcosf(x) }
+}
+
+fn tan(x: f32) -> f32 {
+    return unsafe { libc.math.ftanf(x) }
+}
+
+fn asin(x: f32) -> f32 {
+    return unsafe { libc.math.fasinf(x) }
+}
+
+fn acos(x: f32) -> f32 {
+    return unsafe { libc.math.facosf(x) }
+}
+
+fn atan(x: f32) -> f32 {
+    return unsafe { libc.math.fatanf(x) }
+}
+
+fn atan2(y: f32, x: f32) -> f32 {
+    return unsafe { libc.math.atan2f(y, x) }
+}
+
+fn sinh(x: f32) -> f32 {
+    return unsafe { libc.math.sinhf(x) }
+}
+
+fn cosh(x: f32) -> f32 {
+    return unsafe { libc.math.coshf(x) }
+}
+
+fn tanh(x: f32) -> f32 {
+    return unsafe { libc.math.tanhf(x) }
+}
+
+fn exp(x: f32) -> f32 {
+    return unsafe { libc.math.expf(x) }
+}
+
+fn log(x: f32) -> f32 {
+    return unsafe { libc.math.logf(x) }
+}
+
+fn log10(x: f32) -> f32 {
+    return unsafe { libc.math.log10f(x) }
+}
+
+fn pow(x: f32, y: f32) -> f32 {
+    return unsafe { libc.math.powf(x, y) }
+}
+
+fn sqrt(x: f32) -> f32 {
+    return unsafe { libc.math.sqrtf(x) }
+}
+
+fn ceil(x: f32) -> f32 {
+    return unsafe { libc.math.ceilf(x) }
+}
+
+fn floor(x: f32) -> f32 {
+    return unsafe { libc.math.floorf(x) }
+}
+
+fn abs(x: f32) -> f32 {
+    return unsafe { libc.math.fabsf(x) }
+}
+
+fn round(x: f32) -> f32 {
+    return unsafe { libc.math.roundf(x) }
+}
+
+fn trunc(x: f32) -> f32 {
+    return unsafe { libc.math.truncf(x) }
+}
+
+
+
+fn sin(x: f64) -> f64 {
+    return unsafe { libc.math.fsin(x) }
+}
+
+fn cos(x: f64) -> f64 {
+    return unsafe { libc.math.fcos(x) }
+}
+
+fn tan(x: f64) -> f64 {
+    return unsafe { libc.math.ftan(x) }
+}
+
+fn asin(x: f64) -> f64 {
+    return unsafe { libc.math.fasin(x) }
+}
+
+fn acos(x: f64) -> f64 {
+    return unsafe { libc.math.facos(x) }
+}
+
+fn atan(x: f64) -> f64 {
+    return unsafe { libc.math.fatan(x) }
+}
+
+fn atan2(y: f64, x: f64) -> f64 {
+    return unsafe { libc.math.atan2(y, x) }
+}
+
+fn sinh(x: f64) -> f64 {
+    return unsafe { libc.math.sinh(x) }
+}
+
+fn cosh(x: f64) -> f64 {
+    return unsafe { libc.math.cosh(x) }
+}
+
+fn tanh(x: f64) -> f64 {
+    return unsafe { libc.math.tanh(x) }
+}
+
+fn exp(x: f64) -> f64 {
+    return unsafe { libc.math.exp(x) }
+}
+
+fn log(x: f64) -> f64 {
+    return unsafe { libc.math.log(x) }
+}
+
+fn log10(x: f64) -> f64 {
+    return unsafe { libc.math.log10(x) }
+}
+
+fn pow(x: f64, y: f64) -> f64 {
+    return unsafe { libc.math.pow(x, y) }
+}
+
+fn sqrt(x: f64) -> f64 {
+    return unsafe { libc.math.sqrt(x) }
+}
+
+fn ceil(x: f64) -> f64 {
+    return unsafe { libc.math.ceil(x) }
+}
+
+fn floor(x: f64) -> f64 {
+    return unsafe { libc.math.floor(x) }
+}
+
+fn abs(x: f64) -> f64 {
+    return unsafe { libc.math.fabs(x) }
+}
+
+fn round(x: f64) -> f64 {
+    return unsafe { libc.math.round(x) }
+}
+
+fn trunc(x: f64) -> f64 {
+    return unsafe { libc.math.trunc(x) }
+}
+
+fn max<T: std.interfaces.Gt>(a: T, b: T) -> T {
+    if a > b {
+        return a
+    } else {
+        return b
+    }
+}
+
+fn min<T: std.interfaces.Lt>(a: T, b: T) -> T {
+    if a < b {
+        return a
+    } else {
+        return b
+    }
+}
+
+fn clamp<T: std.interfaces.Gt, std.interfaces.Lt>(value: T, min_value: T, max_value: T) -> T {
+    if value < min_value {
+        return min_value
+    } else if value > max_value {
+        return max_value
+    } else {
+        return value
+    }
+}
+
+fn abs<T: std.interfaces.Lt, std.interfaces.Neg>(value: T) -> T {
+    if value < 0 {
+        return -value
+    } else {
+        return value
+    }
+}
