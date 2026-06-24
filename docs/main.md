@@ -259,7 +259,7 @@ class Point {
     fn dist(&self, p: &const Point) -> f64 {
         dx = self.x - p.x
         dy = self.y - p.y
-        return std.math.sqrt(dx * dx + dy * dy)
+        std.math.sqrt(dx * dx + dy * dy)
     }
 }
 p1 = Point(3.0, 4.0)
@@ -274,7 +274,7 @@ No `::`.
 Generic functions/classes use angle-bracket syntax.
 ```hhg
 fn identity<T>(x: T) -> T {
-    return x
+    x
 }
 ```
 
@@ -317,7 +317,7 @@ fn test() -> u32 | null {
     if u % 2 == 0 {
         return u
     }
-    return null
+    null
 }
 
 type zero_error = !void // error type, void -> no data
@@ -325,7 +325,7 @@ fn divide(a: f64) -> f64 | zero_error {
     if b == 0.0 {
         return zero_error
     }
-    return a / b
+    a / b
 }
 ```
 
