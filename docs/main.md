@@ -127,7 +127,7 @@ for i in 0..10 {
 
 ## Arrays
 Arrays are fixed-size and declared with square brackets.
-Type annotation: `T[N]`.
+Type annotation: `T[N]` or `T[]` to infer size from initializer.
 Type inference defaults to arrays.
 ```hhg
 arr: i32[5] = [1, 2, 3, 4, 5]
@@ -144,7 +144,7 @@ print(l.len()) // 4
 
 ## Strings
 Static strings/string literals are declared with double quotes.
-Type annotation: `u8[N]`.
+Type annotation: `u8[N]` or `u8[]` to infer size from initializer.
 ```
 s: u8[13] = "Hello, World!"
 ```
@@ -157,17 +157,17 @@ s.replace("World", "Hedgehog")
 ```
 
 ## Slices
-Slices are views into arrays or lists and are declared with `T[]`.
+Slices are views into arrays or lists and are declared with `[T]`.
 Slices are the universal sequence type; they can be used in place of arrays or lists in function parameters.
 ```hhg
 arr: i32[5] = [1, 2, 3, 4, 5]
-slice: i32[] = arr[1..4] // [2, 3, 4]
-fn arr_or_list(s: i32[]) {
+slice: [i32] = arr[1..4] // [2, 3, 4]
+fn arr_or_list(s: [i32]) {
     print(s)
 }
 ```
 
-The universal slice type for strings is `u8[]` (UTF-8 by convention).
+The universal slice type for strings is `[u8]` (UTF-8 by convention).
 
 ## Dicts
 Dicts are key-value pairs and are declared with curly braces.
@@ -269,7 +269,6 @@ print(p1.dist(&p2)) // 5.0
 Automatic constructors (`fn Point`)/destructors (`fn ~Point`) are created based on fields, but can be overridden.
 Field access is with dot notation (`p.x`).
 No `::`.
-
 
 ## Templates
 Generic functions/classes use angle-bracket syntax.
@@ -386,7 +385,7 @@ unsafe {
 | `core.info` | Compiler and system info | `version`, `os`, `arch`, etc. |
 | `core.interfaces` | Interfaces | `Add`, `Sub`, etc. |
 | `core.mem` | Memory operations | `copy`, `move`, `bitcast`, `sizeof`, `alignof`, etc. |
-| `core.cell` | Cell types | `Cell`, `RefCell`, `Ref`, `RefMut` |
+| `core.cell` | Cell types | `Cell`, `RefCell`, `Ref`, `ConstRef` |
 | `core.range` | Ranges | `Range` |
 | `std` | Standard library | `print`, `input`, `list`, `str`, `unique`, `shared`, `weak`, etc. |
 | `std.fs` | Filesystem | `File`, `Path`, etc. |
