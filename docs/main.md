@@ -343,10 +343,12 @@ fn divide(a: f64, b: f64) -> f64 | zero_error {
 
 To bind from tagged unions:
 ```
-match test() {
-    result: u32 => print(result),
-    null => print("no value"),
+if result: u32 = test() {
+    print(result)
+} else {
+    print("no value")
 }
+
 match divide(10.0, 2.0) {
     result: f64 => print(result),
     zero_error => print("division by zero"),
