@@ -35,7 +35,7 @@ hhg run main.hhg
 See the [docs](./docs/main.md) for more info.
 
 ## Installation
-Download the latest release from the releases page.
+Download the latest release from the [releases page](https://github.com/sub1inear/Hedgehog/releases).
 
 ## Building from Source
 ```bash
