@@ -266,9 +266,21 @@ p1 = Point(3.0, 4.0)
 p2 = Point(0.0, 0.0)
 print(p1.dist(&p2)) // 5.0
 ```
-Automatic constructors (`fn Point`)/destructors (`fn ~Point`) are created based on fields, but can be overridden.
 Field access is with dot notation (`p.x`).
 No `::`.
+
+Several methods are standardized:
+
+| Method | Meaning |
+|--------|---------|
+| `fn ClassName(...)` | Constructor, automatically generated but can be overridden |
+| `fn ~ClassName(&self)` | Destructor, automatically generated but can be overridden |
+| `fn copy(&self) -> ClassName` | Copy method |
+| `fn hash(&self) -> usize` | Hash method |
+| `fn print(&self, f: &const File)` | Print method |
+| `fn str(&self) -> str` | String method |
+| `fn len(&self) -> usize` | Length method |
+| `fn cap(&self) -> usize` | Capacity method |
 
 ## Templates
 Generic functions/classes use angle-bracket syntax.
