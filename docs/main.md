@@ -333,7 +333,7 @@ fn test() -> u32 | null {
 }
 
 type zero_error = !void // error type, void -> no data
-fn divide(a: f64) -> f64 | zero_error {
+fn divide(a: f64, b: f64) -> f64 | zero_error {
     if b == 0.0 {
         return zero_error
     }
