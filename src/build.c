@@ -13,7 +13,8 @@
 #include "mir_gen.h"
 #include "code_gen.h"
 #include "ext_build.h"
-#include "cfg.h"
+#include "cmd_args.h"
+#include "utils.h"
 
 typedef struct hhg_build_data {
     hhg_lexer_t *lexer;        // can be NULL
@@ -25,9 +26,9 @@ typedef struct hhg_build_data {
 } hhg_build_data_t;
 
 typedef struct hhg_build_stage_desc {
-    hhg_cfg_build_stage_t stage;
-    void (*debug_func)(void *);
-    void *debug_arg;
+    hhg_cmd_args_stage_t stage;
+    void (*emit_func)(void *);
+    void *emit_arg;
 } hhg_build_stage_desc_t;
 
 typedef enum hhg_build_check_exit_result_t {
@@ -38,39 +39,43 @@ typedef enum hhg_build_check_exit_result_t {
 // cleans up build data, handles NULL pointers
 static void hhg_build_cleanup(hhg_build_data_t *build_data);
 static hhg_build_check_exit_result_t hhg_build_check_exit(
-    hhg_cfg_t *cfg,
+    hhg_cmd_args_build_t *build,
     hhg_msg_ctx_t *msg_ctx,
     hhg_build_stage_desc_t *stage_desc,
     hhg_build_data_t *build_data
 );
-static void hhg_build_debug_print_lexer(hhg_lexer_t *lexer);
-static void hhg_build_debug_print_parser(hhg_node_t *prog);
-static void hhg_build_debug_print_sem_an(hhg_node_t *prog);
-static void hhg_build_debug_print_mir_gen(hhg_mir_gen_t *mir_gen);
-static void hhg_build_debug_print_code_gen(hhg_code_gen_t *code_gen);
-static void hhg_build_debug_print_ext_build(void *arg);
+static void hhg_build_emit_lexer(hhg_lexer_t *lexer);
+static void hhg_build_emit_parser(hhg_node_t *prog);
+static void hhg_build_emit_sem_an(hhg_node_t *prog);
+static void hhg_build_emit_mir_gen(hhg_mir_gen_t *mir_gen);
+static void hhg_build_emit_code_gen(hhg_code_gen_t *code_gen);
+static void hhg_build_emit_ext_build(void *arg);
 
-bool hhg_build(hhg_cfg_t *cfg, hhg_msg_ctx_t *msg_ctx, hhg_arena_t *arena)
+bool hhg_build(
+    hhg_cmd_args_build_t *build,
+    hhg_msg_ctx_t *msg_ctx,
+    hhg_arena_t *arena
+)
 {
     // 0th stage: init
     hhg_lexer_t lexer;
-    hhg_lexer_init(&lexer, msg_ctx, cfg->build.entry);
+    hhg_lexer_init(&lexer, msg_ctx, build->entry);
 
     hhg_build_check_exit_result_t lexer_result = hhg_build_check_exit(
-        cfg,
+        build,
         msg_ctx,
         &(hhg_build_stage_desc_t) {
-            .stage = HHG_CFG_BUILD_STAGE_LEXER,
-            .debug_func = hhg_build_debug_print_lexer,
-            .debug_arg = &lexer,
+            .stage = HHG_CMD_ARGS_STAGE_LEXER,
+            .emit_func = hhg_build_emit_lexer,
+            .emit_arg = &lexer,
         },
         // compound literals set the fields to 0/NULL if unspecified
         &(hhg_build_data_t) {
             .lexer = &lexer,
         }
     );
-    if (lexer_result == HHG_BUILD_CHECK_EXIT_ERROR) return true;
-    else if (lexer_result == HHG_BUILD_CHECK_EXIT_SAFE_EXIT) return false;
+    if (lexer_result == HHG_BUILD_CHECK_EXIT_ERROR) return false;
+    else if (lexer_result == HHG_BUILD_CHECK_EXIT_SAFE_EXIT) return true;
 
     hhg_sym_tab_t sym_tab;
     hhg_sym_tab_init(&sym_tab, arena);
@@ -85,20 +90,20 @@ bool hhg_build(hhg_cfg_t *cfg, hhg_msg_ctx_t *msg_ctx, hhg_arena_t *arena)
     hhg_node_t *prog = hhg_parser_parse(&parser);
 
     hhg_build_check_exit_result_t parser_result = hhg_build_check_exit(
-        cfg,
+        build,
         msg_ctx,
         &(hhg_build_stage_desc_t) {
-            .stage = HHG_CFG_BUILD_STAGE_PARSER,
-            .debug_func = hhg_build_debug_print_parser,
-            .debug_arg = prog,
+            .stage = HHG_CMD_ARGS_STAGE_PARSER,
+            .emit_func = hhg_build_emit_parser,
+            .emit_arg = prog,
         },
         &(hhg_build_data_t) {
             .lexer = &lexer,
             .sym_tab = &sym_tab,
         }
     );
-    if (parser_result == HHG_BUILD_CHECK_EXIT_ERROR) return true;
-    else if (parser_result == HHG_BUILD_CHECK_EXIT_SAFE_EXIT) return false;
+    if (parser_result == HHG_BUILD_CHECK_EXIT_ERROR) return false;
+    else if (parser_result == HHG_BUILD_CHECK_EXIT_SAFE_EXIT) return true;
 
     // 2nd stage: semantic analysis
     hhg_sem_an_t sem_an;
@@ -107,12 +112,12 @@ bool hhg_build(hhg_cfg_t *cfg, hhg_msg_ctx_t *msg_ctx, hhg_arena_t *arena)
     hhg_sem_an_run(&sem_an, prog);
 
     hhg_build_check_exit_result_t sem_an_result = hhg_build_check_exit(
-        cfg,
+        build,
         msg_ctx,
         &(hhg_build_stage_desc_t) {
-            .stage = HHG_CFG_BUILD_STAGE_SEM_AN,
-            .debug_func = hhg_build_debug_print_sem_an,
-            .debug_arg = prog,
+            .stage = HHG_CMD_ARGS_STAGE_SEM_AN,
+            .emit_func = hhg_build_emit_sem_an,
+            .emit_arg = prog,
         },
         &(hhg_build_data_t) {
             .lexer = &lexer,
@@ -120,8 +125,8 @@ bool hhg_build(hhg_cfg_t *cfg, hhg_msg_ctx_t *msg_ctx, hhg_arena_t *arena)
             .type_ctx = &type_ctx,
         }
     );
-    if (sem_an_result == HHG_BUILD_CHECK_EXIT_ERROR) return true;
-    else if (sem_an_result == HHG_BUILD_CHECK_EXIT_SAFE_EXIT) return false;
+    if (sem_an_result == HHG_BUILD_CHECK_EXIT_ERROR) return false;
+    else if (sem_an_result == HHG_BUILD_CHECK_EXIT_SAFE_EXIT) return true;
 
     // 3rd stage: MIR generation
     hhg_mir_gen_t mir_gen;
@@ -129,12 +134,12 @@ bool hhg_build(hhg_cfg_t *cfg, hhg_msg_ctx_t *msg_ctx, hhg_arena_t *arena)
     hhg_mir_gen_run(&mir_gen, prog);
     
     hhg_build_check_exit_result_t mir_gen_result = hhg_build_check_exit(
-        cfg,
+        build,
         msg_ctx,
         &(hhg_build_stage_desc_t) {
-            .stage = HHG_CFG_BUILD_STAGE_MIR_GEN,
-            .debug_func = hhg_build_debug_print_mir_gen,
-            .debug_arg = &mir_gen,
+            .stage = HHG_CMD_ARGS_STAGE_MIR_GEN,
+            .emit_func = hhg_build_emit_mir_gen,
+            .emit_arg = &mir_gen,
         },
         &(hhg_build_data_t) {
             .lexer = &lexer,
@@ -143,27 +148,23 @@ bool hhg_build(hhg_cfg_t *cfg, hhg_msg_ctx_t *msg_ctx, hhg_arena_t *arena)
             .mir_gen = &mir_gen,
         }
     );
-    if (mir_gen_result == HHG_BUILD_CHECK_EXIT_ERROR) return true;
-    else if (mir_gen_result == HHG_BUILD_CHECK_EXIT_SAFE_EXIT) return false;
+    if (mir_gen_result == HHG_BUILD_CHECK_EXIT_ERROR) return false;
+    else if (mir_gen_result == HHG_BUILD_CHECK_EXIT_SAFE_EXIT) return true;
 
     // 4th stage: code generation
     hhg_code_gen_t code_gen;
-    hhg_code_gen_init(
-        &code_gen,
-        cfg->build.backend,
-        cfg->build.out_dir,
-        arena
-    );
-
-    hhg_code_gen_run(&code_gen, &mir_gen, cfg->build.entry);
+    hhg_code_gen_init(&code_gen, arena);
+    
+    const char *code_gen_filename;
+    hhg_code_gen_run(&code_gen, &mir_gen, build->entry, &code_gen_filename);
     
     hhg_build_check_exit_result_t code_gen_result = hhg_build_check_exit(
-        cfg,
+        build,
         msg_ctx,
         &(hhg_build_stage_desc_t) {
-              .stage = HHG_CFG_BUILD_STAGE_CODE_GEN,
-              .debug_func = hhg_build_debug_print_code_gen,
-              .debug_arg = &code_gen,
+              .stage = HHG_CMD_ARGS_STAGE_CODE_GEN,
+              .emit_func = hhg_build_emit_code_gen,
+              .emit_arg = &code_gen,
         },
         &(hhg_build_data_t) {
             .lexer = &lexer,
@@ -173,27 +174,30 @@ bool hhg_build(hhg_cfg_t *cfg, hhg_msg_ctx_t *msg_ctx, hhg_arena_t *arena)
             .code_gen = &code_gen,
         }
     );
-    if (code_gen_result == HHG_BUILD_CHECK_EXIT_ERROR) return true;
-    else if (code_gen_result == HHG_BUILD_CHECK_EXIT_SAFE_EXIT) return false;
+    if (code_gen_result == HHG_BUILD_CHECK_EXIT_ERROR) return false;
+    else if (code_gen_result == HHG_BUILD_CHECK_EXIT_SAFE_EXIT) return true;
 
     // 5th stage: external build
     hhg_ext_build_t ext_build;
-    hhg_ext_build_init(&ext_build, msg_ctx);
+    hhg_ext_build_init(&ext_build, build->cxx, msg_ctx, arena);
 
     hhg_ext_build_run(
         &ext_build,
         &code_gen,
-        cfg
+        code_gen_filename,
+        build->entry,
+        build->out,
+        build->release
     );
 
     hhg_build_check_exit_result_t ext_build_result =
         hhg_build_check_exit(
-            cfg,
+            build,
             msg_ctx,
             &(hhg_build_stage_desc_t) {
-                .stage = HHG_CFG_BUILD_STAGE_EXT_BUILD,
-                .debug_func = hhg_build_debug_print_ext_build,
-                .debug_arg = NULL,
+                .stage = HHG_CMD_ARGS_STAGE_EXT_BUILD,
+                .emit_func = hhg_build_emit_ext_build,
+                .emit_arg = NULL,
             },
             &(hhg_build_data_t) {
                 .lexer = &lexer,
@@ -203,8 +207,8 @@ bool hhg_build(hhg_cfg_t *cfg, hhg_msg_ctx_t *msg_ctx, hhg_arena_t *arena)
                 .code_gen = &code_gen,
             }
         );
-    if (ext_build_result == HHG_BUILD_CHECK_EXIT_ERROR) return true;
-    else if (ext_build_result == HHG_BUILD_CHECK_EXIT_SAFE_EXIT) return false;
+    if (ext_build_result == HHG_BUILD_CHECK_EXIT_ERROR) return false;
+    else if (ext_build_result == HHG_BUILD_CHECK_EXIT_SAFE_EXIT) return true;
     
     
     // 6th stage: cleanup
@@ -220,7 +224,7 @@ bool hhg_build(hhg_cfg_t *cfg, hhg_msg_ctx_t *msg_ctx, hhg_arena_t *arena)
 }
 
 static hhg_build_check_exit_result_t hhg_build_check_exit(
-    hhg_cfg_t *cfg,
+    hhg_cmd_args_build_t *build,
     hhg_msg_ctx_t *msg_ctx,
     hhg_build_stage_desc_t *stage_desc,
     hhg_build_data_t *build_data
@@ -230,13 +234,9 @@ static hhg_build_check_exit_result_t hhg_build_check_exit(
         hhg_build_cleanup(build_data);
         return HHG_BUILD_CHECK_EXIT_ERROR;
     }
-    if (stage_desc->stage == cfg->build.debug_stage) {
-        // safe to print, no errors
-        stage_desc->debug_func(stage_desc->debug_arg);
-        hhg_build_cleanup(build_data);
-        return HHG_BUILD_CHECK_EXIT_SAFE_EXIT;
-    }
-    if (stage_desc->stage == cfg->build.stage) {
+    if (stage_desc->stage == build->stop) {
+        if (build->emit)
+            stage_desc->emit_func(stage_desc->emit_arg);
         hhg_build_cleanup(build_data);
         return HHG_BUILD_CHECK_EXIT_SAFE_EXIT;
     }
@@ -252,36 +252,35 @@ void hhg_build_cleanup(hhg_build_data_t *build_data)
     if (build_data->code_gen) hhg_code_gen_del(build_data->code_gen);
 }
 
-static void hhg_build_debug_print_lexer(hhg_lexer_t *lexer)
+static void hhg_build_emit_lexer(hhg_lexer_t *lexer)
 {
-    // lexer.token.type is initially set to HHG_TOKEN_NONE
-    while (lexer->token.type != EOF) {
+    do {
         hhg_lexer_next(lexer);
         hhg_token_print(&lexer->token);
         putchar('\n');
-    }
+    } while (lexer->token.type != EOF);
 }
-static void hhg_build_debug_print_parser(hhg_node_t *prog)
+static void hhg_build_emit_parser(hhg_node_t *prog)
 {
     hhg_node_print(prog, HHG_NODE_INDENT_START, false /* no symbols */);
 }
 
-static void hhg_build_debug_print_sem_an(hhg_node_t *prog)
+static void hhg_build_emit_sem_an(hhg_node_t *prog)
 {
     hhg_node_print(prog, HHG_NODE_INDENT_START, true /* print symbols */);
 }
 
-static void hhg_build_debug_print_mir_gen(hhg_mir_gen_t *mir_gen)
+static void hhg_build_emit_mir_gen(hhg_mir_gen_t *mir_gen)
 {
     hhg_mir_gen_print(mir_gen);
 }
 
-static void hhg_build_debug_print_code_gen(hhg_code_gen_t *code_gen)
+static void hhg_build_emit_code_gen(hhg_code_gen_t *code_gen)
 {
-    hhg_code_gen_backend_print(code_gen->backend);
+    HHG_UNUSED(code_gen);
 }
 
-static void hhg_build_debug_print_ext_build(void *arg)
+static void hhg_build_emit_ext_build(void *arg)
 {
-    (void)arg;
+    HHG_UNUSED(arg);
 }

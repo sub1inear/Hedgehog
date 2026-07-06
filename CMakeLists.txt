@@ -11,9 +11,6 @@ enable_testing()
 # add all source files
 file(GLOB SOURCES ${CMAKE_SOURCE_DIR}/include/*.h ${CMAKE_SOURCE_DIR}/src/*.c)
 
-# add hstdlib subproject
-add_subdirectory(hstdlib)
-
 # add test subproject
 add_subdirectory(test)
 

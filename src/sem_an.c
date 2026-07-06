@@ -697,7 +697,7 @@ static void hhg_sem_an_run_int_literal(hhg_sem_an_t *sem_an, hhg_node_t *node)
         p++;
     }
 
-    for (size_t i = 0; i < HHG_ARR_SIZE(int_literal_base_maxes); i++) {
+    for (size_t i = 0; i < HHG_ARR_LEN(int_literal_base_maxes); i++) {
         if (x < int_literal_base_maxes[i]) {
             node->value_type = hhg_type_ctx_get_builtin(
                 sem_an->type_ctx,

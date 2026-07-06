@@ -4,32 +4,31 @@
 
 #include "main.h"
 #include "mem.h"
-#include "cfg.h"
+#include "msg.h"
 #include "cmd_args.h"
 #include "cmd_exec.h"
 
 int hhg_main(int argc, char **argv)
 {
     hhg_arena_t *arena = hhg_arena_new();
-    
+
+    hhg_cmd_args_t cmd_args;
+    hhg_cmd_args_init(&cmd_args, argc, argv);
+
     hhg_msg_ctx_t msg_ctx;
-    hhg_cfg_t cfg;
-    hhg_msg_ctx_init(&msg_ctx, &cfg);
-    hhg_cfg_init(&cfg, &msg_ctx, arena);
+    hhg_msg_ctx_init(&msg_ctx, &cmd_args);
 
-    if (hhg_cfg_parse(&cfg))
-        return EXIT_FAILURE;
+    bool result = hhg_cmd_exec_run(&cmd_args, &msg_ctx, arena);
 
-    hhg_cmd_args_parse(&cfg, argc, argv);
-
-    bool result = hhg_cmd_exec_run(&cfg, &msg_ctx, arena);
-
-    hhg_cfg_del(&cfg);
+    hhg_msg_ctx_del(&msg_ctx);
+    hhg_cmd_args_del(&cmd_args);
     hhg_arena_free(arena);
-#ifdef HHG_DEBUG_MEM
-    hhg_mem_print_summary();
+
+#ifdef HHG_MEM_DEBUG
+    hhg_mem_debug_print_stats();
 #endif
-    return result ? EXIT_FAILURE : EXIT_SUCCESS;
+
+    return result ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
 int main(int argc, char **argv)

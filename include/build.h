@@ -3,11 +3,14 @@
 
 #include <stdbool.h>
 
-#include "mem.h" // hhg_arena_t is based off arena_t so can't forward declare
-
-typedef struct hhg_cfg hhg_cfg_t;
+typedef struct hhg_cmd_args_build hhg_cmd_args_build_t;
 typedef struct hhg_msg_ctx hhg_msg_ctx_t;
+typedef struct arena hhg_arena_t;
 
-bool hhg_build(hhg_cfg_t *cfg, hhg_msg_ctx_t *msg_ctx, hhg_arena_t *arena);
+bool hhg_build(
+    hhg_cmd_args_build_t *build,
+    hhg_msg_ctx_t *msg_ctx,
+    hhg_arena_t *arena
+);
 
 #endif

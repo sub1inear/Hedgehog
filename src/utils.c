@@ -161,11 +161,9 @@ int hhg_utils_spawn(const char **argv, hhg_str_t *stdouterr)
 {
     int pipefd[2] = { -1, -1 };
 
-    if (stdouterr != NULL) {
+    if (stdouterr != NULL)
         if (pipe(pipefd) != 0)
             hhg_fatal_error("pipe failed: %s", strerror(errno));
-        hhg_str_init(stdouterr);
-    }
 
     pid_t pid = fork();
     if (pid < 0)
@@ -201,6 +199,24 @@ int hhg_utils_spawn(const char **argv, hhg_str_t *stdouterr)
         return 128 + WTERMSIG(status);
 
     return 1;
+}
+#endif
+
+#ifdef HHG_WINDOWS
+const char *hhg_utils_file_to_exec(hhg_arena_t *arena, const char *name)
+{
+    size_t name_len = strlen(name);
+    size_t ext_len = sizeof(".exe") - 1;
+    char *exec = hhg_arena_malloc(arena, name_len + ext_len + 1);
+    strcpy(exec, name);
+    strcpy(exec + name_len, ".exe");
+    return exec;
+}
+#elif HHG_POSIX
+const char *hhg_utils_file_to_exec(hhg_arena_t *arena, const char *name)
+{
+    HHG_UNUSED(arena);
+    return name;
 }
 #endif
 
@@ -278,7 +294,6 @@ static hhg_str_t *hhg_utils_escape_arg(const char *arg)
 
 static void hhg_utils_read_pipe_to_str(HANDLE pipe, hhg_str_t *out)
 {
-    hhg_str_init(out);
     char buf[4096];
     while (true) {
         DWORD len = 0;

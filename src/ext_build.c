@@ -1,11 +1,13 @@
 #include <stdbool.h>
 #include <stdarg.h>
+#include <string.h>
 
 #include <stb_ds.h>
+#include <fs.h>
 
 #include "ext_build.h"
 #include "code_gen.h"
-#include "cfg.h"
+#include "mem.h"
 #include "str.h"
 #include "msg.h"
 #include "utils.h"
@@ -23,97 +25,76 @@
 #define hhg_ext_build_info(ext_build, ...) \
     hhg_ext_build_msg(ext_build, HHG_MSG_INFO, __VA_ARGS__)
 
-static void hhg_ext_build_run_tool(
-    hhg_ext_build_t *ext_build,
-    hhg_cfg_toolchain_tool_t *tool,
-    hhg_cfg_t *cfg,
-    const char **filenames,
-    ...
-);
+typedef struct hhg_ext_build_cxx_data {
+    const char *cxx;
+    const char *out_flag;
+    const char *release_flag;
+} hhg_ext_build_cxx_data_t;
+
+static const hhg_ext_build_cxx_data_t ext_build_cxx_data[] = {
+    { "gcc", "-o", "-O2" },
+    { "clang", "-o", "-O2" },
+    { "cl", "/Fe:", "/O2" },
+};
 
 void hhg_ext_build_init(
     hhg_ext_build_t *ext_build,
-    hhg_msg_ctx_t *msg_ctx
+    const char *cxx,
+    hhg_msg_ctx_t *msg_ctx,
+    hhg_arena_t *arena
 )
 {
+    if (cxx == NULL) {
+        cxx = getenv("CXX");
+        if (cxx == NULL)
+            hhg_fatal_error("please specify a C++ compiler with --cxx or the CXX environment variable");
+    }
+    
+    const char *cxx_basename = fs_basename(cxx);
+
+    size_t i;
+    for (i = 0; i < HHG_ARR_LEN(ext_build_cxx_data); i++)
+        if (strcmp(cxx_basename, ext_build_cxx_data[i].cxx) == 0)
+            break;
+
+    if (i == HHG_ARR_LEN(ext_build_cxx_data))
+        hhg_fatal_error("unsupported C++ compiler: %s", cxx);
+    
+
     *ext_build = (hhg_ext_build_t) {
+        .cxx = cxx,
+        .cxx_data = &ext_build_cxx_data[i],
         .msg_ctx = msg_ctx,
+        .arena = arena,
     };
 }
 
 void hhg_ext_build_run(
     hhg_ext_build_t *ext_build,
     hhg_code_gen_t *code_gen,
-    hhg_cfg_t *cfg
+    const char *filename,
+    const char *orig_filename,
+    const char *out,
+    bool release
 )
 {
-    HHG_UNUSED(ext_build);
-    
-    switch (code_gen->backend->type) {
-    case HHG_CFG_BACKEND_CPP:
-        hhg_ext_build_run_tool(
-            ext_build,
-            &cfg->toolchain.cpp.compiler,
-            cfg,
-            code_gen->filenames,
-            "-o",
-            cfg->project.name,
-            NULL
-        );
-        break;
-    case HHG_CFG_BACKEND_QBE:
-        hhg_ext_build_run_tool(
-            ext_build,
-            &cfg->toolchain.qbe.compiler,
-            cfg,
-            code_gen->filenames,
-            "-o",
-            cfg->project.name,
-            NULL
-        );
-        break;
-    default:
-        hhg_compiler_error(
-            "unknown code generation backend type: %i",
-            code_gen->backend->type
-        );
-        break;
-    }
-}
-
-static void hhg_ext_build_run_tool(
-    hhg_ext_build_t *ext_build,
-    hhg_cfg_toolchain_tool_t *tool,
-    hhg_cfg_t *cfg,
-    const char **filenames,
-    ...
-)
-{
-    HHG_UNUSED(ext_build);
-
-    va_list va;
-    va_start(va, filenames);
+    HHG_UNUSED(code_gen);
 
     const char **argv = NULL;
-    arrput(argv, tool->cmd);
-    arrcat(argv, filenames);
+    arrput(argv, ext_build->cxx);
+    arrput(argv, filename);
+    arrput(argv, ext_build->cxx_data->out_flag);
 
-    while (true) {
-        const char *arg = va_arg(va, const char *);
-        if (arg == NULL)
-            break;
-        arrput(argv, arg);
-    }
+    if (out == NULL)
+        out = hhg_utils_file_to_exec(ext_build->arena, orig_filename);
+    arrput(argv, out);
 
-    arrcat(argv, tool->flags);
-    if (cfg->build.mode == HHG_CFG_BUILD_MODE_DEBUG)
-        arrcat(argv, tool->debug.flags);
-    else if (cfg->build.mode == HHG_CFG_BUILD_MODE_RELEASE)
-        arrcat(argv, tool->release.flags);
-
-    arrput(argv, NULL);
+    if (release)
+        arrput(argv, ext_build->cxx_data->release_flag);
 
     hhg_str_t stdouterr;
+    hhg_str_init(&stdouterr);
+
     int exit_code = hhg_utils_spawn(argv, &stdouterr);
     
     arrfree(argv);
@@ -121,12 +102,9 @@ static void hhg_ext_build_run_tool(
     if (exit_code != EXIT_SUCCESS)
         hhg_compiler_error(
             "external build failed: `%s` exited with code %i\noutput:\n%s",
-            tool->cmd,
+            ext_build->cxx,
             exit_code,
             stdouterr.str
         );
-
     hhg_str_del(&stdouterr);
-    
-    va_end(va);
 }

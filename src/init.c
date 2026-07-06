@@ -1,120 +1,56 @@
 #include <stdbool.h>
 
+#define FS_IMPLEMENTATION
+#include <fs.h>
+
 #include "init.h"
-#include "cfg.h"
+#include "cmd_args.h"
 #include "msg.h"
-#include "fs.h"
 #include "main.h"
 #include "utils.h"
 
-static const char cfg_txt[] =
-    "# Hedgehog Configuration File"                                                                                   "\n"
-                                                                                                                      "\n"
-    "[project]"                                                                                                       "\n"
-    "name = \"%s\""                                                                                                   "\n"
-    "version = \"%s\" # project version in semver"                                                                    "\n"
-    "std = \"%s\" # standard version in semver"                                                                       "\n"
-                                                                                                                      "\n"
-    "[global]"                                                                                                        "\n"
-    "color = true # enable or disable color in output"                                                                "\n"
-                                                                                                                      "\n"
-    "[build]"                                                                                                         "\n"
-    "entry = \"main.hhg\" # entry point of the program/compiler"                                                      "\n"
-    "out-dir = \"out\" # output directory for build artifacts"                                                        "\n"
-    "mode = \"debug\" # debug | release"                                                                              "\n"
-                                                                                                                      "\n"
-    "stage = \"none\" # stop after specified stage: none | lexer | parser | sem-an | mir-gen | code-gen | ext-build"  "\n"
-    "debug-stage = \"none\" # debug specified stage: none | lexer | parser | sem-an | mir-gen | code-gen | ext-build" "\n"
-                                                                                                                      "\n"
-    "target = \"auto\" # cross-target triple: triple | auto"                                                          "\n"
-    "backend = \"cpp\" # backend format: cpp | qbe"                                                                   "\n"
-    "incremental = false # incremental compilation (only with cpp backend)"                                           "\n"
-                                                                                                                      "\n"
-    "warnings = \"default\" # warnings settings: default | all | none | pedantic"                                     "\n"
-    "error-warnings = false # treat warnings as errors"                                                               "\n"
-    ""                                                                                                                "\n"
-    "[run]"                                                                                                           "\n"
-    "args = [] # arguments to pass to program"                                                                        "\n"
-                                                                                                                      "\n"
-    "[test]"                                                                                                          "\n"
-    "test-dir = \"test\" # directory with test cases"                                                                 "\n"
-    "list = false # list test cases without running them"                                                             "\n"
-    "fail-fast = false # stop on first failure"                                                                       "\n"
-    "threads = -1 # number of threads to use (-1 => auto)"                                                            "\n"
-    "filter = \"\" # filter test cases (regex)"                                                                       "\n"
-                                                                                                                      "\n"
-    "[clean]"                                                                                                         "\n"
-    "force = false # force clean without confirmation"                                                                "\n"
-    "dry-run = false # print files to be deleted without deleting them"                                               "\n"
-                                                                                                                      "\n"
-    "[repl]"                                                                                                          "\n"
-    "tmp-dir = \"tmp\" # temporary directory for repl"                                                                "\n"
-    "target = \"auto\" # cross-target triple: triple | auto"                                                          "\n"
-    "backend = \"cpp\" # backend format: cpp | qbe"                                                                   "\n";
-static const char main_txt[] =
-    "print(\"Hello, world!\")\n";
+static const char main_file_txt[] =
+    "fn main() {\n"
+    "    println(\"Hello, world!\");\n"
+    "}\n";
 
-bool hhg_init(hhg_cfg_t *cfg)
+bool hhg_init(hhg_cmd_args_init_t *init)
 {
-    const char *cfg_filename;
     const char *main_filename;
-    char cfg_path[FS_MAX_PATH];
     char main_path[FS_MAX_PATH];
 
-    if (cfg->init.name == NULL) {
+    if (init->name == NULL) {
         char cwd[FS_MAX_PATH];
         if (!fs_current_dir(cwd, sizeof(cwd)))
             hhg_fatal_error("failed to get current directory");
-        cfg->init.name = (char *)fs_basename(cwd);
 
-        if (fs_exist(HHG_CFG_FILENAME))
-            hhg_fatal_error("config file already exists: " HHG_CFG_FILENAME);
-        cfg_filename = HHG_CFG_FILENAME;
         main_filename = HHG_MAIN_FILENAME;
     } else {
-        if (fs_exist(cfg->init.name))
+        if (fs_exist(init->name))
             hhg_fatal_error(
                 "project directory already exists: %s",
-                cfg->init.name
+                init->name
             );
         
-        if (!fs_make_dir(cfg->init.name))
+        if (!fs_make_dir(init->name))
             hhg_fatal_error(
                 "failed to create project directory: %s",
-                cfg->init.name
+                init->name
             );
-
-        hhg_utils_join_path(
-            cfg_path,
-            HHG_ARR_SIZE(cfg_path),
-            cfg->init.name,
-            HHG_CFG_FILENAME
-        );
         
         hhg_utils_join_path(
             main_path,
-            HHG_ARR_SIZE(main_path),
-            cfg->init.name,
+            HHG_ARR_LEN(main_path),
+            init->name,
             HHG_MAIN_FILENAME
         );
 
-        // must not exist, we just created the directory
-        cfg_filename = cfg_path;
         main_filename = main_path;
     }
 
-    FILE *cfg_file = hhg_utils_fopen(cfg_filename, "w");
-    fprintf(
-        cfg_file,
-        cfg_txt,
-        cfg->init.name,
-        cfg->init.version,
-        cfg->init.std
-    );
-    fclose(cfg_file);
-
     FILE *main_file = hhg_utils_fopen(main_filename, "w");
-    fputs(main_txt, main_file);
-    fclose(main_file);  
-    return false;
+    fputs(main_file_txt, main_file);
+    fclose(main_file);
+
+    return true;
 }

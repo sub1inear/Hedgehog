@@ -6,196 +6,92 @@
 #include <fs.h>
 
 #include "code_gen.h"
-#include "cfg.h"
-#include "cpp_gen.h"
-#include "qbe_gen.h"
+#include "cmd_args.h"
+#include "main.h"
 #include "mir.h"
 #include "mem.h"
 #include "msg.h"
 #include "utils.h"
 
-static hhg_code_gen_backend_t *hhg_code_gen_backend_new(
-    hhg_arena_t *arena,
-    hhg_cfg_backend_t type
-);
-static void hhg_code_gen_backend_free(hhg_code_gen_backend_t *backend);
-static const char *hhg_code_gen_replace_ext(
+static const char *hhg_code_gen_file_replace_dir_ext(
     hhg_code_gen_t *gen,
-    const char *in_filename
+    const char *filename,
+    const char *dir,
+    const char *ext
 );
 
 void hhg_code_gen_init(
     hhg_code_gen_t *gen,
-    hhg_cfg_backend_t backend_type,
-    const char *out_dir,
     hhg_arena_t *arena
 )
 {
     *gen = (hhg_code_gen_t) {
-        .backend = hhg_code_gen_backend_new(arena, backend_type),
-        .out_dir = out_dir,
         .arena = arena,
     };
     // create directory if it doesn't exist
-    if (!fs_exist(out_dir))
-        if (!fs_make_dir(out_dir))
-            hhg_fatal_error("failed to create output directory: %s", out_dir);
-
-    // create sentinel file to mark this as the output directory
-    char sentinel_filename[FS_MAX_PATH];
-    hhg_utils_join_path(
-        sentinel_filename,
-        HHG_ARR_SIZE(sentinel_filename),
-        out_dir,
-        ".hhg_out_dir"
-    );
-    
-    FILE *sentinel_file = hhg_utils_fopen(sentinel_filename, "w");
-    fputs(
-        "This file marks the Hedgehog build output directory.\n"
-        "Do not remove it.\n"
-        "Without it, `hhg clean` will refuse to delete this directory.\n",
-        sentinel_file
-    );
-    fclose(sentinel_file);
+    if (!fs_exist(HHG_TMP_DIR))
+        if (!fs_make_dir(HHG_TMP_DIR))
+            hhg_fatal_error("failed to create output directory: " HHG_TMP_DIR);
 }
 
-void hhg_code_gen_run(
+bool hhg_code_gen_run(
     hhg_code_gen_t *code_gen,
     hhg_mir_gen_t *mir_gen,
-    const char *in_filename
+    const char *filename,
+    const char **out_filename
 )
 {
-    const char *out_filename = hhg_code_gen_replace_ext(code_gen, in_filename);
-    FILE *file = hhg_utils_fopen(out_filename, "w");
-    arrput(code_gen->filenames, out_filename);
-
-    switch (code_gen->backend->type) {
-    case HHG_CFG_BACKEND_CPP:
-        hhg_cpp_gen_backend_run(code_gen->backend, code_gen, mir_gen, file);
-        break;
-    case HHG_CFG_BACKEND_QBE:
-        hhg_qbe_gen_backend_run(code_gen->backend, code_gen, mir_gen, file);
-        break;
-    default:
-        hhg_compiler_error(
-            "unknown code generation backend type: %i",
-            code_gen->backend->type
+    HHG_UNUSED(mir_gen);
+    *out_filename =
+        hhg_code_gen_file_replace_dir_ext(
+            code_gen,
+            filename,
+            HHG_TMP_DIR,
+            ".cpp"
         );
-        break;
-    }
-    
+    FILE *file = hhg_utils_fopen(*out_filename, "w");
+    fputs("int main() { printf(\"Hello, world!\\n\"); }\n", file);
     fclose(file);
+    return true;
 }
 
-void hhg_code_gen_backend_print(hhg_code_gen_backend_t *backend)
+void hhg_code_gen_print(hhg_code_gen_t *gen)
 {
-    switch (backend->type) {
-    case HHG_CFG_BACKEND_CPP:
-        hhg_cpp_gen_backend_print(backend);
-        break;
-    case HHG_CFG_BACKEND_QBE:
-        hhg_qbe_gen_backend_print(backend);
-        break;
-    default:
-        hhg_compiler_error(
-            "unknown code generation backend type: %i",
-            backend->type
-        );
-        break;
-    }
+    HHG_UNUSED(gen);
 }
 
 void hhg_code_gen_del(hhg_code_gen_t *gen)
 {
-    arrfree(gen->filenames);
-    hhg_code_gen_backend_free(gen->backend);
+    HHG_UNUSED(gen);
 }
 
-static hhg_code_gen_backend_t *hhg_code_gen_backend_new(
-    hhg_arena_t *arena,
-    hhg_cfg_backend_t type
-)
-{
-    switch (type) {
-    case HHG_CFG_BACKEND_CPP:
-        return hhg_cpp_gen_backend_new(arena);
-    case HHG_CFG_BACKEND_QBE:
-        return hhg_qbe_gen_backend_new(arena);
-    default:
-        hhg_compiler_error("unknown code generation backend type: %i", type);
-        return NULL;
-    }
-}
-
-static void hhg_code_gen_backend_free(hhg_code_gen_backend_t *backend)
-{
-    switch (backend->type) {
-    case HHG_CFG_BACKEND_CPP:
-        hhg_cpp_gen_backend_free(backend);
-        break;
-    case HHG_CFG_BACKEND_QBE:
-        hhg_qbe_gen_backend_free(backend);
-        break;
-    default:
-        hhg_compiler_error(
-            "unknown code generation backend type: %i",
-            backend->type
-        );
-        break;
-    }
-}
-
-static const char *hhg_code_gen_replace_ext(
+static const char *hhg_code_gen_file_replace_dir_ext(
     hhg_code_gen_t *gen,
-    const char *in_filename
+    const char *filename, // path/to/file.hhg
+    const char *dir, // .hhg
+    const char *ext // .cpp
 )
 {
-    const char *in_basename = fs_basename(in_filename); // "file.hhg"
-    const char *in_ext = fs_extention(in_basename); // "hhg"
-    if (in_ext == NULL)
-        hhg_fatal_error("input file has no extension: %s", in_filename);
-
-    ptrdiff_t in_basename_ext_len = in_ext - in_basename - 1; // len of "file"
-    size_t out_filename_ext_len =
-        in_basename_ext_len + strlen(gen->backend->ext)
-        + 1 /* . */ + 1 /* \0 */; // len of "file.cpp"
-
-    char *out_filename_ext =
-        hhg_arena_malloc(gen->arena, out_filename_ext_len); // "file.cpp"
-
-    // check before cast to int in sprintf
-    if (in_basename_ext_len > INT_MAX)
-        hhg_fatal_error("input filename is too long: %s", in_filename);
-
-    int snprintf_result =
-        snprintf(
-            out_filename_ext,
-            out_filename_ext_len,
-            "%.*s.%s",
-            (int)in_basename_ext_len,
-            in_basename,
-            gen->backend->ext
-        );
+    char *basename = hhg_arena_strdup(gen->arena, fs_basename(filename)); // file.hhg
+    char *basename_ext = fs_extention(basename); // .hhg
+    if (basename_ext == NULL)
+        hhg_compiler_error("file has no extension: %s", filename);
+    *basename_ext = '\0'; // basename -> file
     
-    if (snprintf_result >= out_filename_ext_len)
-        // buffer is dynamically sized so should never fail, but just in case
-        hhg_compiler_error(
-            "snprintf output truncated: %.*s.%s",
-            (int)in_basename_ext_len,
-            in_basename,
-            gen->backend->ext
-        );
-
-    // "out/file.cpp" or "out\file.cpp"
-    char *out_filename = hhg_arena_malloc(gen->arena, FS_MAX_PATH);
+    hhg_str_t str;
+    hhg_str_init_str(&str, basename);
+    hhg_str_append_str(&str, ext); // file.cpp
+    
+    char *out = hhg_arena_malloc(gen->arena, FS_MAX_PATH);
 
     hhg_utils_join_path(
-        out_filename,
+        out,
         FS_MAX_PATH,
-        gen->out_dir,
-        out_filename_ext
+        dir,
+        str.str
     );
     
-    return out_filename;
+    hhg_str_del(&str);
+
+    return out; // .hhg/file.cpp
 }

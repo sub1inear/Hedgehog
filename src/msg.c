@@ -47,11 +47,7 @@ static void hhg_msg_process_msg_type(
 
 // prints the message type (error, warning, ...) with color if enabled
 // if color is not enabled, color can be NULL
-static void hhg_msg_print_msg_type_str(
-    const char *str,
-    const char *color,
-    bool enable
-);
+static void hhg_msg_print_msg_type_str(const char *str, const char *color);
 
 /*
 simplified vfprintf with support for hhg-specific types
@@ -69,10 +65,16 @@ supported format specifiers:
 */
 static void hhg_vfprintf(FILE *stream, const char *fmt, va_list va);
 
-void hhg_msg_ctx_init(hhg_msg_ctx_t *msg_ctx, hhg_cfg_t *cfg)
+void hhg_msg_ctx_init(hhg_msg_ctx_t *msg_ctx, hhg_cmd_args_t *cmd_args)
 {
     msg_ctx->error_count = 0;
-    msg_ctx->cfg = cfg;
+    msg_ctx->cmd_args = cmd_args;
+}
+
+void hhg_msg_ctx_del(hhg_msg_ctx_t *msg_ctx)
+{
+    HHG_UNUSED(msg_ctx);
+    // nothing to free for now
 }
 
 void hhg_msg(
@@ -164,7 +166,7 @@ void hhg_compiler_error(const char *msg, ...)
 
     fprintf(
         stderr,
-        "\n\nPlease report this to the developers at\n"
+        "\n\nplease report this to the developers at\n"
         HHG_GITHUB_ISSUES_URL "\n"
     );
 
@@ -237,47 +239,35 @@ static void hhg_msg_print_indicator(
         fputc('~', stderr);
 }
 
-static void hhg_msg_process_msg_type(hhg_msg_ctx_t *msg_ctx, hhg_msg_type_t type)
+static void hhg_msg_process_msg_type(
+    hhg_msg_ctx_t *msg_ctx,
+    hhg_msg_type_t type
+)
 {
-    if (msg_ctx->cfg->subcmd == HHG_CMD_ARGS_SUBCMD_BUILD &&
-        msg_ctx->cfg->build.error_warnings &&
+    if (msg_ctx->cmd_args->type == HHG_CMD_ARGS_BUILD &&
+        msg_ctx->cmd_args->subcmd.build.error_warnings &&
         type == HHG_MSG_WARNING)
         type = HHG_MSG_ERROR;
     switch (type) {
     case HHG_MSG_ERROR:
         msg_ctx->error_count++;
-        hhg_msg_print_msg_type_str(
-            "error",
-            HHG_ANSI_COLOR_RED,
-            msg_ctx->cfg->global.color
-        );
+        hhg_msg_print_msg_type_str("error", HHG_ANSI_COLOR_RED);
         break;
     case HHG_MSG_WARNING:
-        if (msg_ctx->cfg->subcmd == HHG_CMD_ARGS_SUBCMD_BUILD &&
-            msg_ctx->cfg->build.warnings == HHG_CFG_BUILD_WARNINGS_NONE)
+        if (msg_ctx->cmd_args->type == HHG_CMD_ARGS_BUILD &&
+            !msg_ctx->cmd_args->subcmd.build.warnings)
             break;
-        hhg_msg_print_msg_type_str(
-            "warning",
-            HHG_ANSI_COLOR_YELLOW,
-            msg_ctx->cfg->global.color
-        );
+        hhg_msg_print_msg_type_str("warning", HHG_ANSI_COLOR_YELLOW);
         break;
     case HHG_MSG_INFO:
-        hhg_msg_print_msg_type_str("info", NULL, false);
+        hhg_msg_print_msg_type_str("info", NULL);
         break;
     }
 }
 
-static void hhg_msg_print_msg_type_str(
-    const char *str,
-    const char *color,
-    bool enable
-)
+static void hhg_msg_print_msg_type_str(const char *str, const char *color)
 {
-    if (enable)
-        fprintf(stderr, "%s%s" HHG_ANSI_COLOR_CLEAR ": ", color, str);
-    else
-        fprintf(stderr, "%s: ", str);
+    fprintf(stderr, "%s%s" HHG_ANSI_COLOR_CLEAR ": ", color ? color : "", str);
 }
 
 static void hhg_vfprintf(FILE *stream, const char *fmt, va_list va)

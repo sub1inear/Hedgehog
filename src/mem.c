@@ -82,7 +82,7 @@ void hhg_arena_free(hhg_arena_t *arena)
     arena_destroy(arena);
 }
 
-#ifdef HHG_DEBUG_MEM
+#ifdef HHG_MEM_DEBUG
 
 #include <stdio.h>
 #include <string.h>
@@ -111,7 +111,7 @@ static void hhg_mem_alloc_loc_print(hhg_mem_alloc_loc_t loc);
 // func should print allocation info and
 // update mem_alloc_tab/mem_arena_alloc_tab as needed
 // returns ptr1 for convenience of wrapping allocation functions
-static void *hhg_debug_mem_run_func(
+static void *hhg_mem_debug_run_func(
     void (*func)(
         void *ptr1,
         void *ptr2,
@@ -199,7 +199,7 @@ void *hhg_debug_malloc(size_t size, hhg_mem_alloc_loc_t loc)
 {
     void *ptr = hhg_malloc(size);
 
-    return hhg_debug_mem_run_func(
+    return hhg_mem_debug_run_func(
         hhg_debug_malloc_core,
         ptr,
         NULL,
@@ -215,7 +215,7 @@ void *hhg_debug_realloc(void *ptr, size_t size, hhg_mem_alloc_loc_t loc)
 {
     void *next = hhg_realloc(ptr, size);
     
-    return hhg_debug_mem_run_func(
+    return hhg_mem_debug_run_func(
         hhg_debug_realloc_core,
         next,
         ptr,
@@ -229,7 +229,7 @@ void *hhg_debug_realloc(void *ptr, size_t size, hhg_mem_alloc_loc_t loc)
 
 void hhg_debug_free(void *ptr, hhg_mem_alloc_loc_t loc)
 {
-    hhg_debug_mem_run_func(
+    hhg_mem_debug_run_func(
         hhg_debug_free_core,
         ptr,
         NULL,
@@ -247,7 +247,7 @@ char *hhg_debug_strdup(const char *str, hhg_mem_alloc_loc_t loc)
 {
     char *buf = hhg_strdup(str);
 
-    return hhg_debug_mem_run_func(
+    return hhg_mem_debug_run_func(
         hhg_debug_strdup_core,
         buf,
         NULL,
@@ -263,7 +263,7 @@ hhg_arena_t *hhg_debug_arena_new(hhg_mem_alloc_loc_t loc)
 {
     arena_t *arena = hhg_arena_new();
     
-    return hhg_debug_mem_run_func(
+    return hhg_mem_debug_run_func(
         hhg_debug_arena_new_core,
         arena,
         NULL,
@@ -279,7 +279,7 @@ void *hhg_debug_arena_malloc(hhg_arena_t *arena, size_t size, hhg_mem_alloc_loc_
 {
     void *ptr = hhg_arena_malloc(arena, size);
     
-    return hhg_debug_mem_run_func(
+    return hhg_mem_debug_run_func(
         hhg_debug_arena_malloc_core,
         ptr,
         arena,
@@ -295,7 +295,7 @@ char *hhg_debug_arena_strdup(hhg_arena_t *arena, const char *str, hhg_mem_alloc_
 {
     char *buf = hhg_arena_strdup(arena, str);
     
-    return hhg_debug_mem_run_func(
+    return hhg_mem_debug_run_func(
         hhg_debug_arena_strdup_core,
         buf,
         arena,
@@ -309,7 +309,7 @@ char *hhg_debug_arena_strdup(hhg_arena_t *arena, const char *str, hhg_mem_alloc_
 
 void hhg_debug_arena_free(hhg_arena_t *arena, hhg_mem_alloc_loc_t loc)
 {
-    hhg_debug_mem_run_func(
+    hhg_mem_debug_run_func(
         hhg_debug_arena_free_core,
         arena,
         NULL,
@@ -324,7 +324,7 @@ void hhg_debug_arena_free(hhg_arena_t *arena, hhg_mem_alloc_loc_t loc)
     arena_destroy(arena);
 }
 
-void hhg_mem_print_summary(void)
+void hhg_mem_debug_print_stats(void)
 {
     bool prev_mem_debug = mem_debug;
     mem_debug = true;
@@ -404,7 +404,7 @@ static void hhg_mem_alloc_loc_print(hhg_mem_alloc_loc_t loc) {
     printf("%s:%i (%s)", loc.file, loc.line, loc.func);
 }
 
-static void *hhg_debug_mem_run_func(
+static void *hhg_mem_debug_run_func(
     void (*func)(
         void *ptr1,
         void *ptr2,

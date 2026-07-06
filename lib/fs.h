@@ -710,12 +710,12 @@ fs_basename(const char *path)
 char *
 fs_extention(const char *path)
 {
-    char *c = strrchr(fs_basename(path), '.');
+    char *c = strrchr(path, '.');
     if (!c)
     {
         return NULL;
     }
-    return c + 1;
+    return c;
 }
 
 #ifdef FS_WINDOWS

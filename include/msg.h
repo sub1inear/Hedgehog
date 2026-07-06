@@ -3,13 +3,13 @@
 
 #include <stdint.h>
 
+typedef struct hhg_cmd_args hhg_cmd_args_t;
 typedef struct hhg_file_range hhg_file_range_t;
 typedef struct hhg_file_src hhg_file_src_t;
-typedef struct hhg_cfg hhg_cfg_t;
 
 typedef struct hhg_msg_ctx {
     int32_t error_count;
-    hhg_cfg_t *cfg;
+    hhg_cmd_args_t *cmd_args;
 } hhg_msg_ctx_t;
 
 typedef enum hhg_msg_type {
@@ -18,8 +18,9 @@ typedef enum hhg_msg_type {
     HHG_MSG_INFO,
 } hhg_msg_type_t;
 
-// note: cfg may be uninitialized
-void hhg_msg_ctx_init(hhg_msg_ctx_t *msg_ctx, hhg_cfg_t *cfg);
+void hhg_msg_ctx_init(hhg_msg_ctx_t *msg_ctx, hhg_cmd_args_t *cmd_args);
+
+void hhg_msg_ctx_del(hhg_msg_ctx_t *msg_ctx);
 
 // note: in the future, hhg_msg and hhg_basic_msg may be buffered
 

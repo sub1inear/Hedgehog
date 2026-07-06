@@ -14,7 +14,7 @@ typedef struct hhg_file_src hhg_file_src_t;
 
 #define HHG_NODE_START HHG_TOKEN_END
 
-enum hhg_node_type{
+enum hhg_node_type {
     HHG_NODE_BLOCK = HHG_NODE_START,
     HHG_NODE_PARAM,
     HHG_NODE_FUNC_CALL,
