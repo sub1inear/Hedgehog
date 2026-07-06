@@ -1,39 +1,31 @@
+#include "sem_an.h"
+
+#include <stb_ds.h>
 #include <stdbool.h>
 #include <string.h>
 
-#include <stb_ds.h>
-
-#include "sem_an.h"
+#include "msg.h"
+#include "node.h"
 #include "sym.h"
 #include "sym_tab.h"
-#include "node.h"
-#include "msg.h"
 #include "type.h"
 #include "type_ctx.h"
 #include "utils.h"
 
-#define hhg_sem_an_msg(sem_an, type, node, ...) \
-    hhg_msg(                                    \
-        sem_an->msg_ctx,                        \
-        type,                                   \
-        node->src,                              \
-        &node->range,                           \
-        __VA_ARGS__                             \
-    )
+#define hhg_sem_an_msg(sem_an, type, node, ...)                                \
+    hhg_msg(sem_an->msg_ctx, type, node->src, &node->range, __VA_ARGS__)
 
-#define hhg_sem_an_error(sem_an, node, ...) \
+#define hhg_sem_an_error(sem_an, node, ...)                                    \
     hhg_sem_an_msg(sem_an, HHG_MSG_ERROR, node, __VA_ARGS__)
 
-#define hhg_sem_an_warning(sem_an, node, ...) \
+#define hhg_sem_an_warning(sem_an, node, ...)                                  \
     hhg_sem_an_msg(sem_an, HHG_MSG_WARNING, node, __VA_ARGS__)
 
-#define hhg_sem_an_info(sem_an, node, ...) \
+#define hhg_sem_an_info(sem_an, node, ...)                                     \
     hhg_sem_an_msg(sem_an, HHG_MSG_INFO, node, __VA_ARGS__)
 
-static void hhg_sem_an_run_children(
-    hhg_sem_an_t *sem_an,
-    hhg_node_t **children
-);
+static void hhg_sem_an_run_children(hhg_sem_an_t *sem_an,
+                                    hhg_node_t **children);
 static void hhg_sem_an_run_block(hhg_sem_an_t *sem_an, hhg_node_t *node);
 static void hhg_sem_an_run_id(hhg_sem_an_t *sem_an, hhg_node_t *node);
 static void hhg_sem_an_run_if(hhg_sem_an_t *sem_an, hhg_node_t *node);
@@ -42,60 +34,39 @@ static void hhg_sem_an_run_var_decl(hhg_sem_an_t *sem_an, hhg_node_t *node);
 static void hhg_sem_an_run_obj_init(hhg_sem_an_t *sem_an, hhg_node_t *node);
 static void hhg_sem_an_run_func_decl(hhg_sem_an_t *sem_an, hhg_node_t *node);
 static void hhg_sem_an_run_class_decl(hhg_sem_an_t *sem_an, hhg_node_t *node);
-static void hhg_sem_an_add_class_var_decls(
-    hhg_sem_an_t *sem_an,
-    hhg_node_t *node,
-    hhg_type_t *class_type
-);
-static void hhg_sem_an_add_class_func_decls(
-    hhg_sem_an_t *sem_an,
-    hhg_node_t *node,
-    hhg_type_t *class_type
-);
-static void hhg_sem_an_add_class_func_params(
-    hhg_sem_an_t *sem_an,
-    hhg_node_t *node,
-    hhg_type_t *class_type
-);
+static void hhg_sem_an_add_class_var_decls(hhg_sem_an_t *sem_an,
+                                           hhg_node_t *node,
+                                           hhg_type_t *class_type);
+static void hhg_sem_an_add_class_func_decls(hhg_sem_an_t *sem_an,
+                                            hhg_node_t *node,
+                                            hhg_type_t *class_type);
+static void hhg_sem_an_add_class_func_params(hhg_sem_an_t *sem_an,
+                                             hhg_node_t *node,
+                                             hhg_type_t *class_type);
 static void hhg_sem_an_run_func_call(hhg_sem_an_t *sem_an, hhg_node_t *node);
 static void hhg_sem_an_run_return(hhg_sem_an_t *sem_an, hhg_node_t *node);
 static void hhg_sem_an_run_arr_literal(hhg_sem_an_t *sem_an, hhg_node_t *node);
 static void hhg_sem_an_run_expr(hhg_sem_an_t *sem_an, hhg_node_t *node);
 static void hhg_sem_an_run_inc_dec(hhg_sem_an_t *sem_an, hhg_node_t *node);
 static void hhg_sem_an_run_bool_literal(hhg_sem_an_t *sem_an, hhg_node_t *node);
-static void hhg_sem_an_run_string_literal(
-    hhg_sem_an_t *sem_an,
-    hhg_node_t *node
-);
+static void hhg_sem_an_run_string_literal(hhg_sem_an_t *sem_an,
+                                          hhg_node_t *node);
 static void hhg_sem_an_run_int_literal(hhg_sem_an_t *sem_an, hhg_node_t *node);
-static void hhg_sem_an_run_float_literal(
-    hhg_sem_an_t *sem_an,
-    hhg_node_t *node
-);
+static void hhg_sem_an_run_float_literal(hhg_sem_an_t *sem_an,
+                                         hhg_node_t *node);
 
-static hhg_base_type_t int_literal_base_types[] = {
-    HHG_TYPE_I32,
-    HHG_TYPE_U32,
-    HHG_TYPE_I64,
-    HHG_TYPE_U64
-};
+static hhg_base_type_t int_literal_base_types[] = { HHG_TYPE_I32, HHG_TYPE_U32,
+                                                    HHG_TYPE_I64,
+                                                    HHG_TYPE_U64 };
 
-static uint64_t int_literal_base_maxes[] = {
-    INT32_MAX,
-    UINT32_MAX,
-    INT64_MAX,
-    UINT64_MAX
-};
+static uint64_t int_literal_base_maxes[] = { INT32_MAX, UINT32_MAX, INT64_MAX,
+                                             UINT64_MAX };
 
-void hhg_sem_an_init(
-    hhg_sem_an_t *sem_an,
-    hhg_sym_tab_t *sym_tab,
-    hhg_type_ctx_t *type_ctx,
-    hhg_msg_ctx_t *msg_ctx,
-    hhg_arena_t *arena
-)
+void hhg_sem_an_init(hhg_sem_an_t *sem_an, hhg_sym_tab_t *sym_tab,
+                     hhg_type_ctx_t *type_ctx, hhg_msg_ctx_t *msg_ctx,
+                     hhg_arena_t *arena)
 {
-    *sem_an = (hhg_sem_an_t) {
+    *sem_an = (hhg_sem_an_t){
         .sym_tab = sym_tab,
         .type_ctx = type_ctx,
         .msg_ctx = msg_ctx,
@@ -192,18 +163,13 @@ void hhg_sem_an_run(hhg_sem_an_t *sem_an, hhg_node_t *node)
     case HHG_NODE_PARAM:
         break;
     default:
-        hhg_compiler_error(
-            "unhandled node type `%n` in hhg_sem_an_run",
-            node->type
-        );
+        hhg_compiler_error("unhandled node type `%n` in hhg_sem_an_run",
+                           node->type);
         break;
     }
 }
 
-static void hhg_sem_an_run_children(
-    hhg_sem_an_t *sem_an,
-    hhg_node_t **children
-)
+static void hhg_sem_an_run_children(hhg_sem_an_t *sem_an, hhg_node_t **children)
 {
     size_t len = arrlenu(children);
     for (size_t i = 0; i < len; i++)
@@ -219,21 +185,14 @@ static void hhg_sem_an_run_block(hhg_sem_an_t *sem_an, hhg_node_t *node)
 
 static void hhg_sem_an_run_id(hhg_sem_an_t *sem_an, hhg_node_t *node)
 {
-    hhg_sym_t *sym =
-        hhg_sym_tab_lookup(sem_an->sym_tab, node->value.id.str);
+    hhg_sym_t *sym = hhg_sym_tab_lookup(sem_an->sym_tab, node->value.id.str);
     if (sym == NULL)
-        hhg_sem_an_error(
-            sem_an,
-            node,
-            "undefined variable `%s`",
-            "`%s` used here",
-            node->value.id.str
-        );
+        hhg_sem_an_error(sem_an, node, "undefined variable `%s`",
+                         "`%s` used here", node->value.id.str);
     else
         node->value_type = sym->value.type;
 
     node->value.id.sym = sym;
-
 }
 
 static void hhg_sem_an_run_if(hhg_sem_an_t *sem_an, hhg_node_t *node)
@@ -270,15 +229,14 @@ static void hhg_sem_an_run_var_decl(hhg_sem_an_t *sem_an, hhg_node_t *node)
             node->value_type = node->value.var_decl.expr->value_type;
 
         node->value.var_decl.id.sym = hhg_sym_tab_insert(
-            sem_an->sym_tab,
-            (hhg_sym_t) {
-                .key = node->value.var_decl.id.str,
-                .value = {
-                    .sym_type = HHG_SYM_VAR,
-                    .type = node->value_type,
-                },
-            }
-        );
+            sem_an->sym_tab, (hhg_sym_t){
+                                 .key = node->value.var_decl.id.str,
+                                 .value =
+                                     {
+                                             .sym_type = HHG_SYM_VAR,
+                                             .type = node->value_type,
+                                             },
+        });
 
         name = node->value.var_decl.id.sym->key;
     } else
@@ -287,16 +245,10 @@ static void hhg_sem_an_run_var_decl(hhg_sem_an_t *sem_an, hhg_node_t *node)
     hhg_assert(node->value_type != NULL);
 
     if (!hhg_type_eq(expr_type, node->value_type))
-        hhg_sem_an_error(
-            sem_an,
-            node,
-            "type mismatch: variable `%s` has type `%T` but expression has type `%T`",
-            NULL,
-            name,
-            node->value_type,
-            expr_type
-        );
-
+        hhg_sem_an_error(sem_an, node,
+                         "type mismatch: variable `%s` has type `%T` "
+                         "but expression has type `%T`",
+                         NULL, name, node->value_type, expr_type);
 }
 
 static void hhg_sem_an_run_obj_init(hhg_sem_an_t *sem_an, hhg_node_t *node)
@@ -311,17 +263,13 @@ static void hhg_sem_an_run_obj_init(hhg_sem_an_t *sem_an, hhg_node_t *node)
 
     size_t len = arrlenu(node->value.obj_init.args);
     if (len == 0) {
-        hhg_sem_an_error(
-            sem_an,
-            node,
-            "object initialization requires at least one argument",
-            "here"
-        );
+        hhg_sem_an_error(sem_an, node,
+                         "object initialization requires at least one argument",
+                         "here");
         return;
     }
 
     hhg_sem_an_run_children(sem_an, node->value.obj_init.args);
-
 }
 
 static void hhg_sem_an_run_func_decl(hhg_sem_an_t *sem_an, hhg_node_t *node)
@@ -329,29 +277,24 @@ static void hhg_sem_an_run_func_decl(hhg_sem_an_t *sem_an, hhg_node_t *node)
     hhg_sym_t *sym =
         hhg_sym_tab_lookup(sem_an->sym_tab, node->value.func_decl.id.str);
     if (sym != NULL)
-        hhg_sem_an_error(
-            sem_an,
-            node,
-            "redeclaration of function `%s`",
-            "`%s` declared here",
-            node->value.func_decl.id.str
-        );
+        hhg_sem_an_error(sem_an, node, "redeclaration of function `%s`",
+                         "`%s` declared here", node->value.func_decl.id.str);
 
     hhg_type_t *func_type = hhg_type_new(HHG_TYPE_FUNC, sem_an->arena);
-    func_type->info.func = (hhg_type_func_info_t) {
+    func_type->info.func = (hhg_type_func_info_t){
         .ret = node->value_type,
         .params = NULL,
     };
 
     node->value_type = func_type;
-    
-    
+
     hhg_sym_t func_sym = {
         .key = node->value.func_decl.id.str,
-        .value = {
-            .sym_type = HHG_SYM_FUNC,
-            .type = func_type,
-        },
+        .value =
+            {
+                    .sym_type = HHG_SYM_FUNC,
+                    .type = func_type,
+                    },
     };
 
     node->value.func_decl.id.sym =
@@ -368,30 +311,22 @@ static void hhg_sem_an_run_func_decl(hhg_sem_an_t *sem_an, hhg_node_t *node)
         // func_type is linked to sym even though sym is in sym tab
         arrput(func_type->info.func.params, param->value_type);
 
-        hhg_sym_t *param_sym = hhg_sym_tab_lookup(
-            sem_an->sym_tab,
-            param->value.param.id.str
-        );
+        hhg_sym_t *param_sym =
+            hhg_sym_tab_lookup(sem_an->sym_tab, param->value.param.id.str);
 
         if (param_sym == NULL) {
             param->value.param.id.sym = hhg_sym_tab_insert(
-                sem_an->sym_tab,
-                (hhg_sym_t) {
-                    .key = param->value.param.id.str,
-                    .value = {
-                        .sym_type = HHG_SYM_PARAM,
-                        .type = param->value_type,
-                    },
-                }
-            );
+                sem_an->sym_tab, (hhg_sym_t){
+                                     .key = param->value.param.id.str,
+                                     .value =
+                                         {
+                                                 .sym_type = HHG_SYM_PARAM,
+                                                 .type = param->value_type,
+                                                 },
+            });
         } else
-            hhg_sem_an_error(
-                sem_an,
-                param,
-                "redeclaration of parameter `%s`",
-                "`%s` declared here",
-                param->value.param.id.str
-            );
+            hhg_sem_an_error(sem_an, param, "redeclaration of parameter `%s`",
+                             "`%s` declared here", param->value.param.id.str);
     }
 
     hhg_sem_an_run(sem_an, node->value.func_decl.body);
@@ -404,28 +339,26 @@ static void hhg_sem_an_run_class_decl(hhg_sem_an_t *sem_an, hhg_node_t *node)
         hhg_sym_tab_lookup(sem_an->sym_tab, node->value.class_decl.id.str);
     if (sym != NULL)
         hhg_sem_an_error(
-            sem_an,
-            node,
-            "redeclaration of class `%s`",
-            "`%s` declared here",
+            sem_an, node, "redeclaration of class `%s`", "`%s` declared here",
             node->value.class_decl.id.str // sym has not been set yet
         );
 
     hhg_type_t *class_type = hhg_type_new(HHG_TYPE_CLASS, sem_an->arena);
-    class_type->info.class = (hhg_type_class_info_t) {
+    class_type->info.class = (hhg_type_class_info_t){
         .fields = NULL,
     };
 
     hhg_sym_t class_sym = {
         .key = node->value.class_decl.id.str,
-        .value = {
-            .sym_type = HHG_SYM_CLASS,
-            .type = class_type,
-        },
+        .value =
+            {
+                    .sym_type = HHG_SYM_CLASS,
+                    .type = class_type,
+                    },
     };
 
     node->value_type = class_type;
-   
+
     node->value.class_decl.id.sym =
         hhg_sym_tab_insert(sem_an->sym_tab, class_sym);
 
@@ -433,16 +366,14 @@ static void hhg_sem_an_run_class_decl(hhg_sem_an_t *sem_an, hhg_node_t *node)
 
     hhg_sym_tab_enter_scope(sem_an->sym_tab);
 
-    hhg_sym_tab_insert(
-        sem_an->sym_tab,
-        (hhg_sym_t) {
-        .key = "self",
-            .value = {
-                .sym_type = HHG_SYM_VAR,
-                .type = class_type,
-            },
-        }
-    );
+    hhg_sym_tab_insert(sem_an->sym_tab, (hhg_sym_t){
+                                            .key = "self",
+                                            .value =
+                                                {
+                                                        .sym_type = HHG_SYM_VAR,
+                                                        .type = class_type,
+                                                        },
+    });
 
     hhg_sem_an_add_class_var_decls(sem_an, node, class_type);
     hhg_sem_an_add_class_func_decls(sem_an, node, class_type);
@@ -450,52 +381,38 @@ static void hhg_sem_an_run_class_decl(hhg_sem_an_t *sem_an, hhg_node_t *node)
     hhg_sym_tab_exit_scope(sem_an->sym_tab);
 }
 
-static void hhg_sem_an_add_class_var_decls(
-    hhg_sem_an_t *sem_an,
-    hhg_node_t *node,
-    hhg_type_t *class_type
-)
+static void hhg_sem_an_add_class_var_decls(hhg_sem_an_t *sem_an,
+                                           hhg_node_t *node,
+                                           hhg_type_t *class_type)
 {
     size_t var_decls_len = arrlenu(node->value.class_decl.var_decls);
 
     for (size_t i = 0; i < var_decls_len; i++) {
         hhg_node_t *var_decl = node->value.class_decl.var_decls[i];
 
-        hhg_type_class_field_t *entry =
-            shgetp_null(
-                class_type->info.class.fields,
-                var_decl->value.var_decl.id.str
-            );
+        hhg_type_class_field_t *entry = shgetp_null(
+            class_type->info.class.fields, var_decl->value.var_decl.id.str);
         if (entry == NULL)
-            shput(
-                class_type->info.class.fields,
-                var_decl->value.var_decl.id.str,
-                var_decl->value_type
-            );
+            shput(class_type->info.class.fields,
+                  var_decl->value.var_decl.id.str, var_decl->value_type);
         else
             hhg_sem_an_error(
-                sem_an,
-                node,
-                "redeclaration of field `%s` in class `%s`",
-                "`%s` declared here",
-                var_decl->value.var_decl.id.str,
-                node->value.class_decl.id.sym->key
-            );
+                sem_an, node, "redeclaration of field `%s` in class `%s`",
+                "`%s` declared here", var_decl->value.var_decl.id.str,
+                node->value.class_decl.id.sym->key);
     }
 }
 
-static void hhg_sem_an_add_class_func_decls(
-    hhg_sem_an_t *sem_an,
-    hhg_node_t *node,
-    hhg_type_t *class_type
-)
+static void hhg_sem_an_add_class_func_decls(hhg_sem_an_t *sem_an,
+                                            hhg_node_t *node,
+                                            hhg_type_t *class_type)
 {
     size_t func_decls_len = arrlenu(node->value.class_decl.func_decls);
     for (size_t i = 0; i < func_decls_len; i++) {
         hhg_node_t *func_decl = node->value.class_decl.func_decls[i];
 
         hhg_type_t *func_type = hhg_type_new(HHG_TYPE_FUNC, sem_an->arena);
-        func_type->info.func = (hhg_type_func_info_t) {
+        func_type->info.func = (hhg_type_func_info_t){
             .ret = func_decl->value_type,
             .params = NULL,
         };
@@ -504,26 +421,16 @@ static void hhg_sem_an_add_class_func_decls(
 
         hhg_sem_an_add_class_func_params(sem_an, func_decl, func_type);
 
-        hhg_type_class_field_t *entry =
-            shgetp_null(
-                class_type->info.class.fields,
-                func_decl->value.func_decl.id.str
-            );
+        hhg_type_class_field_t *entry = shgetp_null(
+            class_type->info.class.fields, func_decl->value.func_decl.id.str);
         if (entry == NULL)
-            shput(
-                class_type->info.class.fields,
-                func_decl->value.func_decl.id.str,
-                func_type
-            );
+            shput(class_type->info.class.fields,
+                  func_decl->value.func_decl.id.str, func_type);
         else
             hhg_sem_an_error(
-                sem_an,
-                func_decl,
-                "redeclaration of method `%s` in class `%s`",
-                "`%s` redeclared here",
-                func_decl->value.func_decl.id.str,
-                node->value.class_decl.id.sym->key
-            );
+                sem_an, func_decl, "redeclaration of method `%s` in class `%s`",
+                "`%s` redeclared here", func_decl->value.func_decl.id.str,
+                node->value.class_decl.id.sym->key);
 
         // update func decl node with func type
         func_decl->value_type = func_type;
@@ -534,11 +441,9 @@ static void hhg_sem_an_add_class_func_decls(
     }
 }
 
-static void hhg_sem_an_add_class_func_params(
-    hhg_sem_an_t *sem_an,
-    hhg_node_t *node,
-    hhg_type_t *func_type
-)
+static void hhg_sem_an_add_class_func_params(hhg_sem_an_t *sem_an,
+                                             hhg_node_t *node,
+                                             hhg_type_t *func_type)
 {
     size_t params_len = arrlenu(node->value.func_decl.params);
     for (size_t j = 0; j < params_len; j++) {
@@ -546,45 +451,31 @@ static void hhg_sem_an_add_class_func_params(
 
         arrput(func_type->info.func.params, param->value_type);
 
-        hhg_sym_t *param_sym = hhg_sym_tab_lookup(
-            sem_an->sym_tab,
-            param->value.param.id.str
-        );
+        hhg_sym_t *param_sym =
+            hhg_sym_tab_lookup(sem_an->sym_tab, param->value.param.id.str);
 
         if (param_sym == NULL) {
             param->value.param.id.sym = hhg_sym_tab_insert(
-                sem_an->sym_tab,
-                (hhg_sym_t) {
-                    .key = param->value.param.id.str,
-                    .value = {
-                        .sym_type = HHG_SYM_PARAM,
-                        .type = param->value_type,
-                    },
-                }
-            );
+                sem_an->sym_tab, (hhg_sym_t){
+                                     .key = param->value.param.id.str,
+                                     .value =
+                                         {
+                                                 .sym_type = HHG_SYM_PARAM,
+                                                 .type = param->value_type,
+                                                 },
+            });
         } else
-            hhg_sem_an_error(
-                sem_an,
-                param,
-                "redeclaration of parameter `%s`",
-                "`%s` declared here",
-                param->value.param.id.str
-            );
+            hhg_sem_an_error(sem_an, param, "redeclaration of parameter `%s`",
+                             "`%s` declared here", param->value.param.id.str);
     }
 }
 
 static void hhg_sem_an_run_func_call(hhg_sem_an_t *sem_an, hhg_node_t *node)
 {
-    hhg_sym_t *sym =
-        hhg_sym_tab_lookup(sem_an->sym_tab, node->value.id.str);
+    hhg_sym_t *sym = hhg_sym_tab_lookup(sem_an->sym_tab, node->value.id.str);
     if (sym == NULL)
-        hhg_sem_an_error(
-            sem_an,
-            node,
-            "undefined function `%s`",
-            "`%s` called here",
-            node->value.id.str
-        );
+        hhg_sem_an_error(sem_an, node, "undefined function `%s`",
+                         "`%s` called here", node->value.id.str);
     node->value.id.sym = sym;
 
     hhg_sem_an_run_children(sem_an, node->value.func_call.args);
@@ -613,38 +504,24 @@ static void hhg_sem_an_run_expr(hhg_sem_an_t *sem_an, hhg_node_t *node)
         return;
 
     if (!hhg_base_type_is_arith(left_type->type)) {
-        hhg_sem_an_error(
-            sem_an,
-            node->value.expr.left,
-            "left operand of `%n` must be an arithmetic type",
-            "here",
-            node->type
-        );
+        hhg_sem_an_error(sem_an, node->value.expr.left,
+                         "left operand of `%n` must be an arithmetic type",
+                         "here", node->type);
         return;
     }
-    
+
     if (!hhg_base_type_is_arith(right_type->type)) {
-        hhg_sem_an_error(
-            sem_an,
-            node->value.expr.right,
-            "right operand of `%n` must be an arithmetic type",
-            "here",
-            node->type
-        );
+        hhg_sem_an_error(sem_an, node->value.expr.right,
+                         "right operand of `%n` must be an arithmetic type",
+                         "here", node->type);
         return;
     }
 
     if (hhg_type_eq(left_type, right_type))
         node->value_type = left_type;
     else
-        hhg_sem_an_error(
-            sem_an,
-            node,
-            "type mismatch between `%T` and `%T`",
-            "here",
-            left_type,
-            right_type
-        );
+        hhg_sem_an_error(sem_an, node, "type mismatch between `%T` and `%T`",
+                         "here", left_type, right_type);
 }
 
 static void hhg_sem_an_run_inc_dec(hhg_sem_an_t *sem_an, hhg_node_t *node)
@@ -654,24 +531,19 @@ static void hhg_sem_an_run_inc_dec(hhg_sem_an_t *sem_an, hhg_node_t *node)
 
 static void hhg_sem_an_run_bool_literal(hhg_sem_an_t *sem_an, hhg_node_t *node)
 {
-    node->value_type = hhg_type_ctx_get_builtin(
-        sem_an->type_ctx,
-        HHG_TYPE_BOOL
-    );
+    node->value_type =
+        hhg_type_ctx_get_builtin(sem_an->type_ctx, HHG_TYPE_BOOL);
 }
 
-static void hhg_sem_an_run_string_literal(
-    hhg_sem_an_t *sem_an,
-    hhg_node_t *node
-)
+static void hhg_sem_an_run_string_literal(hhg_sem_an_t *sem_an,
+                                          hhg_node_t *node)
 {
     node->value_type = hhg_type_ctx_new_arr(
         sem_an->type_ctx,
-        (hhg_arr_tab_key_t) {
+        (hhg_arr_tab_key_t){
             .elem = hhg_type_ctx_get_builtin(sem_an->type_ctx, HHG_TYPE_CHAR),
             .size = strlen(node->value.literal.str) + 1 /* null char */,
-        }
-    );
+        });
 }
 
 static void hhg_sem_an_run_int_literal(hhg_sem_an_t *sem_an, hhg_node_t *node)
@@ -681,14 +553,12 @@ static void hhg_sem_an_run_int_literal(hhg_sem_an_t *sem_an, hhg_node_t *node)
     while (*p >= '0' && *p <= '9') {
         uint8_t digit = *p - '0';
         if (x > (UINT64_MAX - digit) / 10) {
-            hhg_sem_an_error(
-                sem_an,
-                node,
-                // manually format UINT64_MAX to ensure it is in decimal
-                "integer literal `%s` is too large, max is `18446744073709551615`",
-                "here",
-                node->value.literal.str
-            );
+            hhg_sem_an_error(sem_an, node,
+                             // manually format UINT64_MAX to ensure
+                             // it is in decimal
+                             "integer literal `%s` is too large, "
+                             "max is `18446744073709551615`",
+                             "here", node->value.literal.str);
             return;
         }
         x *= 10;
@@ -699,9 +569,7 @@ static void hhg_sem_an_run_int_literal(hhg_sem_an_t *sem_an, hhg_node_t *node)
     for (size_t i = 0; i < HHG_ARR_LEN(int_literal_base_maxes); i++) {
         if (x < int_literal_base_maxes[i]) {
             node->value_type = hhg_type_ctx_get_builtin(
-                sem_an->type_ctx,
-                int_literal_base_types[i]
-            );
+                sem_an->type_ctx, int_literal_base_types[i]);
             return;
         }
     }
@@ -709,10 +577,7 @@ static void hhg_sem_an_run_int_literal(hhg_sem_an_t *sem_an, hhg_node_t *node)
     hhg_compiler_error("int literal type inference failed");
 }
 
-static void hhg_sem_an_run_float_literal(
-    hhg_sem_an_t *sem_an,
-    hhg_node_t *node
-)
+static void hhg_sem_an_run_float_literal(hhg_sem_an_t *sem_an, hhg_node_t *node)
 {
     node->value_type = hhg_type_ctx_get_builtin(sem_an->type_ctx, HHG_TYPE_F32);
 }

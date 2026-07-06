@@ -1,17 +1,18 @@
-#include <stdlib.h>
-#include <stdio.h>
+#include "msg.h"
+
+#include <inttypes.h>
 #include <stdarg.h>
 #include <stdbool.h>
-#include <inttypes.h>
+#include <stdio.h>
+#include <stdlib.h>
 
-#include "msg.h"
+#include "cmd_args.h"
 #include "file_pos.h"
-#include "file_src.h"
 #include "file_range.h"
+#include "file_src.h"
+#include "main.h"
 #include "token.h"
 #include "type.h"
-#include "cmd_args.h"
-#include "main.h"
 #include "utils.h"
 
 /*
@@ -24,22 +25,14 @@ Message format:
 */
 
 static int32_t hhg_msg_num_digits(int32_t num);
-static void hhg_msg_print_src_line(
-    hhg_file_src_t *src,
-    int32_t line,
-    int32_t line_width
-);
-static void hhg_msg_print_indicator(
-    int32_t start,
-    int32_t end,
-    size_t line_width
-);
+static void hhg_msg_print_src_line(hhg_file_src_t *src, int32_t line,
+                                   int32_t line_width);
+static void hhg_msg_print_indicator(int32_t start, int32_t end,
+                                    size_t line_width);
 
 // prints the message type and increments error count if it's an error
-static void hhg_msg_process_msg_type(
-    hhg_msg_ctx_t *msg_ctx,
-    hhg_msg_type_t type
-);
+static void hhg_msg_process_msg_type(hhg_msg_ctx_t *msg_ctx,
+                                     hhg_msg_type_t type);
 
 // prints the message type (error, warning, ...) with color if enabled
 // if color is not enabled, color can be NULL
@@ -56,7 +49,7 @@ supported format specifiers:
 %b  - bool
 %%  - %
 %t  - hhg_token_type_t
-%n  - hhg_node_type_t 
+%n  - hhg_node_type_t
 %T  - hhg_type_t *
 */
 static void hhg_vfprintf(FILE *stream, const char *fmt, va_list va);
@@ -73,15 +66,8 @@ void hhg_msg_ctx_del(hhg_msg_ctx_t *msg_ctx)
     // nothing to free for now
 }
 
-void hhg_msg(
-    hhg_msg_ctx_t *msg_ctx,
-    hhg_msg_type_t type,
-    hhg_file_src_t *src,
-    hhg_file_range_t *range,
-    const char *msg,
-    const char *note,
-    ...
-)
+void hhg_msg(hhg_msg_ctx_t *msg_ctx, hhg_msg_type_t type, hhg_file_src_t *src,
+             hhg_file_range_t *range, const char *msg, const char *note, ...)
 {
     va_list va_msg;
     va_list va_note;
@@ -94,7 +80,8 @@ void hhg_msg(
 
     int32_t max_line_width = 0;
     for (int32_t line = range->start.line; line <= range->end.line; line++) {
-        // line is 0-indexed but printed as 1-indexed so need to increment
+        // line is 0-indexed but printed as 1-indexed so need to
+        // increment
         int32_t line_width = hhg_msg_num_digits(line + 1);
         if (line_width > max_line_width)
             max_line_width = line_width;
@@ -115,8 +102,9 @@ void hhg_msg(
         hhg_msg_print_src_line(src, line, max_line_width);
 
         int32_t start_col = line == range->start.line ? range->start.col : 0;
-        int32_t end_col = line == range->end.line ? range->end.col :
-            src->line_starts[line + 1] - src->line_starts[line];
+        int32_t end_col = line == range->end.line ? range->end.col
+                                                  : src->line_starts[line + 1] -
+                                                        src->line_starts[line];
 
         hhg_msg_print_indicator(start_col, end_col, max_line_width);
         if (line != range->end.line)
@@ -134,12 +122,8 @@ void hhg_msg(
     va_end(va_msg);
 }
 
-void hhg_basic_msg(
-    hhg_msg_ctx_t *msg_ctx,
-    hhg_msg_type_t type,
-    const char *msg,
-    ...
-)
+void hhg_basic_msg(hhg_msg_ctx_t *msg_ctx, hhg_msg_type_t type, const char *msg,
+                   ...)
 {
     va_list va;
     va_start(va, msg);
@@ -155,16 +139,13 @@ void hhg_compiler_error(const char *msg, ...)
 {
     va_list va;
     va_start(va, msg);
-    
+
     fputs("compiler error: ", stderr);
 
     hhg_vfprintf(stderr, msg, va);
 
-    fprintf(
-        stderr,
-        "\n\nplease report this to the developers at\n"
-        HHG_GITHUB_ISSUES_URL "\n"
-    );
+    fprintf(stderr, "\n\nplease report this to the developers "
+                    "at\n" HHG_GITHUB_ISSUES_URL "\n");
 
     va_end(va);
     exit(EXIT_FAILURE);
@@ -174,7 +155,7 @@ void hhg_fatal_error(const char *msg, ...)
 {
     va_list va;
     va_start(va, msg);
-    
+
     fputs("fatal error: ", stderr);
 
     hhg_vfprintf(stderr, msg, va);
@@ -189,26 +170,32 @@ static int32_t hhg_msg_num_digits(int32_t num)
     if (num <= 0)
         return 0;
 
-    if (num >= 1000000000) return 10;
-    if (num >= 100000000)  return 9;
-    if (num >= 10000000)   return 8;
-    if (num >= 1000000)    return 7;
-    if (num >= 100000)     return 6;
-    if (num >= 10000)      return 5;
-    if (num >= 1000)       return 4;
-    if (num >= 100)        return 3;
-    if (num >= 10)         return 2;
+    if (num >= 1000000000)
+        return 10;
+    if (num >= 100000000)
+        return 9;
+    if (num >= 10000000)
+        return 8;
+    if (num >= 1000000)
+        return 7;
+    if (num >= 100000)
+        return 6;
+    if (num >= 10000)
+        return 5;
+    if (num >= 1000)
+        return 4;
+    if (num >= 100)
+        return 3;
+    if (num >= 10)
+        return 2;
     return 1;
 }
 
-static void hhg_msg_print_src_line(
-    hhg_file_src_t *src,
-    int32_t line,
-    int32_t line_width
-)
+static void hhg_msg_print_src_line(hhg_file_src_t *src, int32_t line,
+                                   int32_t line_width)
 {
     fprintf(stderr, "%*" PRIi32 " | ", line_width, line + 1);
-    
+
     char *ptr = &src->txt[src->line_starts[line]];
 
     // src->txt is null-terminated
@@ -219,11 +206,8 @@ static void hhg_msg_print_src_line(
     fputc('\n', stderr);
 }
 
-static void hhg_msg_print_indicator(
-    int32_t start,
-    int32_t end,
-    size_t line_width
-)
+static void hhg_msg_print_indicator(int32_t start, int32_t end,
+                                    size_t line_width)
 {
     for (size_t i = 0; i < line_width; i++)
         fputc(' ', stderr);
@@ -235,10 +219,8 @@ static void hhg_msg_print_indicator(
         fputc('~', stderr);
 }
 
-static void hhg_msg_process_msg_type(
-    hhg_msg_ctx_t *msg_ctx,
-    hhg_msg_type_t type
-)
+static void hhg_msg_process_msg_type(hhg_msg_ctx_t *msg_ctx,
+                                     hhg_msg_type_t type)
 {
     if (msg_ctx->cmd_args->type == HHG_CMD_ARGS_BUILD &&
         msg_ctx->cmd_args->subcmd.build.error_warnings &&
@@ -277,7 +259,7 @@ static void hhg_vfprintf(FILE *stream, const char *fmt, va_list va)
                 if (str_arg)
                     fputs(str_arg, stream);
                 else
-                    fputs("(null)", stream); 
+                    fputs("(null)", stream);
                 break;
             }
             case 'i': {
@@ -312,8 +294,7 @@ static void hhg_vfprintf(FILE *stream, const char *fmt, va_list va)
             }
             case 'n': // same as 't'
             case 't': {
-                hhg_token_type_t token_type_arg =
-                    va_arg(va, hhg_token_type_t);
+                hhg_token_type_t token_type_arg = va_arg(va, hhg_token_type_t);
                 fputs(hhg_token_type_to_str(token_type_arg), stream);
                 break;
             }

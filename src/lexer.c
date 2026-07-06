@@ -1,31 +1,26 @@
-#include <stdio.h>
-#include <stdbool.h>
-#include <string.h>
+#include "lexer.h"
+
 #include <ctype.h>
 #include <stb_ds.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <string.h>
 
-#include "lexer.h"
-#include "file_src.h"
 #include "file_pos.h"
 #include "file_range.h"
+#include "file_src.h"
+#include "mem.h"
 #include "msg.h"
 #include "utils.h"
-#include "mem.h"
 
-#define hhg_lexer_msg(lexer, type, ...) \
-    hhg_msg(                            \
-        lexer->msg_ctx,                 \
-        type,                           \
-        &lexer->src,                    \
-        &lexer->token.range,            \
-        __VA_ARGS__                     \
-    )
+#define hhg_lexer_msg(lexer, type, ...)                                        \
+    hhg_msg(lexer->msg_ctx, type, &lexer->src, &lexer->token.range, __VA_ARGS__)
 
-#define hhg_lexer_error(lexer, ...) \
+#define hhg_lexer_error(lexer, ...)                                            \
     hhg_lexer_msg(lexer, HHG_MSG_ERROR, __VA_ARGS__)
-#define hhg_lexer_warning(lexer, ...) \
+#define hhg_lexer_warning(lexer, ...)                                          \
     hhg_lexer_msg(lexer, HHG_MSG_WARNING, __VA_ARGS__)
-#define hhg_lexer_info(lexer, ...) \
+#define hhg_lexer_info(lexer, ...)                                             \
     hhg_lexer_msg(lexer, HHG_MSG_INFO, __VA_ARGS__)
 
 static int hhg_lexer_next_char(hhg_lexer_t *lexer);
@@ -36,71 +31,71 @@ static void hhg_lexer_lex_str_literal(hhg_lexer_t *lexer, int c);
 static void hhg_lexer_lex_char_literal(hhg_lexer_t *lexer, int c);
 static bool hhg_lexer_lex_default(hhg_lexer_t *lexer, int c);
 
-static const hhg_op_data_t op_data[] = {                                         
-    { { '<' , '<' , '='  },  HHG_TOKEN_LSHIFT_EQ, 1  },
-    { { '>' , '>' , '='  },  HHG_TOKEN_RSHIFT_EQ, 1  },
-                                                  
-    { { '+' , '=' , '\0' },  HHG_TOKEN_ADD_EQ,    1  },
-    { { '-' , '=' , '\0' },  HHG_TOKEN_SUB_EQ,    1  },
-    { { '*' , '=' , '\0' },  HHG_TOKEN_MUL_EQ,    1  },
-    { { '/' , '=' , '\0' },  HHG_TOKEN_DIV_EQ,    1  },
-    { { '%' , '=' , '\0' },  HHG_TOKEN_MOD_EQ,    1  },
-    { { '&' , '=' , '\0' },  HHG_TOKEN_AND_EQ,    1  },
-    { { '|' , '=' , '\0' },  HHG_TOKEN_OR_EQ,     1  },
-    { { '^' , '=' , '\0' },  HHG_TOKEN_XOR_EQ,    1  },
-                                                  
-    { { '<' , '<' , '\0' },  HHG_TOKEN_LSHIFT,    10 },
-    { { '>' , '>' , '\0' },  HHG_TOKEN_RSHIFT,    10 },
-                                                  
-    { { '+' , '+' , '\0' },  HHG_TOKEN_INC,       13 },
-    { { '-' , '-' , '\0' },  HHG_TOKEN_DEC,       13 },
-                                                  
-    { { '<' , '=' , '\0' },  HHG_TOKEN_LT_EQ,     9  },
-    { { '>' , '=' , '\0' },  HHG_TOKEN_GT_EQ,     9  },
-                                                  
-    { { '=' , '=' , '\0' },  HHG_TOKEN_EQ,        8  },
-    { { '!' , '=' , '\0' },  HHG_TOKEN_NOT_EQ,    8  },
-                                                  
-    { { '*' , '\0', '\0' },  '*',                 12 },
-    { { '/' , '\0', '\0' },  '/',                 12 },
-    { { '%' , '\0', '\0' },  '%',                 12 },
-                                                  
-    { { '+' , '\0', '\0' },  '+',                 11 },
-    { { '-' , '\0', '\0' },  '-',                 11 },
-                                                  
-    { { '<' , '\0', '\0' },  '<',                 9  },
-    { { '>' , '\0', '\0' },  '>',                 9  },
-                                                  
-    { { '&' , '\0', '\0' },  '&',                 7  },
-    { { '^' , '\0', '\0' },  '^',                 6  },
-    { { '|' , '\0', '\0' },  '|',                 5  },
+static const hhg_op_data_t op_data[] = {
+    { { '<', '<', '=' },   HHG_TOKEN_LSHIFT_EQ, 1  },
+    { { '>', '>', '=' },   HHG_TOKEN_RSHIFT_EQ, 1  },
+
+    { { '+', '=', '\0' },  HHG_TOKEN_ADD_EQ,    1  },
+    { { '-', '=', '\0' },  HHG_TOKEN_SUB_EQ,    1  },
+    { { '*', '=', '\0' },  HHG_TOKEN_MUL_EQ,    1  },
+    { { '/', '=', '\0' },  HHG_TOKEN_DIV_EQ,    1  },
+    { { '%', '=', '\0' },  HHG_TOKEN_MOD_EQ,    1  },
+    { { '&', '=', '\0' },  HHG_TOKEN_AND_EQ,    1  },
+    { { '|', '=', '\0' },  HHG_TOKEN_OR_EQ,     1  },
+    { { '^', '=', '\0' },  HHG_TOKEN_XOR_EQ,    1  },
+
+    { { '<', '<', '\0' },  HHG_TOKEN_LSHIFT,    10 },
+    { { '>', '>', '\0' },  HHG_TOKEN_RSHIFT,    10 },
+
+    { { '+', '+', '\0' },  HHG_TOKEN_INC,       13 },
+    { { '-', '-', '\0' },  HHG_TOKEN_DEC,       13 },
+
+    { { '<', '=', '\0' },  HHG_TOKEN_LT_EQ,     9  },
+    { { '>', '=', '\0' },  HHG_TOKEN_GT_EQ,     9  },
+
+    { { '=', '=', '\0' },  HHG_TOKEN_EQ,        8  },
+    { { '!', '=', '\0' },  HHG_TOKEN_NOT_EQ,    8  },
+
+    { { '*', '\0', '\0' }, '*',                 12 },
+    { { '/', '\0', '\0' }, '/',                 12 },
+    { { '%', '\0', '\0' }, '%',                 12 },
+
+    { { '+', '\0', '\0' }, '+',                 11 },
+    { { '-', '\0', '\0' }, '-',                 11 },
+
+    { { '<', '\0', '\0' }, '<',                 9  },
+    { { '>', '\0', '\0' }, '>',                 9  },
+
+    { { '&', '\0', '\0' }, '&',                 7  },
+    { { '^', '\0', '\0' }, '^',                 6  },
+    { { '|', '\0', '\0' }, '|',                 5  },
 };
 
 static const hhg_keyword_data_t keyword_data[] = {
     { "if",       HHG_TOKEN_IF       },
     { "while",    HHG_TOKEN_WHILE    },
     { "for",      HHG_TOKEN_FOR      },
-      
+
     { "break",    HHG_TOKEN_BREAK    },
     { "continue", HHG_TOKEN_CONTINUE },
-      
+
     { "and",      HHG_TOKEN_AND      },
     { "or",       HHG_TOKEN_OR       },
     { "not",      HHG_TOKEN_NOT      },
-      
+
     { "true",     HHG_TOKEN_TRUE     },
     { "false",    HHG_TOKEN_FALSE    },
-      
+
     { "in",       HHG_TOKEN_IN       },
     { "range",    HHG_TOKEN_RANGE    },
-      
+
     { "enum",     HHG_TOKEN_ENUM     },
-      
+
     { "def",      HHG_TOKEN_DEF      },
     { "return",   HHG_TOKEN_RETURN   },
 
     { "class",    HHG_TOKEN_CLASS    },
-    
+
     // ----------------------------- //
 
     { "i8",       HHG_TOKEN_I8       },
@@ -108,37 +103,34 @@ static const hhg_keyword_data_t keyword_data[] = {
 
     { "i16",      HHG_TOKEN_I16      },
     { "u16",      HHG_TOKEN_U16      },
-                                        
+
     { "i32",      HHG_TOKEN_I32      },
     { "u32",      HHG_TOKEN_U32      },
-                                        
+
     { "i64",      HHG_TOKEN_I64      },
     { "u64",      HHG_TOKEN_U64      },
-                                        
+
     { "int",      HHG_TOKEN_INT      },
-                                        
+
     { "f32",      HHG_TOKEN_F32      },
     { "f64",      HHG_TOKEN_F64      },
-      
+
     { "float",    HHG_TOKEN_FLOAT    },
-      
+
     { "bool",     HHG_TOKEN_BOOL     },
     { "char",     HHG_TOKEN_CHAR     },
-      
+
     { "isize",    HHG_TOKEN_ISIZE    },
     { "usize",    HHG_TOKEN_USIZE    },
 
     // ----------------------------- //
-    
+
     { "const",    HHG_TOKEN_CONST    },
     { "volatile", HHG_TOKEN_VOLATILE },
 };
 
-void hhg_lexer_init(
-    hhg_lexer_t *lexer,
-    hhg_msg_ctx_t *msg_ctx,
-    const char *filename
-)
+void hhg_lexer_init(hhg_lexer_t *lexer, hhg_msg_ctx_t *msg_ctx,
+                    const char *filename)
 {
     hhg_file_src_init(&lexer->src, filename);
 
@@ -169,14 +161,14 @@ void hhg_lexer_next(hhg_lexer_t *lexer)
             // past whitespace, start lexing token
             lexer->token.range.start = (hhg_file_pos_t){
                 .line = lexer->pos.line,
-                // first character has already been consumed so decrement
-                // exception: EOF is not consumed
+                // first character has already been consumed so
+                // decrement exception: EOF is not consumed
                 .col = c == EOF ? lexer->pos.col : lexer->pos.col - 1,
             };
             if (isalpha(c) || c == '_') {
                 hhg_lexer_lex_id(lexer, c);
                 break;
-            } else if (isdigit(c))  {
+            } else if (isdigit(c)) {
                 hhg_lexer_lex_num(lexer, c);
                 break;
             } else if (c == '"') {
@@ -199,13 +191,8 @@ void hhg_lexer_next(hhg_lexer_t *lexer)
 void hhg_lexer_match(hhg_lexer_t *lexer, hhg_token_type_t type)
 {
     if (lexer->token.type != type)
-        hhg_lexer_error(
-            lexer,
-            "expected `%t`, got `%t`",
-            "here",
-            type,
-            lexer->token.type
-        );    
+        hhg_lexer_error(lexer, "expected `%t`, got `%t`", "here", type,
+                        lexer->token.type);
 
     hhg_lexer_next(lexer);
 }
@@ -229,7 +216,8 @@ static int hhg_lexer_next_char(hhg_lexer_t *lexer)
         if (c == '\n') {
             lexer->pos.col = 0;
             lexer->pos.line++;
-            // store the line start for errors and hhg_lexer_back_char
+            // store the line start for errors and
+            // hhg_lexer_back_char
             arrput(lexer->src.line_starts, lexer->txt_idx);
         } else
             lexer->pos.col++;
@@ -251,9 +239,8 @@ static void hhg_lexer_back_char(hhg_lexer_t *lexer)
     if (lexer->pos.col == 0) {
         // backing up from the start of a line
         // set col to the end of the previous line
-        lexer->pos.col = 
-            lexer->src.line_starts[lexer->pos.line] -
-            lexer->src.line_starts[lexer->pos.line - 1] - 1;
+        lexer->pos.col = lexer->src.line_starts[lexer->pos.line] -
+                         lexer->src.line_starts[lexer->pos.line - 1] - 1;
         lexer->pos.line--;
         HHG_UNUSED(arrpop(lexer->src.line_starts));
     } else
@@ -305,11 +292,7 @@ static void hhg_lexer_lex_str_literal(hhg_lexer_t *lexer, int c)
         c = hhg_lexer_next_char(lexer);
         // not using switch to break out of loop
         if (c == EOF) {
-            hhg_lexer_error(
-                lexer,
-                "unexpected EOF in string literal",
-                NULL
-            );
+            hhg_lexer_error(lexer, "unexpected EOF in string literal", NULL);
             break;
         } else if (c == '\\') {
             hhg_str_append_char(&lexer->token.str, '\\');
@@ -342,11 +325,7 @@ static void hhg_lexer_lex_char_literal(hhg_lexer_t *lexer, int c)
     if (c == '\'')
         hhg_str_append_char(&lexer->token.str, c);
     else
-        hhg_lexer_error(
-            lexer,
-            "character constant is too long",
-            NULL
-        );
+        hhg_lexer_error(lexer, "character constant is too long", NULL);
 
     lexer->token.type = HHG_TOKEN_CHAR_LITERAL;
 }
@@ -368,11 +347,10 @@ static bool hhg_lexer_lex_default(hhg_lexer_t *lexer, int c)
                 c2 = c;
                 c = hhg_lexer_next_char(lexer);
                 if (c == EOF) {
-                    hhg_lexer_error(
-                        lexer,
-                        "unexpected EOF in multi-line comment",
-                        NULL
-                    );
+                    hhg_lexer_error(lexer,
+                                    "unexpected EOF in "
+                                    "multi-line comment",
+                                    NULL);
                     break;
                 }
             } while (c2 != '*' || c != '/');
@@ -384,14 +362,13 @@ static bool hhg_lexer_lex_default(hhg_lexer_t *lexer, int c)
 
     for (size_t i = 0; i < HHG_ARR_LEN(op_data); i++) {
         const hhg_op_data_t *data = &op_data[i];
-        if (data->str[0] == c && 
-            (data->str[1] == c2 || data->str[1] == '\0') &&
+        if (data->str[0] == c && (data->str[1] == c2 || data->str[1] == '\0') &&
             (data->str[2] == c3 || data->str[2] == '\0')) {
-            
             if (data->str[2] == c3)
                 ; // consumed three chars, nothing to do
             else if (data->str[1] == c2)
-                hhg_lexer_back_char(lexer); // consumed two chars, give back last
+                hhg_lexer_back_char(lexer); // consumed two chars, give back
+                                            // last
             else {
                 // consumed one char, give back two
                 hhg_lexer_back_char(lexer);
@@ -403,7 +380,7 @@ static bool hhg_lexer_lex_default(hhg_lexer_t *lexer, int c)
             return true;
         }
     }
-    
+
     lexer->token.type = c;
     hhg_lexer_back_char(lexer);
     hhg_lexer_back_char(lexer);

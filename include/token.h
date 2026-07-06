@@ -1,11 +1,11 @@
 #ifndef HHG_TOKEN_H
 #define HHG_TOKEN_H
 
-#include <stdint.h>
 #include <limits.h>
+#include <stdint.h>
 
-#include "str.h"
 #include "file_range.h"
+#include "str.h"
 
 #define HHG_TOKEN_START UCHAR_MAX
 enum hhg_token_type {
@@ -49,7 +49,7 @@ enum hhg_token_type {
 
     HHG_TOKEN_I16,
     HHG_TOKEN_U16,
-    
+
     HHG_TOKEN_I32,
     HHG_TOKEN_U32,
 
@@ -94,7 +94,7 @@ enum hhg_token_type {
     HHG_TOKEN_XOR_EQ,
 
     HHG_TOKEN_LSHIFT_EQ,
-    HHG_TOKEN_RSHIFT_EQ,    
+    HHG_TOKEN_RSHIFT_EQ,
 
     HHG_TOKEN_INC,
     HHG_TOKEN_DEC,

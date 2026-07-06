@@ -1,13 +1,14 @@
+#include "sym_tab.h"
+
 #include <stb_ds.h>
 
-#include "sym_tab.h"
-#include "sym.h"
 #include "mem.h"
+#include "sym.h"
 #include "utils.h"
 
 void hhg_sym_tab_init(hhg_sym_tab_t *sym_tab, hhg_arena_t *arena)
 {
-    *sym_tab = (hhg_sym_tab_t) {
+    *sym_tab = (hhg_sym_tab_t){
         .tab = NULL,
         .key_arr = NULL,
         .arena = arena,
@@ -48,7 +49,7 @@ void hhg_sym_tab_exit_scope(hhg_sym_tab_t *sym_tab)
     // when exiting a scope, all entries in sym_tab->key_arr[last]
     // are deleted from sym_tab->tab,
     // then sym_tab->key_arr[last] is freed and popped
-    
+
     size_t outer_len = arrlenu(sym_tab->key_arr);
     if (outer_len > 0) {
         size_t last = outer_len - 1;
@@ -56,7 +57,7 @@ void hhg_sym_tab_exit_scope(hhg_sym_tab_t *sym_tab)
         for (size_t i = 0; i < inner_len; i++) {
             ptrdiff_t result = pshdel(sym_tab->tab, sym_tab->key_arr[last][i]);
             // ensure key was in table (otherwise corruption)
-            hhg_assert(result); 
+            hhg_assert(result);
         }
         arrfree(sym_tab->key_arr[last]);
         HHG_UNUSED(arrpop(sym_tab->key_arr));

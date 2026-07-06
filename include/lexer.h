@@ -3,9 +3,9 @@
 
 #include <stdbool.h>
 
-#include "token.h"
-#include "file_src.h"
 #include "file_pos.h"
+#include "file_src.h"
+#include "token.h"
 
 typedef struct hhg_msg_ctx hhg_msg_ctx_t;
 
@@ -14,7 +14,7 @@ typedef struct hhg_lexer {
 
     int32_t txt_idx;
     int32_t end_idx; // index from the end of the text
-    
+
     hhg_file_pos_t pos;
     hhg_file_pos_t last_pos;
 
@@ -36,11 +36,8 @@ typedef struct hhg_keyword_data {
     hhg_token_type_t type;
 } hhg_keyword_data_t;
 
-void hhg_lexer_init(
-    hhg_lexer_t *lexer,
-    hhg_msg_ctx_t *msg_ctx,
-    const char *filename
-);
+void hhg_lexer_init(hhg_lexer_t *lexer, hhg_msg_ctx_t *msg_ctx,
+                    const char *filename);
 
 void hhg_lexer_next(hhg_lexer_t *lexer);
 

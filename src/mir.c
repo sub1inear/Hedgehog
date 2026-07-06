@@ -1,48 +1,48 @@
-#include <stdio.h>
+#include "mir.h"
 
 #include <stb_ds.h>
+#include <stdio.h>
 
-#include "mir.h"
 #include "msg.h"
 
 static const char *mir_instr_op_to_str[] = {
-    [HHG_MIR_ADD]          = "add",
-    [HHG_MIR_SUB]          = "sub",
-    [HHG_MIR_MUL]          = "mul",
-    [HHG_MIR_DIV]          = "div",
-    [HHG_MIR_MOD]          = "mod",
-    [HHG_MIR_SHL]          = "shl",
-    [HHG_MIR_LSHR]         = "lshr",
-    [HHG_MIR_ASHR]         = "ashr",
-    [HHG_MIR_AND]          = "and",
-    [HHG_MIR_OR]           = "or",
-    [HHG_MIR_XOR]          = "xor",
-    [HHG_MIR_NOT]          = "not",
-    [HHG_MIR_NEG]          = "neg",
-    [HHG_MIR_CMP]          = "cmp",
-    [HHG_MIR_JUMP]         = "jump",
-    [HHG_MIR_BR]           = "br",
-    [HHG_MIR_CALL]         = "call",
-    [HHG_MIR_RET]          = "ret",
-    [HHG_MIR_LOAD]         = "load",
-    [HHG_MIR_STORE]        = "store",
-    [HHG_MIR_ALLOCA]       = "alloca",
-    [HHG_MIR_MALLOC]       = "malloc",
-    [HHG_MIR_REALLOC]      = "realloc",
-    [HHG_MIR_FREE]         = "free",
-    [HHG_MIR_ARC]          = "arc",
-    [HHG_MIR_MOVE]         = "move",
-    [HHG_MIR_COPY]         = "copy",
-    [HHG_MIR_BORROW]       = "borrow",
-    [HHG_MIR_REBORROW]     = "reborrow",
-    [HHG_MIR_RELEASE]      = "release",
-    [HHG_MIR_CAST]         = "cast",
-    [HHG_MIR_STRUCT_INIT]  = "struct_init",
-    [HHG_MIR_STRUCT_LOAD]  = "struct_load",
+    [HHG_MIR_ADD] = "add",
+    [HHG_MIR_SUB] = "sub",
+    [HHG_MIR_MUL] = "mul",
+    [HHG_MIR_DIV] = "div",
+    [HHG_MIR_MOD] = "mod",
+    [HHG_MIR_SHL] = "shl",
+    [HHG_MIR_LSHR] = "lshr",
+    [HHG_MIR_ASHR] = "ashr",
+    [HHG_MIR_AND] = "and",
+    [HHG_MIR_OR] = "or",
+    [HHG_MIR_XOR] = "xor",
+    [HHG_MIR_NOT] = "not",
+    [HHG_MIR_NEG] = "neg",
+    [HHG_MIR_CMP] = "cmp",
+    [HHG_MIR_JUMP] = "jump",
+    [HHG_MIR_BR] = "br",
+    [HHG_MIR_CALL] = "call",
+    [HHG_MIR_RET] = "ret",
+    [HHG_MIR_LOAD] = "load",
+    [HHG_MIR_STORE] = "store",
+    [HHG_MIR_ALLOCA] = "alloca",
+    [HHG_MIR_MALLOC] = "malloc",
+    [HHG_MIR_REALLOC] = "realloc",
+    [HHG_MIR_FREE] = "free",
+    [HHG_MIR_ARC] = "arc",
+    [HHG_MIR_MOVE] = "move",
+    [HHG_MIR_COPY] = "copy",
+    [HHG_MIR_BORROW] = "borrow",
+    [HHG_MIR_REBORROW] = "reborrow",
+    [HHG_MIR_RELEASE] = "release",
+    [HHG_MIR_CAST] = "cast",
+    [HHG_MIR_STRUCT_INIT] = "struct_init",
+    [HHG_MIR_STRUCT_LOAD] = "struct_load",
     [HHG_MIR_STRUCT_STORE] = "struct_store",
-    [HHG_MIR_ARR_INIT]     = "arr_init",
-    [HHG_MIR_ARR_LOAD]     = "arr_load",
-    [HHG_MIR_ARR_STORE]    = "arr_store",
+    [HHG_MIR_ARR_INIT] = "arr_init",
+    [HHG_MIR_ARR_LOAD] = "arr_load",
+    [HHG_MIR_ARR_STORE] = "arr_store",
 };
 
 void hhg_mir_opnd_print(hhg_mir_opnd_t *opnd)
@@ -120,7 +120,7 @@ void hhg_mir_instr_print(hhg_mir_instr_t *instr)
     }
 
     printf("%s ", mir_instr_op_to_str[instr->op]);
-    
+
     switch (instr->op) {
     case HHG_MIR_ADD:
     case HHG_MIR_SUB:
@@ -160,7 +160,7 @@ void hhg_mir_instr_print(hhg_mir_instr_t *instr)
 void hhg_mir_func_print(hhg_mir_func_t *func)
 {
     printf("def %s\n", func->sym->key);
-    
+
     size_t size = arrlenu(func->instrs);
 
     for (size_t i = 0; i < size; i++) {

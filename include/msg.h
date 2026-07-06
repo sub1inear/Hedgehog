@@ -24,22 +24,15 @@ void hhg_msg_ctx_del(hhg_msg_ctx_t *msg_ctx);
 
 // note: in the future, hhg_msg and hhg_basic_msg may be buffered
 
-void hhg_msg(
-    hhg_msg_ctx_t *msg_ctx,
-    hhg_msg_type_t type,
-    hhg_file_src_t *src,
-    hhg_file_range_t *range,
-    const char *msg, // main message
-    const char *note, // additional note (can be NULL)
-    ... // format arguments for both msg and note
+void hhg_msg(hhg_msg_ctx_t *msg_ctx, hhg_msg_type_t type, hhg_file_src_t *src,
+             hhg_file_range_t *range,
+             const char *msg,  // main message
+             const char *note, // additional note (can be NULL)
+             ...               // format arguments for both msg and note
 );
 
-void hhg_basic_msg(
-    hhg_msg_ctx_t *msg_ctx,
-    hhg_msg_type_t type,
-    const char *msg,
-    ...
-);
+void hhg_basic_msg(hhg_msg_ctx_t *msg_ctx, hhg_msg_type_t type, const char *msg,
+                   ...);
 
 void hhg_compiler_error(const char *msg, ...);
 void hhg_fatal_error(const char *msg, ...);

@@ -1,11 +1,12 @@
-#include <stdlib.h>
-#include <stdbool.h>
-
 #include "main.h"
-#include "mem.h"
-#include "msg.h"
+
+#include <stdbool.h>
+#include <stdlib.h>
+
 #include "cmd_args.h"
 #include "cmd_exec.h"
+#include "mem.h"
+#include "msg.h"
 
 int hhg_main(int argc, char **argv)
 {
