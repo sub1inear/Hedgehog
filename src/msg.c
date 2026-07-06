@@ -1,20 +1,16 @@
+#include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <inttypes.h>
-#include <assert.h>
 
 #include "msg.h"
-#include "lexer.h"
-#include "mem.h"
 #include "file_pos.h"
 #include "file_src.h"
 #include "file_range.h"
-#include "str.h"
 #include "token.h"
 #include "type.h"
 #include "cmd_args.h"
-#include "cfg.h"
 #include "main.h"
 #include "utils.h"
 

@@ -3,9 +3,7 @@
 
 #include "node.h"
 #include "lexer.h"
-#include "mem.h"
 #include "sym_tab.h"
-#include "type_ctx.h"
 
 typedef struct hhg_parser {
     hhg_lexer_t *lexer;

@@ -1,6 +1,4 @@
-#include <stddef.h> // for NULL
 #include <stdbool.h>
-#include <assert.h>
 
 #include <stb_ds.h>
 

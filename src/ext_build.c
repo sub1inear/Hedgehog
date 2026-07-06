@@ -6,8 +6,6 @@
 #include <fs.h>
 
 #include "ext_build.h"
-#include "code_gen.h"
-#include "mem.h"
 #include "str.h"
 #include "msg.h"
 #include "utils.h"

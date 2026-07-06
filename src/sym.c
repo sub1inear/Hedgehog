@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #include "sym.h"
+#include "mem.h"
 #include "type.h"
 
 hhg_sym_t *hhg_sym_new(

@@ -3,8 +3,6 @@
 
 #include <stdbool.h>
 
-#include <stb_ds.h>
-
 #include "type.h"
 
 typedef struct hhg_ref_tab_key {

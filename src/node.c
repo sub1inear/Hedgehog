@@ -8,8 +8,6 @@
 #include "token.h"
 #include "mem.h"
 #include "msg.h"
-#include "file_src.h"
-#include "file_range.h"
 
 #define HHG_NODE_INDENT_INC 4
 

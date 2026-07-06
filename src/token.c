@@ -1,10 +1,7 @@
-#include <stdbool.h>
 #include <stdio.h>
 
 #include "token.h"
 #include "node.h"
-#include "sym_tab.h"
-#include "sym.h"
 #include "file_range.h"
 
 const char *const token_type_to_str[] = {

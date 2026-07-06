@@ -3,11 +3,8 @@
 
 #include <stdbool.h>
 
-#include "cfg.h"
-
 typedef struct hhg_msg_ctx hhg_msg_ctx_t;
 typedef struct hhg_code_gen hhg_code_gen_t;
-typedef struct hhg_cfg hhg_cfg_t;
 typedef struct hhg_ext_build_cxx_data hhg_ext_build_cxx_data_t;
 typedef struct arena hhg_arena_t;
 

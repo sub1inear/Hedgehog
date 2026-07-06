@@ -2,7 +2,6 @@
 #define HHG_FILE_POS_H
 
 #include <stdio.h>
-
 #include <stdint.h>
 
 typedef struct hhg_file_pos {

@@ -2,12 +2,10 @@
 #include <stdlib.h>
 
 #include <stb_ds.h>
-#include <fs.h>
 
 #include "run.h"
 #include "build.h"
 #include "cmd_args.h"
-#include "str.h"
 #include "utils.h"
 
 bool hhg_run(

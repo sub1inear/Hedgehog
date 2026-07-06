@@ -7,7 +7,6 @@
 #include "node.h"
 #include "msg.h"
 #include "sym_tab.h"
-#include "mem.h"
 #include "type_ctx.h"
 #include "sem_an.h"
 #include "mir_gen.h"

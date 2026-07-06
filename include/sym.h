@@ -1,8 +1,6 @@
 #ifndef HHG_SYM_H
 #define HHG_SYM_H
 
-#include <stdbool.h>
-
 #include "type.h"
 
 typedef enum hhg_sym_type {

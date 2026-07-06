@@ -1,8 +1,6 @@
 #ifndef HHG_STR_H
 #define HHG_STR_H
 
-#include <stdlib.h>
-
 typedef struct hhg_str {
     size_t len, cap;
     char *str;

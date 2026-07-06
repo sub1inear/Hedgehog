@@ -1,6 +1,3 @@
-#include <stdint.h>
-#include <stdio.h>
-
 #include <stb_ds.h>
 
 #include "mir_gen.h"

@@ -12,7 +12,6 @@
 #include <fs.h>
 
 #include "cmd_args.h"
-#include "cfg.h"
 #include "msg.h"
 #include "main.h"
 #include "utils.h"

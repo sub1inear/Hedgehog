@@ -3,8 +3,6 @@
 
 #include <stdbool.h>
 
-#include "cfg.h"
-
 typedef struct hhg_msg_ctx hhg_msg_ctx_t;
 typedef struct hhg_cmd_args_init hhg_cmd_args_init_t;
 

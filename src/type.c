@@ -1,11 +1,9 @@
-#include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
 
 #include <stb_ds.h>
 
 #include "type.h"
-#include "type_ctx.h"
 #include "token.h"
 #include "mem.h"
 #include "sym.h"

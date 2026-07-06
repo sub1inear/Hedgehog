@@ -3,7 +3,6 @@
 
 #include "sym_tab.h"
 #include "node.h"
-#include "type_ctx.h"
 
 typedef struct hhg_msg_ctx hhg_msg_ctx_t;
 

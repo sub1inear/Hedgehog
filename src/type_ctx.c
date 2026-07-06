@@ -1,5 +1,8 @@
+#include <stb_ds.h>
+
 #include "type_ctx.h"
 #include "utils.h"
+
 
 void hhg_type_ctx_init(hhg_type_ctx_t *type_ctx, hhg_arena_t *arena)
 {

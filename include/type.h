@@ -4,10 +4,10 @@
 #include <stdbool.h>
 
 #include "token.h"
-#include "mem.h"
 
 typedef struct hhg_sym hhg_sym_t;
 typedef struct hhg_type_ctx hhg_type_ctx_t;
+typedef struct arena hhg_arena_t;
 
 // must have <= 32 types to fit in 5 bits in hhg_type_t
 enum hhg_base_type {

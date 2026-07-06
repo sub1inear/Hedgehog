@@ -1,12 +1,8 @@
 #include <stdio.h>
-#include <limits.h>
-#include <string.h>
 
-#include <stb_ds.h>
 #include <fs.h>
 
 #include "code_gen.h"
-#include "cmd_args.h"
 #include "main.h"
 #include "mir.h"
 #include "mem.h"

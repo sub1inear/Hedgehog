@@ -6,7 +6,6 @@
 #include "build.h"
 #include "run.h"
 #include "msg.h"
-#include "utils.h"
 
 bool hhg_cmd_exec_run(
     hhg_cmd_args_t *cmd_args,

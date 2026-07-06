@@ -1,7 +1,6 @@
 #ifndef HHG_LEXER_H
 #define HHG_LEXER_H
 
-#include <stdio.h>
 #include <stdbool.h>
 
 #include "token.h"

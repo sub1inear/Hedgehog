@@ -1,7 +1,3 @@
-#include <stdint.h>
-#include <stddef.h>
-#include <assert.h>
-
 #include <stb_ds.h>
 
 #include "sym_tab.h"

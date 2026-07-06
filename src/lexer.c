@@ -1,12 +1,7 @@
 #include <stdio.h>
 #include <stdbool.h>
-#include <stdarg.h>
-#include <inttypes.h>
 #include <string.h>
 #include <ctype.h>
-#include <errno.h>
-#include <assert.h>
-
 #include <stb_ds.h>
 
 #include "lexer.h"

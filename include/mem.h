@@ -1,8 +1,6 @@
 #ifndef HHG_MEM_H
 #define HHG_MEM_H
 
-#include <stdlib.h>
-#include <string.h>
 #include <arena.h>
 
 #define hhg_free_s(ptr) do { hhg_free(ptr); (ptr) = NULL; } while (0)

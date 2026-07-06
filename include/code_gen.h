@@ -1,10 +1,6 @@
 #ifndef HHG_CODE_GEN_H
 #define HHG_CODE_GEN_H
 
-#include <stdio.h>
-
-#include "cfg.h"
-
 typedef struct hhg_mir_gen hhg_mir_gen_t;
 typedef struct arena hhg_arena_t;
 
