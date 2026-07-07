@@ -1,37 +1,46 @@
-#include "type.h"
-
-#include <stb_ds.h>
 #include <stdbool.h>
 #include <stdio.h>
 
+#include <stb_ds.h>
+
+#include "type.h"
+#include "token.h"
 #include "mem.h"
 #include "sym.h"
-#include "token.h"
 
 static const char *const base_type_to_str[] = {
     [HHG_TYPE_NONE] = "none",
 
-    [HHG_TYPE_I8] = "i8",       [HHG_TYPE_U8] = "u8",
+    [HHG_TYPE_I8] = "i8",
+    [HHG_TYPE_U8] = "u8",
 
-    [HHG_TYPE_I16] = "i16",     [HHG_TYPE_U16] = "u16",
+    [HHG_TYPE_I16] = "i16",
+    [HHG_TYPE_U16] = "u16",
 
-    [HHG_TYPE_I32] = "i32",     [HHG_TYPE_U32] = "u32",
+    [HHG_TYPE_I32] = "i32",
+    [HHG_TYPE_U32] = "u32",
 
-    [HHG_TYPE_I64] = "i64",     [HHG_TYPE_U64] = "u64",
+    [HHG_TYPE_I64] = "i64",
+    [HHG_TYPE_U64] = "u64",
 
     [HHG_TYPE_INT] = "int",
 
-    [HHG_TYPE_F32] = "f32",     [HHG_TYPE_F64] = "f64",
+    [HHG_TYPE_F32] = "f32",
+    [HHG_TYPE_F64] = "f64",
 
     [HHG_TYPE_FLOAT] = "float",
 
-    [HHG_TYPE_BOOL] = "bool",   [HHG_TYPE_CHAR] = "char",
+    [HHG_TYPE_BOOL] = "bool",
+    [HHG_TYPE_CHAR] = "char",
 
-    [HHG_TYPE_ISIZE] = "isize", [HHG_TYPE_USIZE] = "usize",
+    [HHG_TYPE_ISIZE] = "isize",
+    [HHG_TYPE_USIZE] = "usize",
 
-    [HHG_TYPE_REF] = "ref",     [HHG_TYPE_ARR] = "arr",
+    [HHG_TYPE_REF] = "ref",
+    [HHG_TYPE_ARR] = "arr",
 
-    [HHG_TYPE_FUNC] = "func",   [HHG_TYPE_CLASS] = "class",
+    [HHG_TYPE_FUNC] = "func",
+    [HHG_TYPE_CLASS] = "class",
     [HHG_TYPE_ENUM] = "enum",
 
     [HHG_TYPE_ID] = "id",
@@ -39,7 +48,7 @@ static const char *const base_type_to_str[] = {
 
 void hhg_type_init(hhg_type_t *type, hhg_base_type_t base)
 {
-    *type = (hhg_type_t){
+    *type = (hhg_type_t) {
         .type = base,
         .is_const = false,
         .is_volatile = false,
@@ -132,7 +141,7 @@ bool hhg_type_eq(hhg_type_t *l, hhg_type_t *r)
         return hhg_type_eq(l->info.ref.base, r->info.ref.base);
     case HHG_TYPE_ARR:
         return l->info.arr.size == r->info.arr.size &&
-               hhg_type_eq(l->info.arr.elem, r->info.arr.elem);
+            hhg_type_eq(l->info.arr.elem, r->info.arr.elem);
     case HHG_TYPE_FUNC:
         return l->info.func.sym == r->info.func.sym;
     case HHG_TYPE_CLASS:
@@ -206,3 +215,4 @@ void hhg_type_del(hhg_type_t *type)
     }
     }
 }
+

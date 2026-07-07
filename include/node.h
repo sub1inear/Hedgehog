@@ -3,10 +3,10 @@
 
 #include <stdbool.h>
 
-#include "file_range.h"
-#include "mem.h"
-#include "sym.h"
 #include "token.h"
+#include "sym.h"
+#include "mem.h"
+#include "file_range.h"
 
 typedef struct hhg_file_src hhg_file_src_t;
 
@@ -100,7 +100,7 @@ typedef struct hhg_obj_init {
     hhg_node_t **args;
 } hhg_obj_init_t;
 
-typedef union hhg_node_value {
+typedef union hhg_node_value  {
     // +, -, *, /, %, <, >, &, ^, |
     // HHG_TOKEN_LSHIFT, HHG_TOKEN_RSHIFT, HHG_TOKEN_EQ, HHG_TOKEN_NOT_EQ
     // HHG_TOKEN_LT_EQ, HHG_TOKEN_GT_EQ, HHG_TOKEN_PLUS_EQ,
@@ -148,8 +148,11 @@ struct hhg_node {
     hhg_node_type_t type;
 };
 
-hhg_node_t *hhg_node_new(hhg_arena_t *arena, hhg_node_type_t type,
-                         hhg_file_src_t *src);
+hhg_node_t *hhg_node_new(
+    hhg_arena_t *arena,
+    hhg_node_type_t type,
+    hhg_file_src_t *src
+);
 
 void hhg_node_print(hhg_node_t *node, int32_t indent, bool use_sym);
 

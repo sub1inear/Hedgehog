@@ -1,18 +1,19 @@
-#include <stdbool.h>
-#include <stdio.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
 
 #define OPTPARSE_IMPLEMENTATION
 // declare all optparse functions as static for optimization
 #define OPTPARSE_API static
-#include <fs.h>
 #include <optparse.h>
 #include <stb_ds.h>
 
+#include <fs.h>
+
 #include "cmd_args.h"
-#include "main.h"
 #include "msg.h"
+#include "main.h"
 #include "utils.h"
 
 typedef struct hhg_cmd_args_data_t {
@@ -25,22 +26,36 @@ typedef struct hhg_cmd_args_stage_data_t {
     const char *str;
 } hhg_cmd_args_stage_data_t;
 
+
 static void hhg_cmd_args_print_global_usage(char *prog_name);
 
 static void hhg_cmd_args_print_init_usage(char *prog_name);
-static void hhg_cmd_args_parse_init(hhg_cmd_args_init_t *init, char **argv,
-                                    char *prog_name);
+static void hhg_cmd_args_parse_init(
+    hhg_cmd_args_init_t *init,
+    char **argv,
+    char *prog_name
+);
 
 static void hhg_cmd_args_print_build_usage(char *prog_name);
-static struct optparse hhg_cmd_args_parse_build(hhg_cmd_args_build_t *build,
-                                                char **argv, char *prog_name);
+static struct optparse hhg_cmd_args_parse_build(
+    hhg_cmd_args_build_t *build,
+    char **argv,
+    char *prog_name
+);
 static hhg_cmd_args_stage_t hhg_cmd_args_parse_stage(const char *str);
 
 static void hhg_cmd_args_print_run_usage(char *prog_name);
-static void hhg_cmd_args_parse_run(hhg_cmd_args_run_t *run, char **argv,
-                                   char *prog_name);
+static void hhg_cmd_args_parse_run(
+    hhg_cmd_args_run_t *run,
+    char **argv,
+    char *prog_name
+);
 
-void hhg_cmd_args_init(hhg_cmd_args_t *cmd_args, int argc, char **argv)
+void hhg_cmd_args_init(
+    hhg_cmd_args_t *cmd_args,
+    int argc,
+    char **argv
+)
 {
     char *prog_name = argv[0] == NULL ? "hhg" : fs_basename(argv[0]);
     if (argc < 2) {
@@ -50,7 +65,7 @@ void hhg_cmd_args_init(hhg_cmd_args_t *cmd_args, int argc, char **argv)
 
     struct optparse global_opts;
     optparse_init(&global_opts, argv);
-
+    
     // disables permutation of non-option arguments
     // so only global options before the subcommand are parsed here
     // e.g. `hhg --help build` will show global help then exit,
@@ -59,14 +74,9 @@ void hhg_cmd_args_init(hhg_cmd_args_t *cmd_args, int argc, char **argv)
     global_opts.permute = 0;
 
     static const struct optparse_long global_longopts[] = {
-        {
-         "help", 'h',
-         OPTPARSE_NONE, },
-        {
-         "version", 'v',
-         OPTPARSE_NONE, },
-        {
-         NULL, },
+        { "help",    'h', OPTPARSE_NONE,     },
+        { "version", 'v', OPTPARSE_NONE,     },
+        { NULL,                              },
     };
 
     int opt;
@@ -78,8 +88,10 @@ void hhg_cmd_args_init(hhg_cmd_args_t *cmd_args, int argc, char **argv)
             exit(EXIT_SUCCESS);
             break;
         case 'v':
-            puts("hhg compiler v" HHG_VERSION "\n"
-                 "copyright (c) 2026- sub1inear");
+            puts(
+                "hhg compiler v" HHG_VERSION "\n"
+                "copyright (c) 2026- sub1inear"
+            );
             exit(EXIT_SUCCESS);
             break;
         case '?':
@@ -101,17 +113,11 @@ void hhg_cmd_args_init(hhg_cmd_args_t *cmd_args, int argc, char **argv)
     }
 
     static const hhg_cmd_args_data_t cmd_args_subcmd_data[] = {
-        {
-         HHG_CMD_ARGS_INIT,  "init",
-         },
-        {
-         HHG_CMD_ARGS_BUILD,                  "build",
-         },
-        {
-         HHG_CMD_ARGS_RUN, "run",
-         },
+        { HHG_CMD_ARGS_INIT,  "init",  },
+        { HHG_CMD_ARGS_BUILD, "build", },
+        { HHG_CMD_ARGS_RUN,   "run",   },
     };
-
+    
     cmd_args->type = HHG_CMD_ARGS_NONE;
     for (size_t i = 0; i < HHG_ARR_LEN(cmd_args_subcmd_data); i++)
         if (strcmp(subcmd_str, cmd_args_subcmd_data[i].str) == 0) {
@@ -124,8 +130,7 @@ void hhg_cmd_args_init(hhg_cmd_args_t *cmd_args, int argc, char **argv)
         hhg_cmd_args_parse_init(&cmd_args->subcmd.init, subargv, prog_name);
         break;
     case HHG_CMD_ARGS_BUILD:
-        (void)hhg_cmd_args_parse_build(&cmd_args->subcmd.build, subargv,
-                                       prog_name);
+        (void)hhg_cmd_args_parse_build(&cmd_args->subcmd.build, subargv, prog_name);
         break;
     case HHG_CMD_ARGS_RUN:
         hhg_cmd_args_parse_run(&cmd_args->subcmd.run, subargv, prog_name);
@@ -153,29 +158,37 @@ void hhg_cmd_args_del(hhg_cmd_args_t *cmd_args)
 
 static void hhg_cmd_args_print_global_usage(char *prog_name)
 {
-    printf("usage: %s <subcommand> [options]\n"
-           "global options:\n"
-           "    --help                 -h    show help\n"
-           "    --version              -v    print compiler version\n"
-           "subcommands:\n"
-           "    init                         create a new Hedgehog project\n"
-           "    build                        compile the current project\n"
-           "    run                          build and run the project\n"
-           "options:\n"
-           "    use `%s <subcommand> --help`\n",
-           prog_name, prog_name);
+    printf(
+        "usage: %s <subcommand> [options]\n"
+        "global options:\n"
+        "    --help                 -h    show help\n"
+        "    --version              -v    print compiler version\n"
+        "subcommands:\n"
+        "    init                         create a new Hedgehog project\n"
+        "    build                        compile the current project\n"
+        "    run                          build and run the project\n"
+        "options:\n"
+        "    use `%s <subcommand> --help`\n",
+        prog_name,
+        prog_name
+    );
 }
 
 static void hhg_cmd_args_print_init_usage(char *prog_name)
 {
-    printf("usage: %s init [name]\n"
-           "args:\n"
-           "    name       project name (defaults to current directory)\n",
-           prog_name);
+    printf(
+        "usage: %s init [name]\n"
+        "args:\n"
+        "    name       project name (defaults to current directory)\n",
+        prog_name
+    );
 }
 
-static void hhg_cmd_args_parse_init(hhg_cmd_args_init_t *init, char **argv,
-                                    char *prog_name)
+static void hhg_cmd_args_parse_init(
+    hhg_cmd_args_init_t *init,
+    char **argv,
+    char *prog_name
+)
 {
     HHG_UNUSED(prog_name);
     // hhg init handles NULL as cwd
@@ -184,56 +197,43 @@ static void hhg_cmd_args_parse_init(hhg_cmd_args_init_t *init, char **argv,
 
 static void hhg_cmd_args_print_build_usage(char *prog_name)
 {
-    printf("usage: %s build entry [options]\n"
-           "args:\n"
-           "    entry                         entry file to build\n"
-           "options:\n"
-           "    --help                 -h    show help\n"
-           "    --out <path>           -o    set output path\n"
-           "    --release              -r    build in release mode\n"
-           "    --cxx                  -c    set C++ compiler (default: "
-           "CXX environment variable)\n"
-           "    --stop <stage>         -s    stop after specified stage\n"
-           "    --emit                 -e    emit debug output\n"
-           "    --warnings             -W    enable warnings\n"
-           "    --error-warnings       -E    treat warnings as errors\n"
-           "stage:\n"
-           "    lexer|parser|sem-an|mir-gen|mem-an|code-gen|ext-build\n",
-           prog_name);
+    printf(
+        "usage: %s build entry [options]\n"
+        "args:\n"
+        "    entry                         entry file to build\n"
+        "options:\n"
+        "    --help                 -h    show help\n"
+        "    --out <path>           -o    set output path\n"
+        "    --release              -r    build in release mode\n"
+        "    --cxx                  -c    set C++ compiler (default: CXX environment variable)\n"
+        "    --stop <stage>         -s    stop after specified stage\n"
+        "    --emit                 -e    emit debug output\n"
+        "    --warnings             -W    enable warnings\n"
+        "    --error-warnings       -E    treat warnings as errors\n"
+        "stage:\n"
+        "    lexer|parser|sem-an|mir-gen|mem-an|code-gen|ext-build\n",
+        prog_name
+    );
 }
 
-static struct optparse hhg_cmd_args_parse_build(hhg_cmd_args_build_t *build,
-                                                char **argv, char *prog_name)
+static struct optparse hhg_cmd_args_parse_build(
+    hhg_cmd_args_build_t *build,
+    char **argv,
+    char *prog_name
+)
 {
     struct optparse opts;
     optparse_init(&opts, argv);
     static const struct optparse_long longopts[] = {
-        {
-         "help", 'h',
-         OPTPARSE_NONE, },
-        {
-         "out", 'o',
-         OPTPARSE_REQUIRED, },
-        {
-         "release", 'r',
-         OPTPARSE_NONE, },
-        {
-         "stop", 's',
-         OPTPARSE_REQUIRED, },
-        {
-         "emit", 'e',
-         OPTPARSE_NONE, },
-        {
-         "cxx", 'c',
-         OPTPARSE_REQUIRED, },
-        {
-         "warnings", 'W',
-         OPTPARSE_NONE, },
-        {
-         "error-warnings", 'E',
-         OPTPARSE_NONE, },
-        {
-         NULL, },
+        { "help",           'h', OPTPARSE_NONE,     },
+        { "out",            'o', OPTPARSE_REQUIRED, },
+        { "release",        'r', OPTPARSE_NONE,     },
+        { "stop",           's', OPTPARSE_REQUIRED, },
+        { "emit",           'e', OPTPARSE_NONE,     },
+        { "cxx",            'c', OPTPARSE_REQUIRED, },
+        { "warnings",       'W', OPTPARSE_NONE,     },
+        { "error-warnings", 'E', OPTPARSE_NONE,     },
+        { NULL,                                     },
     };
 
     if ((build->entry = optparse_arg(&opts)) == NULL) {
@@ -289,29 +289,15 @@ static struct optparse hhg_cmd_args_parse_build(hhg_cmd_args_build_t *build,
 static hhg_cmd_args_stage_t hhg_cmd_args_parse_stage(const char *str)
 {
     hhg_cmd_args_stage_data_t stage_data[] = {
-        {
-         HHG_CMD_ARGS_STAGE_LEXER,   "lexer",
-         },
-        {
-         HHG_CMD_ARGS_STAGE_PARSER,                          "parser",
-         },
-        {
-         HHG_CMD_ARGS_STAGE_SEM_AN,  "sem-an",
-         },
-        {
-         HHG_CMD_ARGS_STAGE_MIR_GEN,                          "mir-gen",
-         },
-        {
-         HHG_CMD_ARGS_STAGE_MEM_AN,  "mem-an",
-         },
-        {
-         HHG_CMD_ARGS_STAGE_CODE_GEN,                          "code-gen",
-         },
-        {
-         HHG_CMD_ARGS_STAGE_EXT_BUILD, "ext-build",
-         },
+        { HHG_CMD_ARGS_STAGE_LEXER,     "lexer",     },
+        { HHG_CMD_ARGS_STAGE_PARSER,    "parser",    },
+        { HHG_CMD_ARGS_STAGE_SEM_AN,    "sem-an",    },
+        { HHG_CMD_ARGS_STAGE_MIR_GEN,   "mir-gen",   },
+        { HHG_CMD_ARGS_STAGE_MEM_AN,    "mem-an",    },
+        { HHG_CMD_ARGS_STAGE_CODE_GEN,  "code-gen",  },
+        { HHG_CMD_ARGS_STAGE_EXT_BUILD, "ext-build", },
     };
-
+    
     for (size_t i = 0; i < HHG_ARR_LEN(stage_data); i++)
         if (strcmp(str, stage_data[i].str) == 0)
             return stage_data[i].stage;
@@ -320,31 +306,35 @@ static hhg_cmd_args_stage_t hhg_cmd_args_parse_stage(const char *str)
     return HHG_CMD_ARGS_STAGE_NONE;
 }
 
+
 static void hhg_cmd_args_print_run_usage(char *prog_name)
 {
-    printf("usage: %s build entry [options]\n"
-           "args:\n"
-           "    entry                         entry file to build\n"
-           "options:\n"
-           "    --help                 -h    show help\n"
-           "    --out <path>           -o    set output path\n"
-           "    --release              -r    build in release mode\n"
-           "    --cxx                  -c    set C++ compiler (default: "
-           "CXX environment variable)\n"
-           "    --stop <stage>         -s    stop after specified stage\n"
-           "    --emit                 -e    emit debug output\n"
-           "    --warnings             -W    enable warnings\n"
-           "    --error-warnings       -E    treat warnings as errors\n"
-           "stage:\n"
-           "    lexer|parser|sem-an|mir-gen|mem-an|code-gen|ext-build\n",
-           prog_name);
+    printf(
+        "usage: %s build entry [options]\n"
+        "args:\n"
+        "    entry                         entry file to build\n"
+        "options:\n"
+        "    --help                 -h    show help\n"
+        "    --out <path>           -o    set output path\n"
+        "    --release              -r    build in release mode\n"
+        "    --cxx                  -c    set C++ compiler (default: CXX environment variable)\n"
+        "    --stop <stage>         -s    stop after specified stage\n"
+        "    --emit                 -e    emit debug output\n"
+        "    --warnings             -W    enable warnings\n"
+        "    --error-warnings       -E    treat warnings as errors\n"
+        "stage:\n"
+        "    lexer|parser|sem-an|mir-gen|mem-an|code-gen|ext-build\n",
+        prog_name
+    );
 }
 
-static void hhg_cmd_args_parse_run(hhg_cmd_args_run_t *run, char **argv,
-                                   char *prog_name)
+static void hhg_cmd_args_parse_run(
+    hhg_cmd_args_run_t *run,
+    char **argv,
+    char *prog_name
+)
 {
-    struct optparse opts =
-        hhg_cmd_args_parse_build(&run->build, argv, prog_name);
+    struct optparse opts = hhg_cmd_args_parse_build(&run->build, argv, prog_name);
 
     char *arg;
     while ((arg = optparse_arg(&opts)) != NULL)

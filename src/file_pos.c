@@ -1,7 +1,7 @@
-#include "file_pos.h"
-
-#include <inttypes.h>
 #include <stdio.h>
+#include <inttypes.h>
+
+#include "file_pos.h"
 
 void hhg_file_pos_init(hhg_file_pos_t *pos)
 {

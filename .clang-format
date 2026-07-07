@@ -1,8 +1,0 @@
-BasedOnStyle: LLVM
-BreakBeforeBraces: Linux
-ColumnLimit: 80
-IndentWidth: 4
-Cpp11BracedListStyle: false
-AlignArrayOfStructures: Left
-AllowShortIfStatementsOnASingleLine: false
-AllowShortFunctionsOnASingleLine: None

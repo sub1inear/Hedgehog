@@ -25,9 +25,7 @@
 #define HHG_POSIX
 #endif
 
-#define hhg_assert(expr)                                                       \
-    if (!(expr))                                                               \
-    hhg_utils_assert(#expr, __FILE__, __LINE__)
+#define hhg_assert(expr) if (!(expr)) hhg_utils_assert(#expr, __FILE__, __LINE__)
 
 typedef struct hhg_str hhg_str_t;
 typedef struct arena hhg_arena_t;
@@ -40,8 +38,12 @@ FILE *hhg_utils_fopen(const char *filename, const char *mode);
 // crashes with hhg_fatal_error
 // if the result does not fit in the buffer
 // or format fails
-void hhg_utils_join_path(char *buf, size_t size, const char *left,
-                         const char *right);
+void hhg_utils_join_path(
+    char *buf,
+    size_t size,
+    const char *left,
+    const char *right
+);
 
 int64_t hhg_utils_str_to_int64(const char *str);
 

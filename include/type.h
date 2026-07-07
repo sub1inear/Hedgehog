@@ -84,11 +84,11 @@ typedef struct hhg_type_class_info {
 } hhg_type_class_info_t;
 
 typedef union hhg_type_info {
-    hhg_type_ref_info_t ref;     // HHG_TYPE_REF
-    hhg_type_arr_info_t arr;     // HHG_TYPE_ARR
-    hhg_type_func_info_t func;   // HHG_TYPE_FUNC
+    hhg_type_ref_info_t ref; // HHG_TYPE_REF
+    hhg_type_arr_info_t arr; // HHG_TYPE_ARR
+    hhg_type_func_info_t func; // HHG_TYPE_FUNC
     hhg_type_class_info_t class; // HHG_TYPE_CLASS
-    char *id;                    // HHG_TYPE_ID
+    char *id; // HHG_TYPE_ID
 } hhg_type_info_t;
 
 struct hhg_type {
@@ -97,6 +97,7 @@ struct hhg_type {
     unsigned int is_volatile : 1;
     hhg_type_info_t info;
 };
+
 
 void hhg_type_init(hhg_type_t *type, hhg_base_type_t base);
 hhg_type_t *hhg_type_new(hhg_base_type_t base, hhg_arena_t *arena);

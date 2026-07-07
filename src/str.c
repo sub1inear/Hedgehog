@@ -1,7 +1,6 @@
-#include "str.h"
-
 #include <string.h>
 
+#include "str.h"
 #include "mem.h"
 #include "utils.h"
 
@@ -9,7 +8,7 @@ void hhg_str_init(hhg_str_t *str)
 {
     str->len = 0;
     str->cap = 8;
-
+    
     str->str = hhg_malloc(str->cap * sizeof(*str->str));
     str->str[0] = '\0';
 }

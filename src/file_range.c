@@ -1,7 +1,6 @@
-#include "file_range.h"
-
 #include <stdio.h>
 
+#include "file_range.h"
 #include "file_pos.h"
 
 void hhg_file_range_init(hhg_file_range_t *range)

@@ -1,19 +1,19 @@
-#include "utils.h"
-
-#include <fs.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 
+#include <fs.h>
+
+#include "utils.h"
+#include "str.h"
 #include "mem.h"
 #include "msg.h"
-#include "str.h"
 
 #ifdef HHG_WINDOWS
 #include <windows.h>
 #elif defined(HHG_POSIX)
-#include <sys/wait.h>
 #include <unistd.h>
+#include <sys/wait.h>
 #endif
 
 #ifdef HHG_POSIX
@@ -34,18 +34,34 @@ FILE *hhg_utils_fopen(const char *filename, const char *mode)
 {
     FILE *file = fopen(filename, mode);
     if (file == NULL)
-        hhg_fatal_error("opening %s: %s", filename, strerror(errno));
+        hhg_fatal_error(
+            "opening %s: %s",
+            filename,
+            strerror(errno)
+        );
     return file;
 }
 
-void hhg_utils_join_path(char *buf, size_t size, const char *left,
-                         const char *right)
+void hhg_utils_join_path(
+    char *buf,
+    size_t size,
+    const char *left,
+    const char *right
+)
 {
     int result = fs_join_path(buf, size, left, right);
     if (result >= size)
-        hhg_fatal_error("joined path is too long: `%s` `%s`", left, right);
+        hhg_fatal_error(
+            "joined path is too long: `%s` `%s`",
+            left,
+            right
+        );
     else if (result < 0)
-        hhg_fatal_error("failed to join paths: `%s` `%s`", left, right);
+        hhg_fatal_error(
+            "failed to join paths: `%s` `%s`",
+            left,
+            right
+        );
 }
 
 #ifdef HHG_WINDOWS
@@ -77,10 +93,12 @@ int hhg_utils_spawn(const char **argv, hhg_str_t *stdouterr)
         si.hStdOutput = GetStdHandle(STD_OUTPUT_HANDLE);
         si.hStdError = GetStdHandle(STD_ERROR_HANDLE);
     } else {
-        SECURITY_ATTRIBUTES sa = { .nLength = sizeof(sa),
-                                   .lpSecurityDescriptor = NULL,
-                                   .bInheritHandle = TRUE };
-
+        SECURITY_ATTRIBUTES sa = {
+            .nLength = sizeof(sa),
+            .lpSecurityDescriptor = NULL,
+            .bInheritHandle = TRUE
+        };
+        
         if (!CreatePipe(&read_pipe, &write_pipe, &sa, 0))
             hhg_fatal_error("CreatePipe failed: %lu", GetLastError());
 
@@ -90,12 +108,22 @@ int hhg_utils_spawn(const char **argv, hhg_str_t *stdouterr)
         si.hStdOutput = write_pipe;
         si.hStdError = write_pipe;
     }
-
+    
     si.hStdInput = GetStdHandle(STD_INPUT_HANDLE);
     si.dwFlags |= STARTF_USESTDHANDLES;
 
-    BOOL result = CreateProcessA(NULL, cmd.str, NULL, NULL, TRUE, 0, NULL, NULL,
-                                 &si, &pi);
+    BOOL result = CreateProcessA(
+        NULL,
+        cmd.str,
+        NULL,
+        NULL,
+        TRUE,
+        0,
+        NULL,
+        NULL,
+        &si,
+        &pi
+    );
 
     if (!result) {
         DWORD error = GetLastError();
@@ -213,7 +241,12 @@ int64_t hhg_utils_str_to_int64(const char *str)
 
 void hhg_utils_assert(const char *expr_str, const char *file, int line)
 {
-    hhg_compiler_error("assertion failed: %s, at %s:%i", expr_str, file, line);
+    hhg_compiler_error(
+        "assertion failed: %s, at %s:%i",
+        expr_str,
+        file,
+        line
+    );
 }
 
 #ifdef HHG_WINDOWS

@@ -1,8 +1,8 @@
 #ifndef HHG_FILE_POS_H
 #define HHG_FILE_POS_H
 
-#include <stdint.h>
 #include <stdio.h>
+#include <stdint.h>
 
 typedef struct hhg_file_pos {
     int32_t line;

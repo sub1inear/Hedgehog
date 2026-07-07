@@ -5,7 +5,7 @@
 
 typedef enum hhg_sym_type {
     HHG_SYM_VAR,
-
+    
     HHG_SYM_FUNC,
     HHG_SYM_CLASS,
     HHG_SYM_ENUM,
@@ -27,8 +27,11 @@ typedef struct hhg_sym {
 } hhg_sym_t;
 
 // mainly allocated in hhg_sym_tab_insert but temporary symbols too
-hhg_sym_t *hhg_sym_new(hhg_arena_t *arena, const char *key,
-                       hhg_sym_value_t value);
+hhg_sym_t *hhg_sym_new(
+    hhg_arena_t *arena,
+    const char *key,
+    hhg_sym_value_t value
+);
 
 void hhg_sym_print(hhg_sym_t *sym);
 
