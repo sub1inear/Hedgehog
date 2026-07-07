@@ -230,25 +230,23 @@ static struct optparse hhg_cmd_args_parse_build(
         { "release",        'r', OPTPARSE_NONE,     },
         { "stop",           's', OPTPARSE_REQUIRED, },
         { "emit",           'e', OPTPARSE_NONE,     },
-        { "cxx",            'c', OPTPARSE_REQUIRED, },
         { "warnings",       'W', OPTPARSE_NONE,     },
         { "error-warnings", 'E', OPTPARSE_NONE,     },
         { NULL,                                     },
     };
 
+    *build = (hhg_cmd_args_build_t) {
+        .out = NULL,
+        .release = false,
+        .emit = false,
+        .warnings = false,
+        .error_warnings = false,
+    };
+    
     if ((build->entry = optparse_arg(&opts)) == NULL) {
         hhg_cmd_args_print_build_usage(prog_name);
         exit(EXIT_FAILURE);
     }
-
-    *build = (hhg_cmd_args_build_t){
-        .out = NULL,
-        .release = false,
-        .emit = false,
-        .cxx = NULL,
-        .warnings = false,
-        .error_warnings = false,
-    };
 
     int opt;
     while ((opt = optparse_long(&opts, longopts, NULL)) != -1) {
@@ -265,9 +263,6 @@ static struct optparse hhg_cmd_args_parse_build(
             break;
         case 's':
             build->stop = hhg_cmd_args_parse_stage(opts.optarg);
-            break;
-        case 'c':
-            build->cxx = opts.optarg;
             break;
         case 'W':
             build->warnings = true;

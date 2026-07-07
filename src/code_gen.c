@@ -46,7 +46,7 @@ bool hhg_code_gen_run(
             ".cpp"
         );
     FILE *file = hhg_utils_fopen(*out_filename, "w");
-    fputs("int main() { printf(\"Hello, world!\\n\"); }\n", file);
+    fputs("#include <stdio.h>\nint main() { printf(\"Hello, world!\\n\"); }\n", file);
     fclose(file);
     return true;
 }

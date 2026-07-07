@@ -27,7 +27,6 @@ typedef struct hhg_cmd_args_build {
     const char *entry;
     const char *out;
     bool release;
-    const char *cxx;
     hhg_cmd_args_stage_t stop;
     bool emit;
     bool warnings;

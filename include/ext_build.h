@@ -17,7 +17,6 @@ typedef struct hhg_ext_build {
 
 void hhg_ext_build_init(
     hhg_ext_build_t *ext_build,
-    const char *cxx,
     hhg_msg_ctx_t *msg_ctx,
     hhg_arena_t *arena
 );

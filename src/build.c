@@ -178,7 +178,7 @@ bool hhg_build(
 
     // 5th stage: external build
     hhg_ext_build_t ext_build;
-    hhg_ext_build_init(&ext_build, build->cxx, msg_ctx, arena);
+    hhg_ext_build_init(&ext_build, msg_ctx, arena);
 
     hhg_ext_build_run(
         &ext_build,

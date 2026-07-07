@@ -1,5 +1,4 @@
 #include <stdbool.h>
-#include <stdarg.h>
 #include <string.h>
 
 #include <stb_ds.h>
@@ -8,6 +7,7 @@
 #include "ext_build.h"
 #include "str.h"
 #include "msg.h"
+#include "mem.h"
 #include "utils.h"
 
 #define hhg_ext_build_msg(ext_build, type, ...) \
@@ -37,22 +37,20 @@ static const hhg_ext_build_cxx_data_t ext_build_cxx_data[] = {
 
 void hhg_ext_build_init(
     hhg_ext_build_t *ext_build,
-    const char *cxx,
     hhg_msg_ctx_t *msg_ctx,
     hhg_arena_t *arena
 )
 {
-    if (cxx == NULL) {
-        cxx = getenv("CXX");
-        if (cxx == NULL)
-            hhg_fatal_error("please specify a C++ compiler with --cxx or the CXX environment variable");
-    }
+    const char *cxx = getenv("CXX");
+    if (cxx == NULL)
+        hhg_fatal_error("please specify a C++ compiler with --cxx or the CXX environment variable");
     
-    const char *cxx_basename = fs_basename(cxx);
-
+    const char *cxx_name = hhg_arena_strdup(arena, fs_basename(cxx));
+    *fs_extention(cxx_name) = '\0';
+    
     size_t i;
     for (i = 0; i < HHG_ARR_LEN(ext_build_cxx_data); i++)
-        if (strcmp(cxx_basename, ext_build_cxx_data[i].cxx) == 0)
+        if (strcmp(cxx_name, ext_build_cxx_data[i].cxx) == 0)
             break;
 
     if (i == HHG_ARR_LEN(ext_build_cxx_data))
@@ -89,6 +87,8 @@ void hhg_ext_build_run(
 
     if (release)
         arrput(argv, ext_build->cxx_data->release_flag);
+
+    arrput(argv, NULL);
 
     hhg_str_t stdouterr;
     hhg_str_init(&stdouterr);
