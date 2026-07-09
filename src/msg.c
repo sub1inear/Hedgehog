@@ -1,15 +1,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
-#include <stdbool.h>
 #include <inttypes.h>
 
 #include "msg.h"
 #include "file_pos.h"
 #include "file_src.h"
 #include "file_range.h"
-#include "token.h"
-#include "type.h"
 #include "cmd_args.h"
 #include "main.h"
 #include "utils.h"
@@ -59,7 +56,6 @@ supported format specifiers:
 %n  - hhg_node_type_t 
 %T  - hhg_type_t *
 */
-static void hhg_vfprintf(FILE *stream, const char *fmt, va_list va);
 
 void hhg_msg_ctx_init(hhg_msg_ctx_t *msg_ctx, hhg_cmd_args_t *cmd_args)
 {
@@ -105,7 +101,7 @@ void hhg_msg(
     for (int32_t i = 0; i < max_line_width; i++)
         fputc(' ', stderr);
 
-    fprintf(stderr, "--> %s:", src->filename);
+    hhg_fprintf(stderr, "--> %s:", src->filename);
 
     hhg_file_pos_fprint(&range->start, stderr);
 
@@ -264,73 +260,4 @@ static void hhg_msg_process_msg_type(
 static void hhg_msg_print_msg_type_str(const char *str, const char *color)
 {
     fprintf(stderr, "%s%s" HHG_ANSI_COLOR_CLEAR ": ", color ? color : "", str);
-}
-
-static void hhg_vfprintf(FILE *stream, const char *fmt, va_list va)
-{
-    char c;
-    while ((c = *fmt++) != '\0') {
-        if (c == '%') {
-            switch (c = *fmt) {
-            case 's': {
-                const char *str_arg = va_arg(va, const char *);
-                if (str_arg)
-                    fputs(str_arg, stream);
-                else
-                    fputs("(null)", stream); 
-                break;
-            }
-            case 'i': {
-                int int_arg = va_arg(va, int);
-                fprintf(stream, "%i", int_arg);
-                break;
-            }
-            case 'l': {
-                fmt++;
-                c = *fmt;
-                if (c == 'u') {
-                    unsigned long int_arg = va_arg(va, unsigned long);
-                    fprintf(stream, "%lu", int_arg);
-                } else {
-                    fputs("%l", stream);
-                    fmt--;
-                }
-                break;
-            }
-            case 'c': {
-                char char_arg = (char)va_arg(va, int);
-                fputc(char_arg, stream);
-                break;
-            }
-            case 'b': {
-                bool bool_arg = (bool)va_arg(va, int);
-                if (bool_arg)
-                    fputs("true", stream);
-                else
-                    fputs("false", stream);
-                break;
-            }
-            case 'n': // same as 't'
-            case 't': {
-                hhg_token_type_t token_type_arg =
-                    va_arg(va, hhg_token_type_t);
-                fputs(hhg_token_type_to_str(token_type_arg), stream);
-                break;
-            }
-            case 'T': {
-                hhg_type_t *type_arg = va_arg(va, hhg_type_t *);
-                hhg_type_fprint(type_arg, stream);
-                break;
-            }
-            case '%':
-            default:
-                fputc('%', stream);
-                fputc(c, stream);
-                break;
-            }
-            if (c != '\0')
-                fmt++;
-        } else
-            fputc(c, stream);
-    }
 }

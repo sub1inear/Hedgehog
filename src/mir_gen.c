@@ -537,7 +537,8 @@ static hhg_mir_opnd_t hhg_mir_gen_run_int_literal(
         .type = HHG_MIR_OPND_CNST,
         .value.cnst = (hhg_mir_cnst_t) {
             .type = HHG_MIR_CNST_SI,
-            .value.si = hhg_utils_str_to_int64(node->value.literal.str),
+            .value.si = 
+            hhg_str_to_int64(node->value.literal.str),
         },
     };
 }

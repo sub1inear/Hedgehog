@@ -111,7 +111,12 @@ bool hhg_type_eq(hhg_type_t *l, hhg_type_t *r);
 
 void hhg_type_print(hhg_type_t *type);
 
-void hhg_type_fprint(hhg_type_t *type, FILE *stream);
+void hhg_type_print_core(
+    hhg_type_t *type,
+    void (*out_char)(void *arg, char c),
+    void (*out_str)(void *arg, const char *str),
+    void *arg
+);
 
 void hhg_type_del(hhg_type_t *type);
 

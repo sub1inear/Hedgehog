@@ -1,4 +1,5 @@
 #include <stdbool.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -8,6 +9,8 @@
 #include "str.h"
 #include "mem.h"
 #include "msg.h"
+#include "token.h"
+#include "type.h"
 
 #ifdef HHG_WINDOWS
 #include <windows.h>
@@ -16,21 +19,20 @@
 #include <sys/wait.h>
 #endif
 
-#ifdef HHG_POSIX
-#define HHG_UTILS_PIPE_READER_BUF_SIZE 4096
-#endif
+#define HHG_SPAWN_PIPE_FD_BUFFER_SIZE 4096
 
 // easier to write HANDLE/fd-specific functions
 // instead of converting into FILE * and then unifying them
 #ifdef HHG_WINDOWS
-static bool hhg_utils_arg_needs_escape(const char *arg);
-static hhg_str_t *hhg_utils_escape_arg(const char *arg);
-static void hhg_utils_read_pipe_to_str(HANDLE pipe, hhg_str_t *out);
+static bool hhg_arg_needs_escape(const char *arg);
+static hhg_str_t *hhg_escape_arg(const char *arg);
+static void hhg_read_pipe_to_str(HANDLE pipe, hhg_str_t *out);
+static int hhg_spawn_core(char *cmdline, const char *exec, hhg_str_t *stdouterr);
 #elif defined(HHG_POSIX)
-static void hhg_utils_read_fd_to_str(int fd, hhg_str_t *out);
+static void hhg_read_fd_to_str(int fd, hhg_str_t *out);
 #endif
 
-FILE *hhg_utils_fopen(const char *filename, const char *mode)
+FILE *hhg_fopen(const char *filename, const char *mode)
 {
     FILE *file = fopen(filename, mode);
     if (file == NULL)
@@ -42,7 +44,7 @@ FILE *hhg_utils_fopen(const char *filename, const char *mode)
     return file;
 }
 
-void hhg_utils_join_path(
+void hhg_join_path(
     char *buf,
     size_t size,
     const char *left,
@@ -65,7 +67,7 @@ void hhg_utils_join_path(
 }
 
 #ifdef HHG_WINDOWS
-int hhg_utils_spawn(const char **argv, hhg_str_t *stdouterr)
+int hhg_spawn(const char **argv, hhg_str_t *stdouterr)
 {
     hhg_str_t cmd;
     hhg_str_init(&cmd);
@@ -73,90 +75,29 @@ int hhg_utils_spawn(const char **argv, hhg_str_t *stdouterr)
     for (size_t i = 0; argv[i] != NULL; i++) {
         if (i > 0)
             hhg_str_append_char(&cmd, ' ');
-        if (hhg_utils_arg_needs_escape(argv[i])) {
-            hhg_str_t *arg = hhg_utils_escape_arg(argv[i]);
+        if (hhg_arg_needs_escape(argv[i])) {
+            hhg_str_t *arg = hhg_escape_arg(argv[i]);
             hhg_str_append_hhg_str(&cmd, arg);
             hhg_str_free(arg);
         } else
             hhg_str_append_str(&cmd, argv[i]);
     }
 
-    STARTUPINFOA si = {
-        .cb = sizeof(si),
-    };
-    PROCESS_INFORMATION pi = { 0 };
-
-    HANDLE read_pipe = NULL;
-    HANDLE write_pipe = NULL;
-
-    if (stdouterr == NULL) {
-        si.hStdOutput = GetStdHandle(STD_OUTPUT_HANDLE);
-        si.hStdError = GetStdHandle(STD_ERROR_HANDLE);
-    } else {
-        SECURITY_ATTRIBUTES sa = {
-            .nLength = sizeof(sa),
-            .lpSecurityDescriptor = NULL,
-            .bInheritHandle = TRUE
-        };
-        
-        if (!CreatePipe(&read_pipe, &write_pipe, &sa, 0))
-            hhg_fatal_error("CreatePipe failed: %lu", GetLastError());
-
-        if (!SetHandleInformation(read_pipe, HANDLE_FLAG_INHERIT, 0))
-            hhg_fatal_error("SetHandleInformation failed: %lu", GetLastError());
-
-        si.hStdOutput = write_pipe;
-        si.hStdError = write_pipe;
-    }
-    
-    si.hStdInput = GetStdHandle(STD_INPUT_HANDLE);
-    si.dwFlags |= STARTF_USESTDHANDLES;
-
-    BOOL result = CreateProcessA(
-        NULL,
-        cmd.str,
-        NULL,
-        NULL,
-        TRUE,
-        0,
-        NULL,
-        NULL,
-        &si,
-        &pi
-    );
-
-    if (!result) {
-        DWORD error = GetLastError();
-        if (error == ERROR_FILE_NOT_FOUND)
-            hhg_fatal_error("executable not found: %s", argv[0]);
-        else
-            hhg_fatal_error("CreateProcess failed: %lu", error);
-    }
-
-    if (write_pipe != NULL)
-        CloseHandle(write_pipe);
-
-    if (stdouterr != NULL)
-        hhg_utils_read_pipe_to_str(read_pipe, stdouterr);
-
-    WaitForSingleObject(pi.hProcess, INFINITE);
-
-    DWORD exit_code = 0;
-    if (!GetExitCodeProcess(pi.hProcess, &exit_code))
-        hhg_fatal_error("GetExitCodeProcess failed: %lu", GetLastError());
-
-    if (read_pipe != NULL)
-        CloseHandle(read_pipe);
-
-    CloseHandle(pi.hProcess);
-    CloseHandle(pi.hThread);
-
+    int exit_code = hhg_spawn_core(cmd.str, argv[0], stdouterr);
     hhg_str_del(&cmd);
-    return (int)exit_code;
+    return exit_code;
+}
+
+int hhg_spawn_cmdline(const char *cmdline, hhg_str_t *stdouterr)
+{
+    char *cmdline_mut = hhg_strdup(cmdline);
+    int exit_code = hhg_spawn_core(cmdline_mut, NULL, stdouterr);
+    hhg_free(cmdline_mut);
+    return exit_code;
 }
 
 #elif defined(HHG_POSIX)
-int hhg_utils_spawn(const char **argv, hhg_str_t *stdouterr)
+int hhg_spawn(const char **argv, hhg_str_t *stdouterr)
 {
     int pipefd[2] = { -1, -1 };
 
@@ -181,7 +122,7 @@ int hhg_utils_spawn(const char **argv, hhg_str_t *stdouterr)
 
     if (stdouterr != NULL) {
         close(pipefd[1]);
-        hhg_utils_read_fd_to_str(pipefd[0], stdouterr);
+        hhg_read_fd_to_str(pipefd[0], stdouterr);
         close(pipefd[0]);
     }
 
@@ -202,24 +143,25 @@ int hhg_utils_spawn(const char **argv, hhg_str_t *stdouterr)
 #endif
 
 #ifdef HHG_WINDOWS
-const char *hhg_utils_file_to_exec(hhg_arena_t *arena, const char *name)
+const char *hhg_file_to_exec(hhg_arena_t *arena, const char *name)
 {
     size_t name_len = strlen(name);
-    size_t ext_len = sizeof(".exe") - 1;
+    size_t ext_len = HHG_STR_LEN(".exe");
+    size_t new_ext_start = name_len - ext_len;
     char *exec = hhg_arena_malloc(arena, name_len + ext_len + 1);
-    strcpy(exec, name);
-    strcpy(exec + name_len, ".exe");
+    memcpy(exec, name, new_ext_start);
+    strcpy(exec + new_ext_start, ".exe");
     return exec;
 }
 #elif HHG_POSIX
-const char *hhg_utils_file_to_exec(hhg_arena_t *arena, const char *name)
+const char *hhg_file_to_exec(hhg_arena_t *arena, const char *name)
 {
     HHG_UNUSED(arena);
     return name;
 }
 #endif
 
-int64_t hhg_utils_str_to_int64(const char *str)
+int64_t hhg_str_to_int64(const char *str)
 {
     const char *ptr = str;
     bool negative = false;
@@ -239,7 +181,217 @@ int64_t hhg_utils_str_to_int64(const char *str)
     return negative ? -result : result;
 }
 
-void hhg_utils_assert(const char *expr_str, const char *file, int line)
+void hhg_fprintf(FILE *stream, const char *fmt, ...)
+{
+    va_list va;
+    va_start(va, fmt);
+    hhg_vfprintf(stream, fmt, va);
+    va_end(va);
+}
+
+void hhg_sprintf(hhg_str_t *str, const char *fmt, ...)
+{
+    va_list va;
+    va_start(va, fmt);
+    hhg_vsprintf(str, fmt, va);
+    va_end(va);
+}
+
+void hhg_printf(const char *fmt, ...)
+{
+    va_list va;
+    va_start(va, fmt);
+    hhg_vfprintf(stdout, fmt, va);
+    va_end(va);
+}
+
+void hhg_vfprintf(FILE *stream, const char *fmt, va_list va)
+{
+    hhg_vprintf_core(
+        fmt,
+        va,
+        hhg_vfprintf_out_str,
+        hhg_vfprintf_out_char,
+        stream
+    );
+}
+
+void hhg_vsprintf(hhg_str_t *str, const char *fmt, va_list va)
+{
+    hhg_vprintf_core(
+        fmt,
+        va,
+        hhg_vsprintf_out_str,
+        hhg_vsprintf_out_char,
+        str
+    );
+}
+
+void hhg_printf_core(
+    const char *fmt,
+    void (*out_str)(void *arg, const char *str),
+    void (*out_char)(void *arg, char c),
+    void *arg,
+    ...
+)
+{
+    va_list va;
+    va_start(va, arg);
+    hhg_vprintf_core(fmt, va, out_str, out_char, arg);
+    va_end(va);
+}
+
+void hhg_vprintf_core(
+    const char *fmt,
+    va_list va,
+    void (*out_str)(void *arg, const char *str),
+    void (*out_char)(void *arg, char c),
+    void *arg
+)
+{
+    char c;
+    while ((c = *fmt++) != '\0') {
+        if (c == '%') {
+            switch (c = *fmt) {
+            case 's': {
+                const char *str_arg = va_arg(va, const char *);
+                if (str_arg)
+                    out_str(arg, str_arg);
+                else
+                    out_str(arg, "(null)");
+                break;
+            }
+            case 'S': {
+                const hhg_str_t *hhg_str_arg = va_arg(va, const hhg_str_t *);
+                if (hhg_str_arg) {
+                    hhg_assert(hhg_str_arg->str != NULL);
+                    out_str(arg, hhg_str_arg->str);
+                } else
+                    out_str(arg, "(null)");
+                break;
+            }
+            case 'i': {
+                int int_arg = va_arg(va, int);
+                
+                int uint_arg;
+                if (int_arg < 0) {
+                    out_char(arg, '-');
+                    uint_arg = (unsigned int)(-int_arg);
+                } else
+                    uint_arg = (unsigned int)int_arg;
+
+                char buffer[20];
+                size_t i = 0;
+
+                do {
+                    buffer[i++] = (char)(uint_arg % 10) + '0';
+                    uint_arg /= 10;
+                } while (uint_arg > 0);
+
+                for (size_t j = 0; j < i; j++)
+                    out_char(arg, buffer[i - j - 1]);
+                break;
+            }
+            case 'l': {
+                fmt++;
+                c = *fmt;
+                if (c == 'u') {
+                    unsigned long ulong_arg = va_arg(va, unsigned long);
+                    char buffer[20];
+                    size_t i = 0;
+                    do {
+                        buffer[i++] = (char)(ulong_arg % 10) + '0';
+                        ulong_arg /= 10;
+                    } while (ulong_arg > 0);
+
+                    for (size_t j = 0; j < i; j++)
+                        out_char(arg, buffer[i - j - 1]);
+                } else {
+                    out_str(arg, "%l");
+                    fmt--;
+                }
+                break;
+            }
+            case 'z': {
+                fmt++;
+                c = *fmt;
+                if (c == 'u') {
+                    size_t size_arg = va_arg(va, size_t);
+                    char buffer[20];
+                    size_t i = 0;
+                    do {
+                        buffer[i++] = (char)(size_arg % 10) + '0';
+                        size_arg /= 10;
+                    } while (size_arg > 0);
+
+                    for (size_t j = 0; j < i; j++)
+                        out_char(arg, buffer[i - j - 1]);
+                } else {
+                    out_str(arg, "%z");
+                    fmt--;
+                }
+                break;
+            }
+            case 'c': {
+                char char_arg = (char)va_arg(va, int);
+                out_char(arg, char_arg);
+                break;
+            }
+            case 'b': {
+                bool bool_arg = (bool)va_arg(va, int);
+                if (bool_arg)
+                    out_str(arg, "true");
+                else
+                    out_str(arg, "false");
+                break;
+            }
+            case 'n': // same as 't'
+            case 't': {
+                hhg_token_type_t token_type_arg =
+                    va_arg(va, hhg_token_type_t);
+                out_str(arg, hhg_token_type_to_str(token_type_arg));
+                break;
+            }
+            case 'T': {
+                hhg_type_t *type_arg = va_arg(va, hhg_type_t *);
+                hhg_type_print_core(type_arg, out_char, out_str, arg);
+                break;
+            }
+            case '%':
+            default:
+                out_char(arg, '%');
+                out_char(arg, c);
+                break;
+            }
+            if (c != '\0')
+                fmt++;
+        } else
+            out_char(arg, c);
+    }
+}
+
+void hhg_vfprintf_out_str(void *arg, const char *str)
+{
+    fputs(str, (FILE *)arg);
+}
+
+void hhg_vfprintf_out_char(void *arg, char c)
+{
+    fputc(c, (FILE *)arg);
+
+}
+
+void hhg_vsprintf_out_str(void *arg, const char *str)
+{
+    hhg_str_append_str((hhg_str_t *)arg, str);
+}
+
+void hhg_vsprintf_out_char(void *arg, char c)
+{
+    hhg_str_append_char((hhg_str_t *)arg, c);
+}
+
+void hhg_assert_core(const char *expr_str, const char *file, int line)
 {
     hhg_compiler_error(
         "assertion failed: %s, at %s:%i",
@@ -250,7 +402,7 @@ void hhg_utils_assert(const char *expr_str, const char *file, int line)
 }
 
 #ifdef HHG_WINDOWS
-static bool hhg_utils_arg_needs_escape(const char *arg)
+static bool hhg_arg_needs_escape(const char *arg)
 {
     for (const char *ptr = arg; *ptr != '\0'; ptr++) {
         if (*ptr == ' ' || *ptr == '\t' || *ptr == '\n')
@@ -259,7 +411,7 @@ static bool hhg_utils_arg_needs_escape(const char *arg)
     return false;
 }
 
-static hhg_str_t *hhg_utils_escape_arg(const char *arg)
+static hhg_str_t *hhg_escape_arg(const char *arg)
 {
     hhg_str_t *out = hhg_str_new_str("\"");
 
@@ -291,12 +443,12 @@ static hhg_str_t *hhg_utils_escape_arg(const char *arg)
     return out;
 }
 
-static void hhg_utils_read_pipe_to_str(HANDLE pipe, hhg_str_t *out)
+static void hhg_read_pipe_to_str(HANDLE pipe, hhg_str_t *out)
 {
-    char buf[4096];
+    char buffer[HHG_SPAWN_PIPE_FD_BUFFER_SIZE];
     while (true) {
         DWORD len = 0;
-        BOOL result = ReadFile(pipe, buf, sizeof(buf) - 1, &len, NULL);
+        BOOL result = ReadFile(pipe, buffer, sizeof(buffer), &len, NULL);
         if (!result) {
             if (GetLastError() == ERROR_BROKEN_PIPE)
                 break;
@@ -304,18 +456,93 @@ static void hhg_utils_read_pipe_to_str(HANDLE pipe, hhg_str_t *out)
         }
         if (len == 0)
             break;
-        hhg_str_append_str_len(out, buf, (size_t)len);
+        hhg_str_append_str_len(out, buffer, (size_t)len);
     }
 }
 
-#elif defined(HHG_POSIX)
-static void hhg_utils_read_fd_to_str(int fd, hhg_str_t *out)
+static int hhg_spawn_core(char *cmdline, const char *exec, hhg_str_t *stdouterr)
 {
-    char buf[HHG_UTILS_PIPE_READER_BUF_SIZE + 1];
+    STARTUPINFOA si = {
+        .cb = sizeof(si),
+    };
+    PROCESS_INFORMATION pi = { 0 };
+
+    HANDLE read_pipe = NULL;
+    HANDLE write_pipe = NULL;
+
+    if (stdouterr == NULL) {
+        si.hStdOutput = GetStdHandle(STD_OUTPUT_HANDLE);
+        si.hStdError = GetStdHandle(STD_ERROR_HANDLE);
+    } else {
+        SECURITY_ATTRIBUTES sa = {
+            .nLength = sizeof(sa),
+            .lpSecurityDescriptor = NULL,
+            .bInheritHandle = TRUE
+        };
+
+        if (!CreatePipe(&read_pipe, &write_pipe, &sa, 0))
+            hhg_fatal_error("CreatePipe failed: %lu", GetLastError());
+
+        if (!SetHandleInformation(read_pipe, HANDLE_FLAG_INHERIT, 0))
+            hhg_fatal_error("SetHandleInformation failed: %lu", GetLastError());
+
+        si.hStdOutput = write_pipe;
+        si.hStdError = write_pipe;
+    }
+
+    si.hStdInput = GetStdHandle(STD_INPUT_HANDLE);
+    si.dwFlags |= STARTF_USESTDHANDLES;
+
+    BOOL result = CreateProcessA(
+        NULL,
+        cmdline,
+        NULL,
+        NULL,
+        TRUE,
+        0,
+        NULL,
+        NULL,
+        &si,
+        &pi
+    );
+
+    if (!result) {
+        DWORD error = GetLastError();
+        if (error == ERROR_FILE_NOT_FOUND && exec != NULL)
+            hhg_fatal_error("executable not found: %s", exec);
+        else
+            hhg_fatal_error("CreateProcess failed: %lu", error);
+    }
+
+    if (write_pipe != NULL)
+        CloseHandle(write_pipe);
+
+    if (stdouterr != NULL)
+        hhg_read_pipe_to_str(read_pipe, stdouterr);
+
+    WaitForSingleObject(pi.hProcess, INFINITE);
+
+    DWORD exit_code = 0;
+    if (!GetExitCodeProcess(pi.hProcess, &exit_code))
+        hhg_fatal_error("GetExitCodeProcess failed: %lu", GetLastError());
+
+    if (read_pipe != NULL)
+        CloseHandle(read_pipe);
+
+    CloseHandle(pi.hProcess);
+    CloseHandle(pi.hThread);
+
+    return (int)exit_code;
+}
+
+#elif defined(HHG_POSIX)
+static void hhg_read_fd_to_str(int fd, hhg_str_t *out)
+{
+    char buffer[HHG_SPAWN_PIPE_FD_BUFFER_SIZE];
     ssize_t len;
-    while ((len = read(fd, buf, HHG_UTILS_PIPE_READER_BUF_SIZE)) > 0)
-        hhg_str_append_str_len(out, buf, (size_t)len);
+    while ((len = read(fd, buffer, sizeof(buffer))) > 0)
+        hhg_str_append_str_len(out, buffer, (size_t)len);
     if (len < 0)
-        hhg_fatal_error("read failed: %s", strerror(errno));
+        hhg_fatal_error("error reading file descriptor: %s", strerror(errno));
 }
 #endif

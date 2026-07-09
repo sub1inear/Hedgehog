@@ -24,7 +24,7 @@ bool hhg_init(hhg_cmd_args_init_t *init)
         if (!fs_current_dir(cwd, sizeof(cwd)))
             hhg_fatal_error("failed to get current directory");
 
-        main_filename = HHG_MAIN_FILENAME;
+        main_filename = "main.hhg";
     } else {
         if (fs_exist(init->name))
             hhg_fatal_error(
@@ -38,17 +38,18 @@ bool hhg_init(hhg_cmd_args_init_t *init)
                 init->name
             );
         
-        hhg_utils_join_path(
+        
+        hhg_join_path(
             main_path,
             HHG_ARR_LEN(main_path),
             init->name,
-            HHG_MAIN_FILENAME
+            "main.hhg"
         );
 
         main_filename = main_path;
     }
 
-    FILE *main_file = hhg_utils_fopen(main_filename, "w");
+    FILE *main_file = hhg_fopen(main_filename, "w");
     fputs(main_file_txt, main_file);
     fclose(main_file);
 

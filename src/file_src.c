@@ -10,7 +10,7 @@
 
 void hhg_file_src_init(hhg_file_src_t *src, const char *filename)
 {
-    FILE *file = hhg_utils_fopen(filename, "r");
+    FILE *file = hhg_fopen(filename, "r");
 
     // read file into src->txt
     // use realloc instead of fseek + ftell to

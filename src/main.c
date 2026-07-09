@@ -30,7 +30,10 @@ int hhg_main(int argc, char **argv)
     return result ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
+#include "utils.h"
+
 int main(int argc, char **argv)
 {
+    HHG_UNUSED(argc, argv);
     return hhg_main(argc, argv);
 }

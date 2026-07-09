@@ -237,6 +237,7 @@ static struct optparse hhg_cmd_args_parse_build(
 
     *build = (hhg_cmd_args_build_t) {
         .out = NULL,
+        .stop = HHG_CMD_ARGS_STAGE_NONE,
         .release = false,
         .emit = false,
         .warnings = false,
@@ -331,6 +332,7 @@ static void hhg_cmd_args_parse_run(
 {
     struct optparse opts = hhg_cmd_args_parse_build(&run->build, argv, prog_name);
 
+    run->args = NULL;
     char *arg;
     while ((arg = optparse_arg(&opts)) != NULL)
         arrput(run->args, arg);

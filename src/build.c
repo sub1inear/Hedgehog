@@ -219,7 +219,7 @@ bool hhg_build(
         .code_gen = &code_gen,
     });
 
-    return false;
+    return true;
 }
 
 static hhg_build_check_exit_result_t hhg_build_check_exit(

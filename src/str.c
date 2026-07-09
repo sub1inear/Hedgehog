@@ -1,3 +1,4 @@
+#include <stdarg.h>
 #include <string.h>
 
 #include "str.h"
@@ -41,6 +42,20 @@ void hhg_str_init_copy(hhg_str_t *dst, hhg_str_t *src)
     strcpy(dst->str, src->str);
 }
 
+void hhg_str_init_fmt(hhg_str_t *str, const char *fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+    hhg_str_init_vfmt(str, fmt, args);
+    va_end(args);
+}
+
+void hhg_str_init_vfmt(hhg_str_t *str, const char *fmt, va_list args)
+{
+    hhg_str_init(str);
+    hhg_vsprintf(str, fmt, args);
+}
+
 hhg_str_t *hhg_str_new(void)
 {
     hhg_str_t *str = hhg_malloc(sizeof(*str));
@@ -66,6 +81,23 @@ hhg_str_t *hhg_str_new_copy(hhg_str_t *src)
 {
     hhg_str_t *str = hhg_malloc(sizeof(*str));
     hhg_str_init_copy(str, src);
+    return str;
+}
+
+hhg_str_t *hhg_str_new_fmt(const char *fmt, ...)
+{
+    hhg_str_t *str = hhg_malloc(sizeof(*str));
+    va_list args;
+    va_start(args, fmt);
+    hhg_str_init_vfmt(str, fmt, args);
+    va_end(args);
+    return str;
+}
+
+hhg_str_t *hhg_str_new_vfmt(const char *fmt, va_list args)
+{
+    hhg_str_t *str = hhg_malloc(sizeof(*str));
+    hhg_str_init_vfmt(str, fmt, args);
     return str;
 }
 
@@ -114,6 +146,13 @@ void hhg_str_append_str_len(hhg_str_t *str, const char *append, size_t len)
 
     memcpy(str->str + prev_len, append, len);
     str->str[str->len] = '\0';
+}
+
+char hhg_str_pop(hhg_str_t *str)
+{
+    char c = str->str[str->len - 1];
+    str->str[--str->len] = '\0';
+    return c;
 }
 
 void hhg_str_set_cap(hhg_str_t *str, size_t cap)

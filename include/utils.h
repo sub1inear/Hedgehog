@@ -1,10 +1,11 @@
-#ifndef HHG_UTILS_H
-#define HHG_UTILS_H
+#ifndef HHG_H
+#define HHG_H
 
 #include <stdint.h>
 #include <stdio.h>
 
 #define HHG_ARR_LEN(arr) (sizeof(arr) / sizeof((arr)[0]))
+#define HHG_STR_LEN(str) (HHG_ARR_LEN(str) - 1)
 #define HHG_UNUSED(...) (void)(__VA_ARGS__)
 
 #define HHG_ANSI_COLOR_CLEAR "\x1b[0m"
@@ -25,38 +26,89 @@
 #define HHG_POSIX
 #endif
 
-#define hhg_assert(expr) if (!(expr)) hhg_utils_assert(#expr, __FILE__, __LINE__)
+#define hhg_assert(expr) if (!(expr)) hhg_assert_core(#expr, __FILE__, __LINE__)
 
 typedef struct hhg_str hhg_str_t;
 typedef struct arena hhg_arena_t;
 
 // safe fopen of a file
 // crashes with hhg_fatal_error if file cannot be opened
-FILE *hhg_utils_fopen(const char *filename, const char *mode);
+FILE *hhg_fopen(const char *filename, const char *mode);
 
 // safe path join of two paths
 // crashes with hhg_fatal_error
 // if the result does not fit in the buffer
 // or format fails
-void hhg_utils_join_path(
+void hhg_join_path(
     char *buf,
     size_t size,
     const char *left,
     const char *right
 );
 
-int64_t hhg_utils_str_to_int64(const char *str);
+int64_t hhg_str_to_int64(const char *str);
 
 // spawns a new process with argv (NULL-terminated array of strings)
 // waits until completion and returns the exit code of process
 // if stdouterr is NULL, inherits the stdout and stderr
 // otherwise captures them in stdouterr (which the caller must free)
-int hhg_utils_spawn(const char **argv, hhg_str_t *stdouterr);
+int hhg_spawn(const char **argv, hhg_str_t *stdouterr);
+
+#ifdef HHG_WINDOWS
+// spawns a new process with a command line string
+// only for cl.exe location extraction
+int hhg_spawn_cmdline(const char *cmdline, hhg_str_t *stdouterr);
+#endif
 
 // turns a Hedgehog source filename into its corresponding executable filename
-const char *hhg_utils_file_to_exec(hhg_arena_t *arena, const char *name);
+const char *hhg_file_to_exec(hhg_arena_t *arena, const char *name);
+
+/*
+supported format specifiers:
+%s  - const char *
+%S  - const hhg_str_t *
+%i  - int
+%lu - long unsigned int
+%zu - size_t
+%c  - char
+%b  - bool
+%%  - %
+%t  - hhg_token_type_t
+%n  - hhg_node_type_t 
+%T  - hhg_type_t *
+*/
+
+void hhg_printf(const char *fmt, ...);
+
+void hhg_fprintf(FILE * stream, const char *fmt, ...);
+void hhg_sprintf(hhg_str_t *str, const char *fmt, ...);
+
+void hhg_vfprintf(FILE *stream, const char *fmt, va_list va);
+void hhg_vsprintf(hhg_str_t *str, const char *fmt, va_list va);
+
+void hhg_vsprintf_out_str(void *arg, const char *str);
+void hhg_vsprintf_out_char(void *arg, char c);
+
+void hhg_vfprintf_out_str(void *arg, const char *str);
+void hhg_vfprintf_out_char(void *arg, char c);
+
+void hhg_printf_core(
+    const char *fmt,
+    void (*out_str)(void *arg, const char *str),
+    void (*out_char)(void *arg, char c),
+    void *arg,
+    ...
+);
+
+void hhg_vprintf_core(
+    const char *fmt,
+    va_list args,
+    void (*out_str)(void *arg, const char *str),
+    void (*out_char)(void *arg, char c),
+    void *arg
+);
 
 // internal function for hhg_assert, not meant to be called directly
-void hhg_utils_assert(const char *expr_str, const char *file, int line);
+void hhg_assert_core(const char *expr_str, const char *file, int line);
 
 #endif

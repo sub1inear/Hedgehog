@@ -1,6 +1,8 @@
 #ifndef HHG_CMD_ARGS_H
 #define HHG_CMD_ARGS_H
 
+#include <stdbool.h>
+
 typedef enum hhg_cmd_args_type {
     HHG_CMD_ARGS_NONE,
     HHG_CMD_ARGS_INIT,

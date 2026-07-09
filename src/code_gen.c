@@ -25,9 +25,9 @@ void hhg_code_gen_init(
         .arena = arena,
     };
     // create directory if it doesn't exist
-    if (!fs_exist(HHG_TMP_DIR))
-        if (!fs_make_dir(HHG_TMP_DIR))
-            hhg_fatal_error("failed to create output directory: " HHG_TMP_DIR);
+    if (!fs_exist(".hhg"))
+        if (!fs_make_dir(".hhg"))
+            hhg_fatal_error("failed to create output directory: .hhg");
 }
 
 bool hhg_code_gen_run(
@@ -45,7 +45,7 @@ bool hhg_code_gen_run(
             HHG_TMP_DIR,
             ".cpp"
         );
-    FILE *file = hhg_utils_fopen(*out_filename, "w");
+    FILE *file = hhg_fopen(*out_filename, "w");
     fputs("#include <stdio.h>\nint main() { printf(\"Hello, world!\\n\"); }\n", file);
     fclose(file);
     return true;
@@ -80,7 +80,7 @@ static const char *hhg_code_gen_file_replace_dir_ext(
     
     char *out = hhg_arena_malloc(gen->arena, FS_MAX_PATH);
 
-    hhg_utils_join_path(
+    hhg_join_path(
         out,
         FS_MAX_PATH,
         dir,
