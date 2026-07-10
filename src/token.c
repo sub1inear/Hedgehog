@@ -3,6 +3,7 @@
 #include "token.h"
 #include "node.h"
 #include "file_range.h"
+#include "utils.h"
 
 const char *const token_type_to_str[] = {
     // ASCII
@@ -150,11 +151,7 @@ void hhg_token_reset_aux(hhg_token_t *token)
 
 void hhg_token_print(hhg_token_t *token)
 {
-    fputs("{ type = ", stdout);
-
-    hhg_token_type_print(token->type);
-
-    fputs(", value = ", stdout);
+    hhg_printf("{ .type = %t, .value = ", token->type);
 
     switch (token->type) {
     case HHG_TOKEN_INT_LITERAL:
@@ -169,7 +166,7 @@ void hhg_token_print(hhg_token_t *token)
         fputs("null", stdout);
         break;
     }
-    fputs(", range = ", stdout);
+    fputs(", .range = ", stdout);
 
     hhg_file_range_print(&token->range);
 

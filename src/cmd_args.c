@@ -366,6 +366,9 @@ static struct optparse hhg_cmd_args_parse_build_run_core(
         case 's':
             build->stop = hhg_cmd_args_parse_stage(opts.optarg);
             break;
+        case 'e':
+            build->emit = true;
+            break;
         case 'W':
             build->warnings = true;
             break;
