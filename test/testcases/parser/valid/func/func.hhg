@@ -1,2 +1,11 @@
-def inc(i32 x)
+fn inc(x: i32) -> i32 {
     return x + 1
+}
+
+fn greet(name: &str) {
+    print(f"Hello, {name}!")
+}
+
+fn main() {
+    println("Hello, World!")
+}

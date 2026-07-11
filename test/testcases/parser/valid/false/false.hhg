@@ -1,1 +1,2 @@
-x = false
+let x = false
+let y: bool = false

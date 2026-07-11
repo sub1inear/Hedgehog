@@ -58,7 +58,7 @@ Hedgehog has many built-in types, including:
 | f32 | 32-bit floating point number | -3.40 × 10^38^ to 3.40 × 10^38^ |
 | f64 | 64-bit floating point number | -1.80 × 10^308^ to 1.80 × 10^308^|
 | bool | 1 byte | 0 to 1 (`true` or `false`) |
-| rune | 4 bytes | Unicode scalar value |
+| char | 4 bytes | Unicode scalar value |
 | usize | unsigned number able to store the maximum memory of machine | platform-specific |
 | isize | signed number able to store the maximum memory of machine | platform-specific |
 | void | no type | N/A |

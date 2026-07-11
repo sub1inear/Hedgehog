@@ -1,3 +1,4 @@
-print(f"{1} {"hello"} {2.0}")
-
-// Result: 1 hello 2.0
+let x = 4
+let y = 5
+print(f"There are {x * y} ducks.")
+print(f"x = {x}, y = {y}")

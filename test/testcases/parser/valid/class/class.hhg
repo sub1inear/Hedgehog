@@ -1,18 +1,14 @@
-class Player {
-    i32 x
-    i32 y
-    i32 health
-    def forward() {
-        self.x++
-        self.y++
+class Point {
+    x: f64
+    y: f64
+    fn dist(&self, p: &Point) -> f64 {
+        let dx = self.x - p.x
+        let dy = self.y - p.y
+        return dx * dx + dy * dy
     }
-    def backward() {
-        self.x--
-        self.y--
+    static fn origin() -> Point {
+        return Point(0.0, 0.0)
     }
 }
-
-player = Player(1, 2, 3)
-
-player.forward()
-player.backward()
+let p1 = Point(3.0, 4.0)
+let p2 = Point(0.0, 0.0)
