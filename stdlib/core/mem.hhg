@@ -34,9 +34,9 @@ pub fn set(dst: *u8, value: u8, size: usize) {
     }
 }
 
-pub fn swap<T>(a: &mut T, b: &mut T) {
+pub fn swap<T>(a: &T, b: &T) {
     unsafe {
-        tmp: T
+        let tmp: T
         libc.string.memcpy(&tmp, a, sizeof(T))
         libc.string.memcpy(a, b, sizeof(T))
         libc.string.memcpy(b, &tmp, sizeof(T))
@@ -45,7 +45,7 @@ pub fn swap<T>(a: &mut T, b: &mut T) {
 
 pub fn bitcast<T, U>(t: T) -> U {
     unsafe {
-        u: U
+        let u: U
         libc.string.memcpy(&u, &t, sizeof(T))
         return u
     }

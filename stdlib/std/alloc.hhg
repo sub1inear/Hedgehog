@@ -19,15 +19,15 @@ pub fn free(ptr: *u8) {
 }
 
 pub class Default {
-    pub fn malloc(&const self, size: usize) -> *u8 | null {
+    pub fn malloc(&self, size: usize) -> *u8 | null {
         return malloc(size)
     }
 
-    pub fn realloc(&const self, ptr: *u8, size: usize) -> *u8 | null {
+    pub fn realloc(&self, ptr: *u8, size: usize) -> *u8 | null {
         return realloc(ptr, size)
     }
 
-    pub fn free(&const self, ptr: *u8) {
+    pub fn free(&self, ptr: *u8) {
         free(ptr)
     }
 }
@@ -37,42 +37,42 @@ fn align_to(x: usize, align: usize) -> usize {
     return (x + align - 1) & ~(align - 1)
 }
 
-class ArenaBlock<C: std.interfaces.Allocator> {
+class ArenaBlock {
     buffer: *u8 | null
     size: usize
     cap: usize
-    fn ArenaBlock(&self, cap: usize) {
+    fn ArenaBlock(&self, alloc: &std.interfaces.Allocator, cap: usize) {
         self.cap = cap
         self.size = 0
-        self.buffer = C.malloc(cap)
+        self.buffer = alloc.malloc(cap)
     }
 }
 
 pub class Arena<C: std.interfaces.Allocator> {
-    std.collections.LinkedList<ArenaNodes<C>> blocks
+    std.collections.LinkedList<ArenaBlock> blocks
+    alloc: C
     cap: usize = 2048
 
     pub fn Arena() {
-        self.blocks.append(ArenaBlock<C>(self.cap))
+        self.blocks.append(ArenaBlock(&self.alloc, self.cap))
         self.cap *= 2
     }
 
     pub fn malloc(&self, size: usize) -> *u8 | null {
-        block = self.blocks.last()?
+        let block = self.blocks.last()?
         if block.size + size > block.cap {
             self.cap = std.math.max(self.cap * 2, size)
-            block = ArenaBlock<C>()
+            block = ArenaBlock(&self.alloc, self.cap)
             self.blocks.append(block)
         }
-        block.size = align_to(block.size, std.mem.alignof<std.stddef.max_align_t>())
-        ptr = block.buffer + block.size
-        block.size += aligned_size
+        block.size = align_to(block.size, std.mem.alignof<libc.stddef.max_align_t>())
+        let ptr = block.buffer? + block.size
         return ptr
     }
 
     pub fn realloc(&const self, ptr: *u8 | null, size: usize) -> *u8 | null {
-        new_ptr = self.malloc(size)
-        if new_ptr: *u8 = new_ptr_null {
+        let new_ptr_null = self.malloc(size)
+        if let new_ptr: *u8 = new_ptr_null {
             unsafe { std.mem.copy(new_ptr, ptr, size) }
         }
         return new_ptr
@@ -90,15 +90,15 @@ pub class FixedBuffer<N: usize> {
         if self.size + size > N {
             return null
         }
-        self.size = align_to(self.size, std.mem.alignof<std.stddef.max_align_t>())
-        ptr: *u8 = &self.buffer[self.size]
+        self.size = align_to(self.size, std.mem.alignof<libc.stddef.max_align_t>())
+        let ptr: *u8 = &self.buffer[self.size]
         self.size += size
         return ptr
     }
 
     pub fn realloc(&const self, ptr: *u8 | null, size: usize) -> *u8 | null {
-        new_ptr = self.malloc(size)
-        if new_ptr: *u8 = new_ptr_null {
+        let new_ptr = self.malloc(size)
+        if let new_ptr: *u8 = new_ptr_null {
             unsafe { std.mem.copy(new_ptr, ptr, size) }
         }
         return new_ptr

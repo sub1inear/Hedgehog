@@ -6,7 +6,7 @@ pub const stdout = std.fs.File(libc.stdio.stdout)
 pub const stdin = std.fs.File(libc.stdio.stdin)
 pub const stderr = std.fs.File(libc.stdio.stderr)
 
-enum ExitCode : libc.c_int {
+pub enum ExitCode : libc.c_int {
     Success = libc.stdlib.EXIT_SUCCESS,
     Failure = libc.stdlib.EXIT_FAILURE,
 }
@@ -19,13 +19,13 @@ pub fn abort() {
     unsafe { libc.stdlib.abort() }
 }
 
-pub fn system(cmd: strview) -> ExitCode {
+pub fn system(cmd: &str) -> ExitCode {
     return unsafe { libc.stdlib.system(cmd) }
 }
 
-pub fn getenv(name: strview) -> strview | null {
+pub fn getenv(name: &str) -> &static str | null {
     unsafe {
-        ptr = libc.stdlib.getenv(name)?
+        let ptr = libc.stdlib.getenv(name)?
+        return &static str(ptr)
     }
-    return strview(ptr)
 }

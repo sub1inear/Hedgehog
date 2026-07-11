@@ -80,8 +80,6 @@ fn trunc(x: f32) -> f32 {
     return unsafe { libc.math.truncf(x) }
 }
 
-
-
 fn sin(x: f64) -> f64 {
     return unsafe { libc.math.fsin(x) }
 }

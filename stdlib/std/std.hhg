@@ -6,11 +6,11 @@ pub fn print<T: std.interfaces.Print>(obj: T) {
     obj.print()
 }
 
-pub fn print(s: strview) {
+pub fn print(s: &str) {
     unsafe { libc.stdio.printf("%s", s) }
 }
 
-pub fn print(str: @fmt strview) {
+pub fn print(str: &str @fmt) {
     unsafe { libc.stdio.vprintf(str, str.args()) }
 }
 
@@ -19,11 +19,11 @@ pub fn println<T: std.interfaces.Print>(obj: T) {
     unsafe { libc.stdio.putchar('\n') }
 }
 
-pub fn println(s: strview) {
+pub fn println(s: &str) {
     unsafe { libc.stdio.printf("%s\n", s) }
 }
 
-pub fn println(str: @fmt strview) {
+pub fn println(str: &str @fmt) {
     unsafe { libc.stdio.vprintf(str, str.args()) }
     unsafe { libc.stdio.putchar('\n') }
 }
@@ -59,7 +59,7 @@ pub fn readln() -> str {
     return s
 }
 
-pub fn input(prompt: strview) -> str {
+pub fn input(prompt: &str) -> str {
     print(prompt)
     return readln()
 }

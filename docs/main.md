@@ -8,7 +8,7 @@ It has three core principles, listed in order of importance (I > II > III).
 Make programming in Hedgehog and the resulting program as fast as possible, while maintaining safety.
 When these conflict, speed > simplicity > safety.
 
-### II: Don't Reinvent the Wheel
+### II: Don't Reinvent the Wheel (Aspirational)
 No drastic changes from C++ or Python; Hedgehog should look familiar and be easy to learn from either.
 
 ### III: There Should Be One, and Only One, Obvious Way to Do It
@@ -28,16 +28,16 @@ print(f"There are {4 * 5} ducks.")
 ```
 
 ## Variables
-Variables are mutable by default and can be declared with or without a type annotation.
-
+Variables are declared with `let` or `let mut` and can optionaly have a type annotation.
 ```hhg
-x = 5
-y: str = "Hello, World!"
+let x = 5
+let y: str = "Hello, World!"
+let mut z = 42
 print(x)
 print(y)
 ```
 
-`const` variables are immutable and must be initialized at declaration.
+`const` variables are immutable and must be initialized at compile time.
 ```hhg
 const pi = 3.14159
 ```
@@ -57,9 +57,8 @@ Hedgehog has many built-in types, including:
 | u64 | unsigned 64-bit number | 0 to 18,446,744,073,709,551,615 |
 | f32 | 32-bit floating point number | -3.40 × 10^38^ to 3.40 × 10^38^ |
 | f64 | 64-bit floating point number | -1.80 × 10^308^ to 1.80 × 10^308^|
-| float | arbitrary-precision floating point number | memory of machine |
 | bool | 1 byte | 0 to 1 (`true` or `false`) |
-| char | unsigned 8-bit character | 0 to 255 (with UTF-8 for Unicode) |
+| rune | 4 bytes | Unicode scalar value |
 | usize | unsigned number able to store the maximum memory of machine | platform-specific |
 | isize | signed number able to store the maximum memory of machine | platform-specific |
 | void | no type | N/A |
@@ -69,17 +68,17 @@ Literals can be suffixed with type annotations, like Rust.
 ## Arithmetic Operators
 Standard arithmetic operators and precedence.
 ```hhg
-x = 5 + 3 * 2
-y = (x - 4) / 2
-bits = 0b1010
+let x = 5 + 3 * 2
+let y = (x - 4) / 2
+let bits = 0b1010
 bits |= 0b0101
 ```
 
 ## Boolean Logic
 `and`, `or` and `not`.
 ```hhg
-is_valid = (x > 0) and (y < 10) or (z >= 5)
-is_invalid = not is_valid
+let is_valid = (x > 0) and (y < 10) or (z >= 5)
+let is_invalid = not is_valid
 ```
 
 ## Control Flow
@@ -127,53 +126,53 @@ for i in 0..10 {
 
 ## Arrays
 Arrays are fixed-size and declared with square brackets.
-Type annotation: `T[N]` or `T[]` to infer size from initializer.
+Type annotation: `T[N]`.
 Type inference defaults to arrays.
 ```hhg
-arr: i32[5] = [1, 2, 3, 4, 5]
+let arr: i32[5] = [1, 2, 3, 4, 5]
 ```
 
 ## Lists
 Lists are dynamic and can grow or shrink in size.
 Type annotation: `list<T>`.
 ```hhg
-l: list<i32> = [1, 2, 3]
+let mut l: list<i32> = [1, 2, 3]
 l.append(4)
 print(l.len()) // 4
 ```
 
 ## Strings
 Static strings/string literals are declared with double quotes.
-Type annotation: `u8[N]` or `u8[]` to infer size from initializer.
+Type annotation: `&static str`.
 ```
-s: u8[13] = "Hello, World!"
+let s: &static str = "Hello, World!"
 ```
 
 Dynamic strings are UTF-8 and can grow or shrink in size.
 Type annotation: `str`.
 ```hhg
-s: str = "Hello, World!"
+let mut s: str = "Hello, World!"
 s.replace("World", "Hedgehog")
 ```
 
 ## Slices
-Slices are views into arrays or lists and are declared with `[T]`.
+Slices are views into arrays or lists and are declared with `T[]`.
 Slices are the universal sequence type; they can be used in place of arrays or lists in function parameters.
 ```hhg
-arr: i32[5] = [1, 2, 3, 4, 5]
-slice: [i32] = arr[1..4] // [2, 3, 4]
-fn arr_or_list(s: [i32]) {
+let arr: i32[5] = [1, 2, 3, 4, 5]
+let slice = arr[1..4] // [2, 3, 4]
+fn arr_or_list(s: i32[]) {
     print(s)
 }
 ```
 
-The universal slice type for strings is `[u8]` (UTF-8 by convention).
+The universal slice type for strings is `&str`, which is UTF-8.
 
 ## Dicts
 Dicts are key-value pairs and are declared with curly braces.
 Type annotation: `dict<K, V>`
 ```hhg
-d: dict<str, i32> = {"one": 1, "two": 2}
+let d: dict<str, i32> = {"one": 1, "two": 2}
 ```
 
 ## Functions
@@ -201,22 +200,23 @@ that spans multiple lines.
 ```
 
 ## References
-References are declared with `&const` and can be mutable with `&`.
-References 
+References are declared with `&` and can be mutable with `&mut`.
 
 ```hhg
-x = 14
-y = 5
+let x = 14
+let y = 5
 
-rx = &const x
-ry = &y
+let rx = &x
+let ry = &mut y
 ```
+
+`&static` references are references to static data that will live for the entire program.
 
 ## Casting
 Casting is done with `type(expr)`.
 ```hhg
-x = 5
-y = f64(x) // 5.0
+let x = 5
+let y = f64(x) // 5.0
 ```
 
 Hedgehog bans implicit casting except for widening conversions (e.g. `i32` to `i64`).
@@ -231,16 +231,16 @@ Types:
 - `shared<T>` (`Rc<T>` in Rust)
 - `weak<T>` (`Weak<T>` in Rust), `.upgrade()` to `shared<T>` if possible
 
-Basic types copy on assignment; complex types (`str`, `list`, `dict`, classes, etc.) move by default (`.copy()` to copy/share).
+Basic types copy on assignment; complex types (`str`, `list`, `dict`, arrays, classes, etc.) move by default (`.copy()` to copy/share).
 ```hhg
-x = 5
-y = x
-z = y
+let x = 5
+let y = x
+let z = y
 print(x) // 5
 
-s1 = "hello"
-s2 = s1.copy()
-s3 = s1 // move
+let s1: str = "hello"
+let s2 = s1.copy()
+let s3 = s1 // move
 print(s1) // error: s1 has been moved
 print(s2) // "hello"
 print(s3) // "hello"
@@ -256,28 +256,32 @@ import std.math
 class Point {
     x: f64
     y: f64
-    fn dist(&self, p: &const Point) -> f64 {
-        dx = self.x - p.x
-        dy = self.y - p.y
-        std.math.sqrt(dx * dx + dy * dy)
+    fn dist(&self, p: &
+
+    Point) -> f64 {
+        let dx = self.x - p.x
+        let dy = self.y - p.y
+        return std.math.sqrt(dx * dx + dy * dy)
     }
 }
-p1 = Point(3.0, 4.0)
-p2 = Point(0.0, 0.0)
+let p1 = Point(3.0, 4.0)
+let p2 = Point(0.0, 0.0)
 print(p1.dist(&p2)) // 5.0
 ```
 Field access is with dot notation (`p.x`).
 No `::`.
+
+`static` methods do not take `self` and are called with `ClassName.method(...)`.
 
 Several methods are standardized:
 
 | Method | Meaning |
 |--------|---------|
 | `fn ClassName(...)` | Constructor, automatically generated but can be overridden |
-| `fn ~ClassName(&self)` | Destructor, automatically generated but can be overridden |
+| `fn ~ClassName(&mut self)` | Destructor, automatically generated but can be overridden |
 | `fn copy(&self) -> ClassName` | Copy method |
 | `fn hash(&self) -> usize` | Hash method |
-| `fn print(&self, f: &const File)` | Print method |
+| `fn print(&self, f: &File)` | Print method |
 | `fn str(&self) -> str` | String method |
 | `fn len(&self) -> usize` | Length method |
 | `fn cap(&self) -> usize` | Capacity method |
@@ -318,18 +322,20 @@ type int_t = i32
 
 ## Tagged Unions
 Hedgehog has tagged unions (`A | B | ...`), often convenient for optionals and results.
+Tagged unions are nominal (e.g. `(A | B) | C` is the same as `A | B | C`).
 `!type` declares an error type.
 `null` is a constant meaning nothing.
 
-`expr?` will return `null`/`!type` if `expr` is not valid.
+`expr?` will propagate `null`/`!type` if `expr` is not valid.
 `expr!` will `panic` if `expr` is not valid.
 
 ```hhg
 fn test() -> u32 | null {
+    let u: u32 = 4
     if u % 2 == 0 {
         return u
     }
-    null
+    return null
 }
 
 type zero_error = !void // error type, void -> no data
@@ -337,7 +343,7 @@ fn divide(a: f64, b: f64) -> f64 | zero_error {
     if b == 0.0 {
         return zero_error
     }
-    a / b
+    return a / b
 }
 ```
 
@@ -364,28 +370,32 @@ fn main() {
 }
 ```
 
+### Pointers
+
+Pointers are declared with `*` and have the same syntax as references, but they can bypass the borrow checker.
+Pointers cannot be `null` by default; you must use `*T | null` for nullable pointers.
+
 ## Unsafe
 Unsafe code is declared with the `unsafe` keyword. `unsafe` code can:
 
 - Assign/use `class` references
 - Dereference raw pointers
 - Call unsafe functions
+- Declare variables without initializing them
 
 `unsafe` can modify a function, class, or variable.
 Global variable access does not require `unsafe`, as Hedgehog does not have threads (yet).
 
-### Pointers
-
-Pointers are declared with `*` and have the same syntax as references, but they can bypass the borrow checker.
-Pointers cannot be `null` by default; you must use `*T | null` for nullable pointers.
-
 ```hhg
 unsafe {
-    ptr: *const i32 = &x
+    let ptr: *const i32 = &x
     println(*ptr)
 
-    nullable_ptr: *const i32 | null = null
+    let nullable_ptr: *i32 | null = null
     *nullable_ptr = 5 // this will segfault! be careful!
+
+    let undefined: *i32
+    println(*undefined) // UB
 
     cpp_func() // C++ functions are unsafe
 }
