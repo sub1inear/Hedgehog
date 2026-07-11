@@ -1,4 +1,6 @@
-let x = 5
-let y: i32 = 10
-let mut z = 0
-z = x + y
+fn main() {
+    let x = 5
+    let y: i32 = 10
+    let mut z = 0
+    z = x + y
+}

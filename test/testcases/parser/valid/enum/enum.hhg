@@ -3,4 +3,7 @@ enum Color {
     Green,
     Blue,
 }
-let c = Color.Red
+
+fn main() {
+    let c = Color.Red
+}

@@ -1,5 +1,8 @@
 fn inc(x: i32) -> i32 {
     return x + 1
 }
-inc(1)
-inc(inc(2))
+
+fn main() {
+    inc(1)
+    inc(inc(2))
+}

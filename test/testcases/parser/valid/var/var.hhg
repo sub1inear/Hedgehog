@@ -1,4 +1,6 @@
-let x = 1
-let y = x
-let mut z = y
-z = x
+fn main() {
+    let x = 1
+    let y = x
+    let mut z = y
+    z = x
+}

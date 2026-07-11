@@ -1,4 +1,6 @@
-let mut x = 10
-while x > 0 {
-    x -= 1
+fn main() {
+    let mut x = 10
+    while x > 0 {
+        x -= 1
+    }
 }

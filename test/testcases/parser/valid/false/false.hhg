@@ -1,2 +1,4 @@
-let x = false
-let y: bool = false
+fn main() {
+    let x = false
+    let y: bool = false
+}

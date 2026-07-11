@@ -1,4 +1,6 @@
-let x = 0
-let y = f32(x)
-let z = f64(5)
-let w = i64(3.14)
+fn main() {
+    let x = 0
+    let y = f32(x)
+    let z = f64(5)
+    let w = i64(3.14)
+}

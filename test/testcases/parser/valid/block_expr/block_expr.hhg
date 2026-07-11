@@ -1,5 +1,7 @@
-let x = {
-    let a = 1
-    let b = 2
-    a + b
+fn main() {
+    let x = {
+        let a = 1
+        let b = 2
+        a + b
+    }
 }
