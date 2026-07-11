@@ -96,7 +96,8 @@ supported format specifiers:
 %Y   - hhg_sym_t *
 %N   - hhg_node_t * without symbols
 %M   - hhg_node_t * with symbols
-%T   - hhg_type_t *
+%T   - hhg_token_t *
+%C   - hhg_type_t *
 %O   - hhg_mir_opnd_t *
 %I   - hhg_mir_instr_t *
 %F   - hhg_mir_func_t *

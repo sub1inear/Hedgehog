@@ -42,21 +42,6 @@ static void hhg_msg_process_msg_type(
 // if color is not enabled, color can be NULL
 static void hhg_msg_print_msg_type_str(const char *str, const char *color);
 
-/*
-simplified vfprintf with support for hhg-specific types
-
-supported format specifiers:
-%s  - string
-%i  - int
-%lu - long unsigned int
-%c  - char
-%b  - bool
-%%  - %
-%t  - hhg_token_type_t
-%n  - hhg_node_type_t 
-%T  - hhg_type_t *
-*/
-
 void hhg_msg_ctx_init(hhg_msg_ctx_t *msg_ctx, hhg_cmd_args_t *cmd_args)
 {
     msg_ctx->error_count = 0;

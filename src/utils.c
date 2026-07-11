@@ -302,9 +302,9 @@ void hhg_stream_vprintf(
                             c
                         );
                 default:
-                    hhg_compiler_error("invalid format specifier: `%%%c`", c);
+                    hhg_stream_print_int(stream, va_arg(va, int));
+                    break;
                 }
-                hhg_stream_print_int(stream, va_arg(va, int32_t));
                 break;
             case 'u':
                 c = *++fmt;
@@ -332,13 +332,14 @@ void hhg_stream_vprintf(
                             c
                         );
                 default:
-                    hhg_compiler_error("invalid format specifier: `%%%c`", c);
+                    hhg_stream_print_uint(stream, va_arg(va, unsigned int));
+                    break;
                 }
                 break;
             case 'f':
                 hhg_stream_print_double(stream, va_arg(va, double));
                 break;
-            case 'l': {
+            case 'l':
                 c = *++fmt;
                 switch (c) {
                 case 'i':
@@ -352,7 +353,6 @@ void hhg_stream_vprintf(
                     break;
                 }
                 break;
-            }
             case 'z': {
                 fmt++;
                 c = *fmt;
@@ -362,33 +362,28 @@ void hhg_stream_vprintf(
                     hhg_compiler_error("invalid format specifier: `%%%c`", c);
                 break;
             }
-            case 'c': {
+            case 'c':
                 stream->out_char(stream->arg, (char)va_arg(va, int));
                 break;
-            }
-            case 'b': {
+            case 'b':
                 stream->out_str(
                     stream->arg,
                     (bool)va_arg(va, int) ? "true" : "false"
                 );
                 break;
-            }
             case 'n': // same as 't'
-            case 't': {
+            case 't':
                 hhg_token_type_print_stream(
                     va_arg(va, hhg_token_type_t),
                     stream
                 );
                 break;
-            }
-            case 'r': {
+            case 'r':
                 hhg_stream_print_int(stream, va_arg(va, hhg_mir_reg_t));
                 break;
-            }
-            case 'e': {
+            case 'e':
                 hhg_stream_print_int(stream, va_arg(va, hhg_mir_field_t));
                 break;
-            }
             case 'S': {
                 hhg_str_t *hhg_str_arg = va_arg(va, hhg_str_t *);
                 if (hhg_str_arg) {
@@ -420,10 +415,12 @@ void hhg_stream_vprintf(
                     stream->out_str(stream->arg, "(null)");
                 break;
             }
-            case 'T': {
+            case 'T':
+                hhg_token_print_stream(va_arg(va, hhg_token_t *), stream);
+                break;
+            case 'C':
                 hhg_type_print_stream(va_arg(va, hhg_type_t *), stream);
                 break;
-            }       
             case 'R': {
                 hhg_file_range_t *file_range_arg =
                     va_arg(va, hhg_file_range_t *);

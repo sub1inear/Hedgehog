@@ -156,27 +156,27 @@ void hhg_token_reset_aux(hhg_token_t *token)
 
 void hhg_token_print(hhg_token_t *token)
 {
-    hhg_printf("{ .type = %t, .value = ", token->type);
+    hhg_token_print_stream(token, hhg_stream_get_stdout());
+}
 
+void hhg_token_print_stream(hhg_token_t *token, const hhg_stream_t *stream)
+{
+    hhg_stream_printf(stream, "{ .type = %t, .value = ", token->type);
     switch (token->type) {
     case HHG_TOKEN_INT_LITERAL:
     case HHG_TOKEN_FLOAT_LITERAL:
     case HHG_TOKEN_CHAR_LITERAL:
     case HHG_TOKEN_STRING_LITERAL:
     case HHG_TOKEN_ID:
-        if (token->str.str)
-            fputs(token->str.str, stdout);
+        hhg_stream_printf(stream, "\"%s\"", token->str.str);
         break;
     default:
-        fputs("null", stdout);
+        stream->out_str(stream->arg, "null");
         break;
     }
-    fputs(", .range = ", stdout);
-
-    hhg_file_range_print(&token->range);
-
-    fputs(" }", stdout);
+    hhg_stream_printf(stream, ", .range = %R }", &token->range);
 }
+
 
 void hhg_token_del(hhg_token_t *token)
 {

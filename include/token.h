@@ -127,6 +127,7 @@ void hhg_token_init(hhg_token_t *token);
 void hhg_token_reset_aux(hhg_token_t *token);
 
 void hhg_token_print(hhg_token_t *token);
+void hhg_token_print_stream(hhg_token_t *token, const hhg_stream_t *stream);
 
 void hhg_token_del(hhg_token_t *token);
 

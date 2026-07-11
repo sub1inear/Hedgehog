@@ -290,7 +290,7 @@ static void hhg_sem_an_run_var_decl(hhg_sem_an_t *sem_an, hhg_node_t *node)
         hhg_sem_an_error(
             sem_an,
             node,
-            "type mismatch: variable `%s` has type `%T` but expression has type `%T`",
+            "type mismatch: variable `%s` has type `%C` but expression has type `%C`",
             NULL,
             name,
             node->value_type,
@@ -640,7 +640,7 @@ static void hhg_sem_an_run_expr(hhg_sem_an_t *sem_an, hhg_node_t *node)
         hhg_sem_an_error(
             sem_an,
             node,
-            "type mismatch between `%T` and `%T`",
+            "type mismatch between `%C` and `%C`",
             "here",
             left_type,
             right_type

@@ -60,7 +60,7 @@ void hhg_node_print_stream(
 
     hhg_token_type_print_stream((hhg_token_type_t)node->type, stream);
     
-    hhg_stream_printf(stream, " %T\n", node->value_type);
+    hhg_stream_printf(stream, " %C\n", node->value_type);
 
     int32_t next_indent = indent + HHG_NODE_INDENT_INC;
     int32_t next_next_indent = next_indent + HHG_NODE_INDENT_INC;
