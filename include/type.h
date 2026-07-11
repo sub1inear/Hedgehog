@@ -8,6 +8,7 @@
 typedef struct hhg_sym hhg_sym_t;
 typedef struct hhg_type_ctx hhg_type_ctx_t;
 typedef struct arena hhg_arena_t;
+typedef struct hhg_stream hhg_stream_t;
 
 // must have <= 32 types to fit in 5 bits in hhg_type_t
 enum hhg_base_type {
@@ -110,13 +111,7 @@ bool hhg_base_type_is_arith(hhg_token_type_t token_type);
 bool hhg_type_eq(hhg_type_t *l, hhg_type_t *r);
 
 void hhg_type_print(hhg_type_t *type);
-
-void hhg_type_print_core(
-    hhg_type_t *type,
-    void (*out_char)(void *arg, char c),
-    void (*out_str)(void *arg, const char *str),
-    void *arg
-);
+void hhg_type_print_stream(hhg_type_t *type, const hhg_stream_t *stream);
 
 void hhg_type_del(hhg_type_t *type);
 

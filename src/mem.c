@@ -83,6 +83,9 @@ void hhg_arena_free(hhg_arena_t *arena)
 
 #ifdef HHG_MEM_DEBUG
 
+// note: no hhg_printf in this file to avoid allocations
+// hhg_printf could use hhg_malloc
+
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
@@ -343,7 +346,6 @@ void hhg_mem_debug_print_stats(void)
                 putchar('\n');
             } else {
                 printf("  leak at %p allocated/reallocated at:\n", alloc.key);
-
                 for (size_t j = 0; j < locs_len; j++) {
                     fputs("    ", stdout);
                     hhg_mem_alloc_loc_print(locs[j]);
@@ -363,8 +365,7 @@ void hhg_mem_debug_print_stats(void)
         for (size_t i = 0; i < num_arena_leaks; i++) {
             hhg_mem_arena_alloc_t alloc = mem_arena_alloc_tab[i];
 
-            printf("  arena leak at %p created at", alloc.key);
-
+            printf("  arena leak at %p created at ", alloc.key);
             hhg_mem_alloc_loc_print(alloc.value);
             putchar('\n');
         }

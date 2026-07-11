@@ -101,11 +101,7 @@ void hhg_msg(
     for (int32_t i = 0; i < max_line_width; i++)
         fputc(' ', stderr);
 
-    hhg_fprintf(stderr, "--> %s:", src->filename);
-
-    hhg_file_pos_fprint(&range->start, stderr);
-
-    fputc('\n', stderr);
+    hhg_fprintf(stderr, "--> %s:%P\n", src->filename, &range->start);
 
     for (int32_t line = range->start.line; line <= range->end.line; line++) {
         hhg_msg_print_src_line(src, line, max_line_width);

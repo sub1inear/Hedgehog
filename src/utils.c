@@ -2,6 +2,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 
 #include <fs.h>
 
@@ -11,6 +12,10 @@
 #include "msg.h"
 #include "token.h"
 #include "type.h"
+#include "node.h"
+#include "mir.h"
+#include "file_pos.h"
+#include "file_range.h"
 
 #ifdef HHG_WINDOWS
 #include <windows.h>
@@ -31,6 +36,23 @@ static int hhg_spawn_core(char *cmdline, const char *exec, hhg_str_t *stdouterr)
 #elif defined(HHG_POSIX)
 static void hhg_read_fd_to_str(int fd, hhg_str_t *out);
 #endif
+static void hhg_stream_file_out_str(void *arg, const char *str);
+static void hhg_stream_file_out_char(void *arg, char c);
+static void hhg_stream_str_out_str(void *arg, const char *str);
+static void hhg_stream_str_out_char(void *arg, char c);
+static void hhg_stream_print_int(const hhg_stream_t *stream, intmax_t num);
+static void hhg_stream_print_uint(const hhg_stream_t *stream, uintmax_t num);
+static void hhg_stream_print_double(const hhg_stream_t *stream, double num);
+
+static hhg_stream_t stdout_stream = {
+    .out_str = hhg_stream_file_out_str,
+    .out_char = hhg_stream_file_out_char,
+};
+
+static hhg_stream_t stderr_stream = {
+    .out_str = hhg_stream_file_out_str,
+    .out_char = hhg_stream_file_out_char,
+};
 
 FILE *hhg_fopen(const char *filename, const char *mode)
 {
@@ -181,6 +203,14 @@ int64_t hhg_str_to_int64(const char *str)
     return negative ? -result : result;
 }
 
+void hhg_printf(const char *fmt, ...)
+{
+    va_list va;
+    va_start(va, fmt);
+    hhg_stream_vprintf(hhg_stream_get_stdout(), fmt, va);
+    va_end(va);
+}
+
 void hhg_fprintf(FILE *stream, const char *fmt, ...)
 {
     va_list va;
@@ -197,56 +227,44 @@ void hhg_sprintf(hhg_str_t *str, const char *fmt, ...)
     va_end(va);
 }
 
-void hhg_printf(const char *fmt, ...)
+void hhg_vfprintf(FILE *file, const char *fmt, va_list va)
 {
-    va_list va;
-    va_start(va, fmt);
-    hhg_vfprintf(stdout, fmt, va);
-    va_end(va);
-}
-
-void hhg_vfprintf(FILE *stream, const char *fmt, va_list va)
-{
-    hhg_vprintf_core(
+    hhg_stream_vprintf(
+        &(hhg_stream_t) {
+            .out_str = hhg_stream_file_out_str,
+            .out_char = hhg_stream_file_out_char,
+            .arg = file
+        },
         fmt,
-        va,
-        hhg_vfprintf_out_str,
-        hhg_vfprintf_out_char,
-        stream
+        va
     );
 }
 
 void hhg_vsprintf(hhg_str_t *str, const char *fmt, va_list va)
 {
-    hhg_vprintf_core(
+    hhg_stream_vprintf(
+        &(hhg_stream_t) {
+            .out_str = hhg_stream_str_out_str,
+            .out_char = hhg_stream_str_out_char,
+            .arg = str
+        },
         fmt,
-        va,
-        hhg_vsprintf_out_str,
-        hhg_vsprintf_out_char,
-        str
+        va
     );
 }
 
-void hhg_printf_core(
-    const char *fmt,
-    void (*out_str)(void *arg, const char *str),
-    void (*out_char)(void *arg, char c),
-    void *arg,
-    ...
-)
+void hhg_stream_printf(const hhg_stream_t *stream, const char *fmt, ...)
 {
     va_list va;
-    va_start(va, arg);
-    hhg_vprintf_core(fmt, va, out_str, out_char, arg);
+    va_start(va, fmt);
+    hhg_stream_vprintf(stream, fmt, va);
     va_end(va);
 }
 
-void hhg_vprintf_core(
+void hhg_stream_vprintf(
+    const hhg_stream_t *stream,
     const char *fmt,
-    va_list va,
-    void (*out_str)(void *arg, const char *str),
-    void (*out_char)(void *arg, char c),
-    void *arg
+    va_list va
 )
 {
     char c;
@@ -255,141 +273,202 @@ void hhg_vprintf_core(
             switch (c = *fmt) {
             case 's': {
                 const char *str_arg = va_arg(va, const char *);
-                if (str_arg)
-                    out_str(arg, str_arg);
-                else
-                    out_str(arg, "(null)");
+                stream->out_str(stream->arg, str_arg ? str_arg : "(null)");
                 break;
             }
-            case 'S': {
-                const hhg_str_t *hhg_str_arg = va_arg(va, const hhg_str_t *);
-                if (hhg_str_arg) {
-                    hhg_assert(hhg_str_arg->str != NULL);
-                    out_str(arg, hhg_str_arg->str);
-                } else
-                    out_str(arg, "(null)");
+            case 'i':
+                c = *++fmt;
+                switch (c) {
+                case '3':
+                    c = *++fmt;
+                    if (c == '2') {
+                        hhg_stream_print_int(stream, va_arg(va, int32_t));
+                        break;
+                    } else
+                        hhg_compiler_error(
+                            "invalid format specifier: `%%%c%c`",
+                            '3',
+                            c
+                        );
+                case '6':
+                    c = *++fmt;
+                    if (c == '4') {
+                        hhg_stream_print_int(stream, va_arg(va, int64_t));
+                        break;
+                    } else
+                        hhg_compiler_error(
+                            "invalid format specifier: `%%%c%c`",
+                            '6',
+                            c
+                        );
+                default:
+                    hhg_compiler_error("invalid format specifier: `%%%c`", c);
+                }
+                hhg_stream_print_int(stream, va_arg(va, int32_t));
                 break;
-            }
-            case 'i': {
-                int int_arg = va_arg(va, int);
-                
-                int uint_arg;
-                if (int_arg < 0) {
-                    out_char(arg, '-');
-                    uint_arg = (unsigned int)(-int_arg);
-                } else
-                    uint_arg = (unsigned int)int_arg;
-
-                char buffer[20];
-                size_t i = 0;
-
-                do {
-                    buffer[i++] = (char)(uint_arg % 10) + '0';
-                    uint_arg /= 10;
-                } while (uint_arg > 0);
-
-                for (size_t j = 0; j < i; j++)
-                    out_char(arg, buffer[i - j - 1]);
+            case 'u':
+                c = *++fmt;
+                switch (c) {
+                case '3':
+                    c = *++fmt;
+                    if (c == '2') {
+                        hhg_stream_print_uint(stream, va_arg(va, uint32_t));
+                        break;
+                    } else
+                        hhg_compiler_error(
+                            "invalid format specifier: `%%%c%c`",
+                            '3',
+                            c
+                        );
+                case '6':
+                    c = *++fmt;
+                    if (c == '4') {
+                        hhg_stream_print_uint(stream, va_arg(va, uint64_t));
+                        break;
+                    } else
+                        hhg_compiler_error(
+                            "invalid format specifier: `%%%c%c`",
+                            '6',
+                            c
+                        );
+                default:
+                    hhg_compiler_error("invalid format specifier: `%%%c`", c);
+                }
                 break;
-            }
+            case 'f':
+                hhg_stream_print_double(stream, va_arg(va, double));
+                break;
             case 'l': {
-                fmt++;
-                c = *fmt;
-                if (c == 'u') {
-                    unsigned long ulong_arg = va_arg(va, unsigned long);
-                    char buffer[20];
-                    size_t i = 0;
-                    do {
-                        buffer[i++] = (char)(ulong_arg % 10) + '0';
-                        ulong_arg /= 10;
-                    } while (ulong_arg > 0);
-
-                    for (size_t j = 0; j < i; j++)
-                        out_char(arg, buffer[i - j - 1]);
-                } else {
-                    out_str(arg, "%l");
-                    fmt--;
+                c = *++fmt;
+                switch (c) {
+                case 'i':
+                    hhg_stream_print_int(stream, va_arg(va, long));
+                    break;
+                case 'u':
+                    hhg_stream_print_uint(stream, va_arg(va, unsigned long));
+                    break;
+                default:
+                    hhg_stream_print_int(stream, va_arg(va, hhg_mir_lbl_t));
+                    break;
                 }
                 break;
             }
             case 'z': {
                 fmt++;
                 c = *fmt;
-                if (c == 'u') {
-                    size_t size_arg = va_arg(va, size_t);
-                    char buffer[20];
-                    size_t i = 0;
-                    do {
-                        buffer[i++] = (char)(size_arg % 10) + '0';
-                        size_arg /= 10;
-                    } while (size_arg > 0);
-
-                    for (size_t j = 0; j < i; j++)
-                        out_char(arg, buffer[i - j - 1]);
-                } else {
-                    out_str(arg, "%z");
-                    fmt--;
-                }
+                if (c == 'u')
+                    hhg_stream_print_uint(stream, va_arg(va, size_t));
+                else
+                    hhg_compiler_error("invalid format specifier: `%%%c`", c);
                 break;
             }
             case 'c': {
-                char char_arg = (char)va_arg(va, int);
-                out_char(arg, char_arg);
+                stream->out_char(stream->arg, (char)va_arg(va, int));
                 break;
             }
             case 'b': {
-                bool bool_arg = (bool)va_arg(va, int);
-                if (bool_arg)
-                    out_str(arg, "true");
-                else
-                    out_str(arg, "false");
+                stream->out_str(
+                    stream->arg,
+                    (bool)va_arg(va, int) ? "true" : "false"
+                );
                 break;
             }
             case 'n': // same as 't'
             case 't': {
-                hhg_token_type_t token_type_arg =
-                    va_arg(va, hhg_token_type_t);
-                out_str(arg, hhg_token_type_to_str(token_type_arg));
+                hhg_token_type_print_stream(
+                    va_arg(va, hhg_token_type_t),
+                    stream
+                );
+                break;
+            }
+            case 'r': {
+                hhg_stream_print_int(stream, va_arg(va, hhg_mir_reg_t));
+                break;
+            }
+            case 'e': {
+                hhg_stream_print_int(stream, va_arg(va, hhg_mir_field_t));
+                break;
+            }
+            case 'S': {
+                hhg_str_t *hhg_str_arg = va_arg(va, hhg_str_t *);
+                if (hhg_str_arg) {
+                    hhg_assert(hhg_str_arg->str != NULL);
+                    stream->out_str(stream->arg, hhg_str_arg->str);
+                } else
+                    stream->out_str(stream->arg, "(null)");
+                break;
+            }
+            case 'Y': {
+                hhg_sym_t *sym_arg = va_arg(va, hhg_sym_t *);
+                if (sym_arg)
+                    hhg_sym_print_stream(sym_arg, stream);
+                else
+                    stream->out_str(stream->arg, "(null)");
+                break;
+            }
+            case 'M':
+            case 'N': {
+                hhg_node_t *node_arg = va_arg(va, hhg_node_t *);
+                if (node_arg)
+                    hhg_node_print_stream(
+                        node_arg,
+                        HHG_NODE_INDENT_START,
+                        c == 'M' ? true : false,
+                        stream
+                    );
+                else
+                    stream->out_str(stream->arg, "(null)");
                 break;
             }
             case 'T': {
-                hhg_type_t *type_arg = va_arg(va, hhg_type_t *);
-                hhg_type_print_core(type_arg, out_char, out_str, arg);
+                hhg_type_print_stream(va_arg(va, hhg_type_t *), stream);
+                break;
+            }       
+            case 'R': {
+                hhg_file_range_t *file_range_arg =
+                    va_arg(va, hhg_file_range_t *);
+                if (file_range_arg)
+                    hhg_file_range_print_stream(file_range_arg, stream);
+                else
+                    stream->out_str(stream->arg, "(null)");
+                break;
+            }
+            case 'P': {
+                hhg_file_pos_t *file_pos_arg =
+                    va_arg(va, hhg_file_pos_t *);
+                if (file_pos_arg)
+                    hhg_file_pos_print_stream(file_pos_arg, stream);
+                else
+                    stream->out_str(stream->arg, "(null)");
                 break;
             }
             case '%':
+                stream->out_str(stream->arg, "%%");
+                break;
             default:
-                out_char(arg, '%');
-                out_char(arg, c);
+                hhg_compiler_error("invalid format specifier: `%%%c`", c);
                 break;
             }
             if (c != '\0')
                 fmt++;
         } else
-            out_char(arg, c);
+            stream->out_char(stream->arg, c);
     }
 }
 
-void hhg_vfprintf_out_str(void *arg, const char *str)
-{
-    fputs(str, (FILE *)arg);
+const hhg_stream_t *hhg_stream_get_stdout()
+{   
+    stdout_stream.arg = stdout; // stdout can be a function so must be reassigned
+    return (const hhg_stream_t *)&stdout_stream;
 }
 
-void hhg_vfprintf_out_char(void *arg, char c)
+const hhg_stream_t *hhg_stream_get_stderr()
 {
-    fputc(c, (FILE *)arg);
-
+    stderr_stream.arg = stderr; // stderr can be a function so must be reassigned
+    return (const hhg_stream_t *)&stderr_stream;
 }
 
-void hhg_vsprintf_out_str(void *arg, const char *str)
-{
-    hhg_str_append_str((hhg_str_t *)arg, str);
-}
 
-void hhg_vsprintf_out_char(void *arg, char c)
-{
-    hhg_str_append_char((hhg_str_t *)arg, c);
-}
 
 void hhg_assert_core(const char *expr_str, const char *file, int line)
 {
@@ -546,3 +625,105 @@ static void hhg_read_fd_to_str(int fd, hhg_str_t *out)
         hhg_fatal_error("error reading file descriptor: %s", strerror(errno));
 }
 #endif
+
+static void hhg_stream_file_out_str(void *arg, const char *str)
+{
+    fputs(str, (FILE *)arg);
+}
+
+static void hhg_stream_file_out_char(void *arg, char c)
+{
+    fputc(c, (FILE *)arg);
+}
+
+static void hhg_stream_str_out_str(void *arg, const char *str)
+{
+    hhg_str_append_str((hhg_str_t *)arg, str);
+}
+
+static void hhg_stream_str_out_char(void *arg, char c)
+{
+    hhg_str_append_char((hhg_str_t *)arg, c);
+}
+
+static void hhg_stream_print_int(const hhg_stream_t *stream, intmax_t num)
+{
+    uintmax_t unum;
+    if (num < 0) {
+        stream->out_char(stream->arg, '-');
+        unum = (uintmax_t)(-num);
+    } else {
+        unum = (uintmax_t)num;
+    }
+    hhg_stream_print_uint(stream, unum);
+}
+
+static void hhg_stream_print_uint(const hhg_stream_t *stream, uintmax_t num)
+{
+    char buffer[32];
+    size_t i = 0;
+
+    do {
+        buffer[i++] = (char)(num % 10) + '0';
+        num /= 10;
+    } while (num > 0);
+
+    while (i > 0)
+        stream->out_char(stream->arg, buffer[--i]);
+}
+
+static void hhg_stream_print_double(const hhg_stream_t *stream, double num)
+{
+    if (isnan(num)) {
+        stream->out_str(stream->arg, "nan");
+        return;
+    }
+    if (isinf(num)) {
+        stream->out_str(stream->arg, num < 0.0 ? "-inf" : "inf");
+        return;
+    }
+
+    if (num < 0.0) {
+        stream->out_char(stream->arg, '-');
+        num = -num;
+    }
+
+    bool use_sci = num != 0.0 && (num >= 1e7 || num < 1e-4);
+    int exp = 0;
+    if (use_sci) {
+        if (num >= 10.0) {
+            while (num >= 10.0) { num /= 10.0; exp++; }
+        } else {
+            while (num < 1.0) { num *= 10.0; exp--; }
+        }
+    }
+
+    intmax_t int_part = (intmax_t)num;
+    double frac = num - (double)int_part;
+    uint64_t frac_digits = (uint64_t)(frac * 1000000.0 + 0.5);
+    if (frac_digits >= 1000000) {
+        frac_digits = 0;
+        int_part++;
+        if (use_sci && int_part >= 10) {
+            int_part = 1;
+            exp++;
+        }
+    }
+
+    hhg_stream_print_int(stream, int_part);
+    stream->out_char(stream->arg, '.');
+
+    char frac_buf[7];
+    for (int i = 5; i >= 0; i--) {
+        frac_buf[i] = '0' + (int)(frac_digits % 10);
+        frac_digits /= 10;
+    }
+    frac_buf[6] = '\0';
+    stream->out_str(stream->arg, frac_buf);
+
+    if (use_sci) {
+        stream->out_char(stream->arg, 'e');
+        stream->out_char(stream->arg, exp >= 0 ? '+' : '-');
+        hhg_stream_print_uint(stream, (uintmax_t)(exp >= 0 ? exp : -exp));
+    }
+}

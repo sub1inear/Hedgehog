@@ -8,6 +8,12 @@
 #include "file_range.h"
 
 #define HHG_TOKEN_START UCHAR_MAX
+#define HHG_TOKEN_END (HHG_TOKEN_DEC + 1)
+
+#define HHG_PREC_NONE (-1)
+
+typedef struct hhg_stream hhg_stream_t;
+
 enum hhg_token_type {
     HHG_TOKEN_NONE = HHG_TOKEN_START,
     HHG_TOKEN_ID,
@@ -102,13 +108,12 @@ enum hhg_token_type {
 // guarantee being signed (for comparison with EOF)
 typedef int hhg_token_type_t;
 
-#define HHG_TOKEN_END (HHG_TOKEN_DEC + 1)
-
-#define HHG_PREC_NONE (-1)
-
 const char *hhg_token_type_to_str(hhg_token_type_t type);
-
 void hhg_token_type_print(hhg_token_type_t type);
+void hhg_token_type_print_stream(
+    hhg_token_type_t type,
+    const hhg_stream_t *stream
+);
 
 typedef struct hhg_token {
     hhg_token_type_t type;

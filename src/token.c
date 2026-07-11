@@ -125,15 +125,20 @@ const char *const token_type_to_str[] = {
 
 const char *hhg_token_type_to_str(hhg_token_type_t type)
 {
-    if (type == EOF)
-        return "EOF";
-    else
-        return token_type_to_str[type];
+    return type == EOF ? "EOF" : token_type_to_str[type];
 }
 
 void hhg_token_type_print(hhg_token_type_t type)
 {
-    fputs(hhg_token_type_to_str(type), stdout);
+    hhg_token_type_print_stream(type, hhg_stream_get_stdout());
+}
+
+void hhg_token_type_print_stream(
+    hhg_token_type_t type,
+    const hhg_stream_t *stream
+)
+{
+    stream->out_str(stream->arg, hhg_token_type_to_str(type));   
 }
 
 void hhg_token_init(hhg_token_t *token)

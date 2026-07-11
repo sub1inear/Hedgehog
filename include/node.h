@@ -5,14 +5,15 @@
 
 #include "token.h"
 #include "sym.h"
-#include "mem.h"
 #include "file_range.h"
 
 typedef struct hhg_file_src hhg_file_src_t;
+typedef struct hhg_type hhg_type_t;
 
 #define HHG_NODE_INDENT_START 0
 
 #define HHG_NODE_START HHG_TOKEN_END
+#define HHG_NODE_END (HHG_NODE_OBJ_INIT + 1)
 
 enum hhg_node_type {
     HHG_NODE_BLOCK = HHG_NODE_START,
@@ -22,8 +23,6 @@ enum hhg_node_type {
     HHG_NODE_OBJ_INIT,
 };
 typedef int hhg_node_type_t;
-
-#define HHG_NODE_END (HHG_NODE_FUNC_CALL + 1)
 
 typedef struct hhg_node hhg_node_t;
 
@@ -155,6 +154,12 @@ hhg_node_t *hhg_node_new(
 );
 
 void hhg_node_print(hhg_node_t *node, int32_t indent, bool use_sym);
+void hhg_node_print_stream(
+    hhg_node_t *node,
+    int32_t indent,
+    bool use_sym,
+    const hhg_stream_t *stream
+);
 
 void hhg_node_free(hhg_node_t *node);
 

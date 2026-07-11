@@ -1,16 +1,17 @@
 #ifndef HHG_MIR_H
 #define HHG_MIR_H
 
-#include <inttypes.h>
 #include <stdbool.h>
 
 #include "node.h"
 #include "token.h"
 #include "type.h"
 
-#define HHG_PRIreg PRId32
-#define HHG_PRIlbl PRId32
-#define HHG_PRIfield PRId32
+#define hhg_mir_new_instr(arena, instr_type) \
+    hhg_arena_malloc(                        \
+        arena,                               \
+        sizeof(instr_type)                   \
+    )
 
 typedef int32_t hhg_mir_reg_t;
 typedef int32_t hhg_mir_lbl_t;
@@ -298,10 +299,21 @@ typedef struct hhg_mir_local {
 } hhg_mir_local_t;
 
 void hhg_mir_opnd_print(hhg_mir_opnd_t *opnd);
-
 void hhg_mir_instr_print(hhg_mir_instr_t *instr);
-
 void hhg_mir_func_print(hhg_mir_func_t *func);
+
+void hhg_mir_opnd_print_stream(
+    hhg_mir_opnd_t *opnd,
+    const hhg_stream_t *stream
+);
+void hhg_mir_instr_print_stream(
+    hhg_mir_instr_t *instr,
+    const hhg_stream_t *stream
+);
+void hhg_mir_func_print_stream(
+    hhg_mir_func_t *func,
+    const hhg_stream_t *stream
+);
 
 void hhg_mir_instr_free(hhg_mir_instr_t *instr);
 

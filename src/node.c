@@ -8,12 +8,25 @@
 #include "token.h"
 #include "mem.h"
 #include "msg.h"
+#include "utils.h"
 
 #define HHG_NODE_INDENT_INC 4
 
-static void hhg_node_print_indent(int32_t indent);
-static void hhg_node_print_str(const char *str, int32_t indent);
-static void hhg_node_print_id(hhg_id_t id, int32_t indent, bool use_sym);
+static void hhg_node_print_stream_indent(
+    int32_t indent,
+    const hhg_stream_t *stream
+);
+static void hhg_node_print_stream_str(
+    const char *str,
+    int32_t indent,
+    const hhg_stream_t *stream
+);
+static void hhg_node_print_stream_id(
+    hhg_id_t id,
+    int32_t indent,
+    bool use_sym,
+    const hhg_stream_t *stream
+);
 
 hhg_node_t *hhg_node_new(
     hhg_arena_t *arena,
@@ -29,18 +42,25 @@ hhg_node_t *hhg_node_new(
     return node;
 }
 
-
 void hhg_node_print(hhg_node_t *node, int32_t indent, bool use_sym)
+{
+    hhg_node_print_stream(node, indent, use_sym, hhg_stream_get_stdout());
+}
+
+void hhg_node_print_stream(
+    hhg_node_t *node,
+    int32_t indent,
+    bool use_sym,
+    const hhg_stream_t *stream
+)
 {   
     if (node == NULL)
         return;
-    hhg_node_print_indent(indent);
+    hhg_node_print_stream_indent(indent, stream);
 
-    hhg_token_type_print((hhg_token_type_t)node->type);
+    hhg_token_type_print_stream((hhg_token_type_t)node->type, stream);
     
-    putchar(' ');
-    hhg_type_print(node->value_type);
-    putchar('\n');
+    hhg_stream_printf(stream, " %T\n", node->value_type);
 
     int32_t next_indent = indent + HHG_NODE_INDENT_INC;
     int32_t next_next_indent = next_indent + HHG_NODE_INDENT_INC;
@@ -49,100 +69,178 @@ void hhg_node_print(hhg_node_t *node, int32_t indent, bool use_sym)
     case HHG_NODE_BLOCK: {
         size_t len = arrlenu(node->value.block.body);
         for (size_t i = 0; i < len; i++)
-            hhg_node_print(node->value.block.body[i], next_indent, use_sym);
+            hhg_node_print_stream(
+                node->value.block.body[i],
+                next_indent,
+                use_sym,
+                stream
+            );
         break;
     }
     case HHG_NODE_PARAM:
-        hhg_node_print_id(node->value.param.id, next_indent, use_sym);
+        hhg_node_print_stream_id(
+            node->value.param.id,
+            next_indent,
+            use_sym,
+            stream
+        );
         break;
     case HHG_TOKEN_ID:
-        hhg_node_print_id(node->value.id, next_indent, use_sym);
+        hhg_node_print_stream_id(
+            node->value.id,
+            next_indent,
+            use_sym,
+            stream
+        );
         break;
     case HHG_TOKEN_STRING_LITERAL:
     case HHG_TOKEN_INT_LITERAL:
     case HHG_TOKEN_FLOAT_LITERAL:
-        hhg_node_print_str(node->value.literal.str, next_indent);
+        hhg_node_print_stream_str(
+            node->value.literal.str,
+            next_indent,
+            stream
+        );
         break;
     case HHG_TOKEN_IF:
-        hhg_node_print(node->value.if_stmt.cond, next_indent, use_sym);
-        hhg_node_print(node->value.if_stmt.if_body, next_indent, use_sym);
+        hhg_node_print_stream(
+            node->value.if_stmt.cond,
+            next_indent,
+            use_sym,
+            stream
+        );
+        hhg_node_print_stream(
+            node->value.if_stmt.if_body,
+            next_indent,
+            use_sym,
+            stream
+        );
         break;
     case HHG_TOKEN_WHILE:
-        hhg_node_print(node->value.while_stmt.cond, next_indent, use_sym);
-        hhg_node_print(node->value.while_stmt.body, next_indent, use_sym);
+        hhg_node_print_stream(
+            node->value.while_stmt.cond,
+            next_indent,
+            use_sym,
+            stream
+        );
+        hhg_node_print_stream(
+            node->value.while_stmt.body,
+            next_indent,
+            use_sym,
+            stream
+        );
         break;
     case '=':
-        hhg_node_print_id(node->value.var_decl.id, next_indent, use_sym);
-        hhg_node_print(node->value.var_decl.expr, next_indent, use_sym);
+        hhg_node_print_stream_id(
+            node->value.var_decl.id,
+            next_indent,
+            use_sym,
+            stream
+        );
+        hhg_node_print_stream(
+            node->value.var_decl.expr,
+            next_indent,
+            use_sym,
+            stream
+        );
         break;
     case HHG_NODE_OBJ_INIT: {
         size_t len = arrlenu(node->value.obj_init.args);
         for (size_t i = 0; i < len; i++)
-            hhg_node_print(node->value.obj_init.args[i], next_indent, use_sym);
+            hhg_node_print_stream(
+                node->value.obj_init.args[i],
+                next_indent,
+                use_sym,
+                stream
+            );
         break;
     }
     case HHG_TOKEN_DEF: {
-        hhg_node_print_str("id", next_indent);
-        hhg_node_print_id(node->value.func_decl.id, next_next_indent, use_sym);
+        hhg_node_print_stream_str(
+            "id",
+            next_indent,
+            stream
+        );
+        hhg_node_print_stream_id(
+            node->value.func_decl.id, 
+            next_next_indent,
+            use_sym,
+            stream
+        );
 
-        hhg_node_print_str("params", next_indent);
+        hhg_node_print_stream_str("params", next_indent, stream);
         size_t len = arrlenu(node->value.func_decl.params);
         for (size_t i = 0; i < len; i++)
-            hhg_node_print(
+            hhg_node_print_stream(
                 node->value.func_decl.params[i],
                 next_next_indent,
-                use_sym
+                use_sym,
+                stream
             );
 
-        hhg_node_print(node->value.func_decl.body, next_indent, use_sym);
+        hhg_node_print_stream(
+            node->value.func_decl.body,
+            next_indent,
+            use_sym,
+            stream
+        );
         break;
     }
     case HHG_TOKEN_CLASS: {
-        hhg_node_print_str("id", next_indent);
-        hhg_node_print_id(
+        hhg_node_print_stream_str("id", next_indent, stream);
+        hhg_node_print_stream_id(
             node->value.class_decl.id,
             next_next_indent,
-            use_sym
+            use_sym,
+            stream
         );
-        hhg_node_print_str("var decls", next_indent);
+        hhg_node_print_stream_str("var decls", next_indent, stream);
         size_t var_decls_len = arrlenu(node->value.class_decl.var_decls);
         for (size_t i = 0; i < var_decls_len; i++)
-            hhg_node_print(
+            hhg_node_print_stream(
                 node->value.class_decl.var_decls[i],
                 next_next_indent,
-                false // no sym for var decls in class
+                false, // no sym for var decls in class
+                stream
             );
 
-        hhg_node_print_str("func decls", next_indent);
+        hhg_node_print_stream_str("func decls", next_indent, stream);
         size_t func_decls_len = arrlenu(node->value.class_decl.func_decls);
         for (size_t i = 0; i < func_decls_len; i++)
-            hhg_node_print(
+            hhg_node_print_stream(
                 node->value.class_decl.func_decls[i],
                 next_next_indent,
-                false // no sym for func decls in class
+                false, // no sym for func decls in class
+                stream
             );
         break;
     }
     case '.':
-        hhg_node_print_str("id", next_indent);
-        hhg_node_print_str(node->value.field_access.str, next_next_indent);
-        hhg_node_print(
+        hhg_node_print_stream_str("id", next_indent, stream);
+        hhg_node_print_stream_str(
+            node->value.field_access.str,
+            next_next_indent,
+            stream
+        );
+        hhg_node_print_stream(
             node->value.field_access.next,
             next_indent,
-            false
-        ); // no sym for field access
+            false, // no sym for field access
+            stream
+        ); 
         break;
     case HHG_NODE_FUNC_CALL: {
-        hhg_node_print_str("id", next_indent);
-        hhg_node_print_id(node->value.func_call.id, next_next_indent, use_sym);
+        hhg_node_print_stream_str("id", next_indent, stream);
+        hhg_node_print_stream_id(node->value.func_call.id, next_next_indent, use_sym, stream);
 
-        hhg_node_print_str("args", next_indent);
+        hhg_node_print_stream_str("args", next_indent, stream);
         size_t len = arrlenu(node->value.func_call.args);
         for (size_t i = 0; i < len; i++)
-            hhg_node_print(
+            hhg_node_print_stream(
                 node->value.func_call.args[i],
                 next_next_indent,
-                use_sym
+                use_sym,
+                stream
             );
         break;
     }
@@ -150,15 +248,21 @@ void hhg_node_print(hhg_node_t *node, int32_t indent, bool use_sym)
     case HHG_TOKEN_FALSE:
         break;
     case HHG_TOKEN_RETURN:
-        hhg_node_print(node->value.ret.expr, next_indent, use_sym);
+        hhg_node_print_stream(
+            node->value.ret.expr,
+            next_indent,
+            use_sym,
+            stream
+        );
         break;
     case HHG_NODE_ARR_LITERAL: {
         size_t len = arrlenu(node->value.arr_literal.elems);
         for (size_t i = 0; i < len; i++)
-            hhg_node_print(
+            hhg_node_print_stream(
                 node->value.arr_literal.elems[i],
                 next_indent,
-                use_sym
+                use_sym,
+                stream
             );
         break;
     }
@@ -192,8 +296,18 @@ void hhg_node_print(hhg_node_t *node, int32_t indent, bool use_sym)
     case HHG_TOKEN_DEC:
     case HHG_TOKEN_AND:
     case HHG_TOKEN_OR:
-        hhg_node_print(node->value.expr.left, next_indent, use_sym);
-        hhg_node_print(node->value.expr.right, next_indent, use_sym);
+        hhg_node_print_stream(
+            node->value.expr.left,
+            next_indent,
+            use_sym,
+            stream
+        );
+        hhg_node_print_stream(
+            node->value.expr.right,
+            next_indent,
+            use_sym,
+            stream
+        );
         break;
     default:
         hhg_fatal_error(
@@ -209,27 +323,38 @@ void hhg_node_free(hhg_node_t *node)
     hhg_type_del(node->value_type);
 }
 
-static void hhg_node_print_indent(int32_t indent)
+static void hhg_node_print_stream_indent(
+    int32_t indent,
+    const hhg_stream_t *stream
+)
 {
-    for (int32_t i = 0; i < indent; i++) {
-        putchar(' ');
-    }
+    for (int32_t i = 0; i < indent; i++)
+        stream->out_char(stream->arg, ' ');
 }
-
-static void hhg_node_print_str(const char *str, int32_t indent)
+static void hhg_node_print_stream_str(
+    const char *str,
+    int32_t indent,
+    const hhg_stream_t *stream
+)
 {
     if (str) {
-        hhg_node_print_indent(indent);
-        puts(str);
+        hhg_node_print_stream_indent(indent, stream);
+        stream->out_str(stream->arg, str);
+        stream->out_char(stream->arg, '\n');
     }
 }
-
-static void hhg_node_print_id(hhg_id_t id, int32_t indent, bool use_sym)
+static void hhg_node_print_stream_id(
+    hhg_id_t id,
+    int32_t indent,
+    bool use_sym,
+    const hhg_stream_t *stream
+)
 {
-    hhg_node_print_indent(indent);
+    hhg_node_print_stream_indent(indent, stream);
     if (use_sym) {
         hhg_type_print(id.sym->value.type);
-        printf(" %s\n", id.sym->key);
+        stream->out_char(stream->arg, ' ');
+        stream->out_str(stream->arg, id.sym->key);
     } else
-        puts(id.str);
+        stream->out_str(stream->arg, id.str);
 }

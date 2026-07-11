@@ -154,63 +154,47 @@ bool hhg_type_eq(hhg_type_t *l, hhg_type_t *r)
 
 void hhg_type_print(hhg_type_t *type)
 {
-    hhg_type_print_core(
-        type,
-        hhg_vfprintf_out_char,
-        hhg_vfprintf_out_str,
-        stdout
-    );
+    hhg_type_print_stream(type, hhg_stream_get_stdout());
 }
 
-void hhg_type_print_core(
-    hhg_type_t *type,
-    void (*out_char)(void *arg, char c),
-    void (*out_str)(void *arg, const char *str),
-    void *arg
-)
+void hhg_type_print_stream(hhg_type_t *type, const hhg_stream_t *stream)
 {
     if (type == NULL) {
-        out_str(arg, "none");
+        stream->out_str(stream->arg, "none");
         return;
     }
 
     if (type->is_const)
-        out_str(arg, "const");
+        stream->out_str(stream->arg, "const");
 
     if (type->is_volatile)
-        out_str(arg, "volatile");
+        stream->out_str(stream->arg, "volatile");
 
-    out_str(arg, base_type_to_str[type->type]);
+    stream->out_str(stream->arg, base_type_to_str[type->type]);
 
     switch (type->type) {
     case HHG_TYPE_REF:
-        out_char(arg, ' ');
-        hhg_type_print_core(type->info.ref.base, out_char, out_str, arg);
+        stream->out_char(stream->arg, ' ');
+        hhg_type_print_stream(type->info.ref.base, stream);
         break;
     case HHG_TYPE_ARR:
-        hhg_printf_core(
-            " [%zd] of ",
-            out_str,
-            out_char,
-            arg,
-            type->info.arr.size
-        );
-        hhg_type_print_core(type->info.arr.elem, out_char, out_str, arg);
+        hhg_stream_printf(stream, " [%zd] of ", type->info.arr.size);
+        hhg_type_print_stream(type->info.arr.elem, stream);
         break;
     case HHG_TYPE_FUNC:
         // methods have no symbol
         if (type->info.func.sym != NULL) {
-            out_char(arg, ' ');
-            out_str(arg, type->info.func.sym->key);
+            stream->out_char(stream->arg, ' ');
+            stream->out_str(stream->arg, type->info.func.sym->key);
         }
         break;
     case HHG_TYPE_CLASS:
-        out_char(arg, ' ');
-        out_str(arg, type->info.class.sym->key);
+        stream->out_char(stream->arg, ' ');
+        stream->out_str(stream->arg, type->info.class.sym->key);
         break;
     case HHG_TYPE_ID:
-        out_char(arg, ' ');
-        out_str(arg, type->info.id);
+        stream->out_char(stream->arg, ' ');
+        stream->out_str(stream->arg, type->info.id);
         break;
     default:
         break;
