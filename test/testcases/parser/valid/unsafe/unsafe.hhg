@@ -1,0 +1,5 @@
+let x = 5
+unsafe {
+    let ptr: *const i32 = &x
+    println(*ptr)
+}

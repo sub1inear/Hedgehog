@@ -1,0 +1,4 @@
+let x = 14
+let rx = &x
+let mut y = 5
+let ry = &mut y

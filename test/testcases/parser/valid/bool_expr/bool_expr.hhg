@@ -1,0 +1,5 @@
+let a = true and false
+let b = true or false
+let c = not true
+let d = (1 > 0) and (2 < 3)
+let e = not (a or b)

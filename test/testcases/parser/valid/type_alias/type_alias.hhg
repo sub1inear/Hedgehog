@@ -1,0 +1,4 @@
+type int_t = i32
+type float_t = f64
+let x: int_t = 42
+let y: float_t = 3.14

@@ -1,0 +1,11 @@
+fn add(a: i32, b: i32) -> i32 {
+    return a + b
+}
+
+fn negate(x: f64) -> f64 {
+    return x * -1.0
+}
+
+fn always_true() -> bool {
+    return true
+}

@@ -1,0 +1,9 @@
+outer:
+for i in 0..10 {
+    for j in 0..10 {
+        if i * j > 50 {
+            break outer
+        }
+        print(f"{i}, {j}")
+    }
+}

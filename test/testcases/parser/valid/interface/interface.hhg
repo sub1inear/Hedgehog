@@ -1,0 +1,8 @@
+interface Drawable {
+    fn draw(&self)
+}
+
+interface Resizable {
+    fn resize(&mut self, factor: f64)
+    fn area(&self) -> f64
+}

@@ -1,0 +1,14 @@
+fn maybe_value(x: i32) -> i32 | null {
+    if x > 0 {
+        return x
+    }
+    return null
+}
+
+type zero_error = !void
+fn safe_divide(a: f64, b: f64) -> f64 | zero_error {
+    if b == 0.0 {
+        return zero_error
+    }
+    return a / b
+}
