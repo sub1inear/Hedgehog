@@ -25,16 +25,16 @@ typedef struct hhg_lexer {
     hhg_msg_ctx_t *msg_ctx;
 } hhg_lexer_t;
 
-typedef struct hhg_op_data {
+typedef struct hhg_lexer_op_data {
     char str[3];
     hhg_token_type_t type;
     int32_t prec;
-} hhg_op_data_t;
+} hhg_lexer_op_data_t;
 
-typedef struct hhg_keyword_data {
+typedef struct hhg_lexer_keyword_data {
     char *str;
     hhg_token_type_t type;
-} hhg_keyword_data_t;
+} hhg_lexer_keyword_data_t;
 
 void hhg_lexer_init(
     hhg_lexer_t *lexer,

@@ -240,7 +240,7 @@ static const char **hhg_ext_build_cl_setup(
                isspace(
                    (unsigned char)vswhere_stdouterr.str[vswhere_stdouterr.len - 1]
                ))
-            (void)hhg_str_pop(&vswhere_stdouterr);
+            HHG_UNUSED(hhg_str_pop(&vswhere_stdouterr));
         
         if (vswhere_stdouterr.len == 0)
             hhg_fatal_error(

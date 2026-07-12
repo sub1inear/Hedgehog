@@ -340,7 +340,7 @@ static void hhg_mir_gen_push_ctx(hhg_mir_gen_t *gen, hhg_mir_gen_ctx_t ctx)
 
 static void hhg_mir_gen_pop_ctx(hhg_mir_gen_t *gen)
 {
-    (void)arrpop(gen->ctx);
+    HHG_UNUSED(arrpop(gen->ctx));
 }
 
 static hhg_mir_gen_ctx_t *hhg_mir_gen_get_cur_ctx(hhg_mir_gen_t *gen)

@@ -250,12 +250,12 @@ static void hhg_cmd_args_parse_build(
     char *prog_name
 )
 {
-    (void)hhg_cmd_args_parse_build_run_core(
+    HHG_UNUSED(hhg_cmd_args_parse_build_run_core(
         build,
         argv,
         prog_name,
         hhg_cmd_args_print_build_usage
-    );
+    ));
 }
 
 static hhg_cmd_args_stage_t hhg_cmd_args_parse_stage(const char *str)
