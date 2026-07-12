@@ -365,6 +365,8 @@ match divide(10.0, 2.0) {
 }
 ```
 
+
+
 ## Main
 Execution starts in `fn main()`.
 No global execution (in examples, `main` is sometimes omitted for brevity).
@@ -373,6 +375,10 @@ fn main() {
     println("Hello, World!")
 }
 ```
+
+## Visibility
+By default, every declaration is private.
+Mark something with `pub` to make it public.
 
 ### Pointers
 
