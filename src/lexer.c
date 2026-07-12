@@ -102,41 +102,39 @@ static const hhg_lexer_keyword_data_t keyword_data[] = {
     { "break",     HHG_TOKEN_BREAK,     },
     { "return",    HHG_TOKEN_RETURN,    },
 
-    { "and",      HHG_TOKEN_AND,      },
-    { "or",       HHG_TOKEN_OR,       },
-    { "not",      HHG_TOKEN_NOT,      },
-
-    { "true",     HHG_TOKEN_TRUE,     },
-    { "false",    HHG_TOKEN_FALSE,    },
-    { "null",     HHG_TOKEN_NULL,     },
-    { "self",     HHG_TOKEN_SELF,     },
-    
-    { "static",   HHG_TOKEN_STATIC,   },
-    { "unsafe",   HHG_TOKEN_UNSAFE,   },
-    { "pub",      HHG_TOKEN_PUB,      },
-    
-    // ----------------------------- //
-
-    { "i8",       HHG_TOKEN_I8,       },
-    { "u8",       HHG_TOKEN_U8,       },
-
-    { "i16",      HHG_TOKEN_I16,      },
-    { "u16",      HHG_TOKEN_U16,      },
+    { "and",      HHG_TOKEN_AND,        },
+    { "or",       HHG_TOKEN_OR,         },
+    { "not",      HHG_TOKEN_NOT,        },
                                         
-    { "i32",      HHG_TOKEN_I32,      },
-    { "u32",      HHG_TOKEN_U32,      },
+    { "true",     HHG_TOKEN_TRUE,       },
+    { "false",    HHG_TOKEN_FALSE,      },
+    { "null",     HHG_TOKEN_NULL,       },
+    { "self",     HHG_TOKEN_SELF,       },
                                         
-    { "i64",      HHG_TOKEN_I64,      },
-    { "u64",      HHG_TOKEN_U64,      },
-                                                                                
-    { "f32",      HHG_TOKEN_F32,      },
-    { "f64",      HHG_TOKEN_F64,      },
-            
-    { "bool",     HHG_TOKEN_BOOL,     },
-    { "char",     HHG_TOKEN_CHAR,     },
-      
-    { "isize",    HHG_TOKEN_ISIZE,    },
-    { "usize",    HHG_TOKEN_USIZE,    },
+    { "static",   HHG_TOKEN_STATIC,     },
+    { "unsafe",   HHG_TOKEN_UNSAFE,     },
+    { "pub",      HHG_TOKEN_PUB,        },
+    
+    { "i8",       HHG_TOKEN_I8,         },
+    { "u8",       HHG_TOKEN_U8,         },
+                                        
+    { "i16",      HHG_TOKEN_I16,        },
+    { "u16",      HHG_TOKEN_U16,        },
+                                         
+    { "i32",      HHG_TOKEN_I32,        },
+    { "u32",      HHG_TOKEN_U32,        },
+                                          
+    { "i64",      HHG_TOKEN_I64,        },
+    { "u64",      HHG_TOKEN_U64,        },
+                                                                                 
+    { "f32",      HHG_TOKEN_F32,        },
+    { "f64",      HHG_TOKEN_F64,        },
+                                        
+    { "bool",     HHG_TOKEN_BOOL,       },
+    { "char",     HHG_TOKEN_CHAR,       },
+                                        
+    { "isize",    HHG_TOKEN_ISIZE,      },
+    { "usize",    HHG_TOKEN_USIZE,      },
 
 };
 
