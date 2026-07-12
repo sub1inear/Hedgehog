@@ -36,102 +36,108 @@ static void hhg_lexer_lex_str_literal(hhg_lexer_t *lexer, int c);
 static void hhg_lexer_lex_char_literal(hhg_lexer_t *lexer, int c);
 static bool hhg_lexer_lex_default(hhg_lexer_t *lexer, int c);
 
-static const hhg_op_data_t op_data[] = {                                         
-    { { '<' , '<' , '='  },  HHG_TOKEN_LSHIFT_EQ, 1  },
-    { { '>' , '>' , '='  },  HHG_TOKEN_RSHIFT_EQ, 1  },
+static const hhg_lexer_op_data_t op_data[] = {
+    { { '-',  '>',  '\0' },  HHG_TOKEN_THIN_ARROW, 0,  },
+    { { '=' , '>' , '\0' },  HHG_TOKEN_FAT_ARROW,  0,  },
+    { { '<' , '<' , '='  },  HHG_TOKEN_LSHIFT_EQ,  1,  },
+    { { '>' , '>' , '='  },  HHG_TOKEN_RSHIFT_EQ,  1,  },
                                                   
-    { { '+' , '=' , '\0' },  HHG_TOKEN_ADD_EQ,    1  },
-    { { '-' , '=' , '\0' },  HHG_TOKEN_SUB_EQ,    1  },
-    { { '*' , '=' , '\0' },  HHG_TOKEN_MUL_EQ,    1  },
-    { { '/' , '=' , '\0' },  HHG_TOKEN_DIV_EQ,    1  },
-    { { '%' , '=' , '\0' },  HHG_TOKEN_MOD_EQ,    1  },
-    { { '&' , '=' , '\0' },  HHG_TOKEN_AND_EQ,    1  },
-    { { '|' , '=' , '\0' },  HHG_TOKEN_OR_EQ,     1  },
-    { { '^' , '=' , '\0' },  HHG_TOKEN_XOR_EQ,    1  },
+    { { '+' , '=' , '\0' },  HHG_TOKEN_ADD_EQ,     1,  },
+    { { '-' , '=' , '\0' },  HHG_TOKEN_SUB_EQ,     1,  },
+    { { '*' , '=' , '\0' },  HHG_TOKEN_MUL_EQ,     1,  },
+    { { '/' , '=' , '\0' },  HHG_TOKEN_DIV_EQ,     1,  },
+    { { '%' , '=' , '\0' },  HHG_TOKEN_MOD_EQ,     1,  },
+    { { '&' , '=' , '\0' },  HHG_TOKEN_AND_EQ,     1,  },
+    { { '|' , '=' , '\0' },  HHG_TOKEN_OR_EQ,      1,  },
+    { { '^' , '=' , '\0' },  HHG_TOKEN_XOR_EQ,     1,  },
                                                   
-    { { '<' , '<' , '\0' },  HHG_TOKEN_LSHIFT,    10 },
-    { { '>' , '>' , '\0' },  HHG_TOKEN_RSHIFT,    10 },
-                                                  
-    { { '+' , '+' , '\0' },  HHG_TOKEN_INC,       13 },
-    { { '-' , '-' , '\0' },  HHG_TOKEN_DEC,       13 },
-                                                  
-    { { '<' , '=' , '\0' },  HHG_TOKEN_LT_EQ,     9  },
-    { { '>' , '=' , '\0' },  HHG_TOKEN_GT_EQ,     9  },
-                                                  
-    { { '=' , '=' , '\0' },  HHG_TOKEN_EQ,        8  },
-    { { '!' , '=' , '\0' },  HHG_TOKEN_NOT_EQ,    8  },
-                                                  
-    { { '*' , '\0', '\0' },  '*',                 12 },
-    { { '/' , '\0', '\0' },  '/',                 12 },
-    { { '%' , '\0', '\0' },  '%',                 12 },
-                                                  
-    { { '+' , '\0', '\0' },  '+',                 11 },
-    { { '-' , '\0', '\0' },  '-',                 11 },
-                                                  
-    { { '<' , '\0', '\0' },  '<',                 9  },
-    { { '>' , '\0', '\0' },  '>',                 9  },
-                                                  
-    { { '&' , '\0', '\0' },  '&',                 7  },
-    { { '^' , '\0', '\0' },  '^',                 6  },
-    { { '|' , '\0', '\0' },  '|',                 5  },
+    { { '<' , '<' , '\0' },  HHG_TOKEN_LSHIFT,     10, },
+    { { '>' , '>' , '\0' },  HHG_TOKEN_RSHIFT,     10, },
+                                                   
+    { { '<' , '=' , '\0' },  HHG_TOKEN_LT_EQ,      9,  },
+    { { '>' , '=' , '\0' },  HHG_TOKEN_GT_EQ,      9,  },
+                                                   
+    { { '=' , '=' , '\0' },  HHG_TOKEN_EQ,         8,  },
+    { { '!' , '=' , '\0' },  HHG_TOKEN_NOT_EQ,     8,  },
+                                                   
+    { { '*' , '\0', '\0' },  '*',                  12, },
+    { { '/' , '\0', '\0' },  '/',                  12, },
+    { { '%' , '\0', '\0' },  '%',                  12, },
+                                                   
+    { { '+' , '\0', '\0' },  '+',                  11, },
+    { { '-' , '\0', '\0' },  '-',                  11, },
+                                                   
+    { { '<' , '\0', '\0' },  '<',                  9,  },
+    { { '>' , '\0', '\0' },  '>',                  9,  },
+                                                   
+    { { '&' , '\0', '\0' },  '&',                  7,  },
+    { { '^' , '\0', '\0' },  '^',                  6,  },
+    { { '|' , '\0', '\0' },  '|',                  5,  },
 };
 
-static const hhg_keyword_data_t keyword_data[] = {
-    { "if",       HHG_TOKEN_IF       },
-    { "while",    HHG_TOKEN_WHILE    },
-    { "for",      HHG_TOKEN_FOR      },
-      
-    { "break",    HHG_TOKEN_BREAK    },
-    { "continue", HHG_TOKEN_CONTINUE },
-      
-    { "and",      HHG_TOKEN_AND      },
-    { "or",       HHG_TOKEN_OR       },
-    { "not",      HHG_TOKEN_NOT      },
-      
-    { "true",     HHG_TOKEN_TRUE     },
-    { "false",    HHG_TOKEN_FALSE    },
-      
-    { "in",       HHG_TOKEN_IN       },
-    { "range",    HHG_TOKEN_RANGE    },
-      
-    { "enum",     HHG_TOKEN_ENUM     },
-      
-    { "def",      HHG_TOKEN_DEF      },
-    { "return",   HHG_TOKEN_RETURN   },
+static const hhg_lexer_keyword_data_t keyword_data[] = {
+    { "let",       HHG_TOKEN_LET,       },
+    { "mut",       HHG_TOKEN_MUT,       },
+    { "const",     HHG_TOKEN_CONST,     },
+    
+    { "fn",        HHG_TOKEN_FN,        },
+    { "class",     HHG_TOKEN_CLASS,     },
+    { "enum",      HHG_TOKEN_ENUM,      },
+    { "interface", HHG_TOKEN_INTERFACE, },
 
-    { "class",    HHG_TOKEN_CLASS    },
+    { "if",        HHG_TOKEN_IF,        },
+    { "while",     HHG_TOKEN_WHILE,     },
+    { "for",       HHG_TOKEN_FOR,       },
+    { "type",      HHG_TOKEN_TYPE,      },
+    { "import",    HHG_TOKEN_IMPORT,    },
+    { "from",      HHG_TOKEN_FROM,      },
+    { "as",        HHG_TOKEN_AS,        },
+
+    { "if",        HHG_TOKEN_IF,        },
+    { "else",      HHG_TOKEN_ELSE,      },
+    { "while",     HHG_TOKEN_WHILE,     },
+    { "for",       HHG_TOKEN_FOR,       },
+    { "in",        HHG_TOKEN_IN,        },
+    { "match",     HHG_TOKEN_MATCH,     },
+    { "break",     HHG_TOKEN_BREAK,     },
+    { "return",    HHG_TOKEN_RETURN,    },
+
+    { "and",      HHG_TOKEN_AND,      },
+    { "or",       HHG_TOKEN_OR,       },
+    { "not",      HHG_TOKEN_NOT,      },
+
+    { "true",     HHG_TOKEN_TRUE,     },
+    { "false",    HHG_TOKEN_FALSE,    },
+    { "null",     HHG_TOKEN_NULL,     },
+    { "self",     HHG_TOKEN_SELF,     },
+    
+    { "static",   HHG_TOKEN_STATIC,   },
+    { "unsafe",   HHG_TOKEN_UNSAFE,   },
+    { "pub",      HHG_TOKEN_PUB,      },
     
     // ----------------------------- //
 
-    { "i8",       HHG_TOKEN_I8       },
-    { "u8",       HHG_TOKEN_U8       },
+    { "i8",       HHG_TOKEN_I8,       },
+    { "u8",       HHG_TOKEN_U8,       },
 
-    { "i16",      HHG_TOKEN_I16      },
-    { "u16",      HHG_TOKEN_U16      },
+    { "i16",      HHG_TOKEN_I16,      },
+    { "u16",      HHG_TOKEN_U16,      },
                                         
-    { "i32",      HHG_TOKEN_I32      },
-    { "u32",      HHG_TOKEN_U32      },
+    { "i32",      HHG_TOKEN_I32,      },
+    { "u32",      HHG_TOKEN_U32,      },
                                         
-    { "i64",      HHG_TOKEN_I64      },
-    { "u64",      HHG_TOKEN_U64      },
-                                        
-    { "int",      HHG_TOKEN_INT      },
-                                        
-    { "f32",      HHG_TOKEN_F32      },
-    { "f64",      HHG_TOKEN_F64      },
+    { "i64",      HHG_TOKEN_I64,      },
+    { "u64",      HHG_TOKEN_U64,      },
+                                                                                
+    { "f32",      HHG_TOKEN_F32,      },
+    { "f64",      HHG_TOKEN_F64,      },
+            
+    { "bool",     HHG_TOKEN_BOOL,     },
+    { "char",     HHG_TOKEN_CHAR,     },
       
-    { "float",    HHG_TOKEN_FLOAT    },
-      
-    { "bool",     HHG_TOKEN_BOOL     },
-    { "char",     HHG_TOKEN_CHAR     },
-      
-    { "isize",    HHG_TOKEN_ISIZE    },
-    { "usize",    HHG_TOKEN_USIZE    },
+    { "isize",    HHG_TOKEN_ISIZE,    },
+    { "usize",    HHG_TOKEN_USIZE,    },
 
-    // ----------------------------- //
-    
-    { "const",    HHG_TOKEN_CONST    },
-    { "volatile", HHG_TOKEN_VOLATILE },
 };
 
 void hhg_lexer_init(
