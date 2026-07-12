@@ -1,5 +1,5 @@
 # Declaration / Binding
-`let`, `mut`, `const`, `fn`, `class`, `enum`, `interface`, `type`, `import`
+`let`, `mut`, `const`, `fn`, `class`, `enum`, `interface`, `type`, `import`, `from`, `as`
 
 # Control flow
 `if`, `else`, `while`, `for`, `in`, `match`, `break`, `continue`, `return`

@@ -188,6 +188,10 @@ Modules are imported with the `import` keyword using dot-separated paths.
 ```hhg
 import std.math
 ```
+`from` and `as` are supported.
+```hhg
+from std.math import cos as cosine
+````
 
 ## Comments
 Single-line comments start with `//` and multi-line comments are enclosed in `/* */`.
