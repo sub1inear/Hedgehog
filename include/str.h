@@ -11,14 +11,12 @@ void hhg_str_init_len(hhg_str_t *str, size_t len);
 void hhg_str_init_str(hhg_str_t *str, const char *init);
 void hhg_str_init_copy(hhg_str_t *dst, hhg_str_t *src);
 void hhg_str_init_fmt(hhg_str_t *str, const char *fmt, ...);
-void hhg_str_init_vfmt(hhg_str_t *str, const char *fmt, va_list args);
 
 hhg_str_t *hhg_str_new(void);
 hhg_str_t *hhg_str_new_len(size_t len);
 hhg_str_t *hhg_str_new_str(const char *init);
 hhg_str_t *hhg_str_new_copy(hhg_str_t *src);
 hhg_str_t *hhg_str_new_fmt(const char *fmt, ...);
-hhg_str_t *hhg_str_new_vfmt(const char *fmt, va_list args);
 
 void hhg_str_reset(hhg_str_t *str);
 
@@ -29,7 +27,6 @@ void hhg_str_append_str(hhg_str_t *str, const char *append);
 void hhg_str_append_hhg_str(hhg_str_t *dst, hhg_str_t *append);
 void hhg_str_append_str_len(hhg_str_t *str, const char *append, size_t len);
 void hhg_str_append_fmt(hhg_str_t *str, const char *fmt, ...);
-void hhg_str_append_vfmt(hhg_str_t *str, const char *fmt, va_list args);
 
 char hhg_str_pop(hhg_str_t *str);
 

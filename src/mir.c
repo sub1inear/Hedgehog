@@ -47,68 +47,59 @@ static const char *mir_instr_op_to_str[] = {
     [HHG_MIR_ARR_STORE]    = "arr_store",
 };
 
+
 void hhg_mir_opnd_print(hhg_mir_opnd_t *opnd)
 {
-    hhg_mir_opnd_print_stream(opnd, hhg_stream_get_stdout());
+    hhg_mir_opnd_fprint(opnd, stdout);
 }
 
-void hhg_mir_instr_print(hhg_mir_instr_t *instr)
-{
-    hhg_mir_instr_print_stream(instr, hhg_stream_get_stdout());
-}
-
-void hhg_mir_func_print(hhg_mir_func_t *func)
-{
-    hhg_mir_func_print_stream(func, hhg_stream_get_stdout());
-}
-
-void hhg_mir_opnd_print_stream(
-    hhg_mir_opnd_t *opnd,
-    const hhg_stream_t *stream
-)
+void hhg_mir_opnd_fprint(hhg_mir_opnd_t *opnd, FILE *stream)
 {
     switch (opnd->type) {
     case HHG_MIR_OPND_NONE:
-        stream->out_str(stream->arg, "none");
+        fputs("none", stream);
         break;
     case HHG_MIR_OPND_REG:
-        hhg_stream_printf(stream, "%%%r", opnd->value.reg);
+        fprintf(stream, "%%%" HHG_PRIreg, opnd->value.reg);
         break;
     case HHG_MIR_OPND_CNST:
         switch (opnd->value.cnst.type) {
         case HHG_MIR_CNST_SI:
-            hhg_stream_printf(stream, "%i64", opnd->value.cnst.value.si);
+            fprintf(stream, "%" PRIi64, opnd->value.cnst.value.si);
             break;
         case HHG_MIR_CNST_UI:
-            hhg_printf("%u64", opnd->value.cnst.value.ui);
+            fprintf(stream, "%" PRIu64, opnd->value.cnst.value.ui);
             break;
         case HHG_MIR_CNST_F32:
-            hhg_printf("%f", opnd->value.cnst.value.f);
+            fprintf(stream, "%f", opnd->value.cnst.value.f);
             break;
         case HHG_MIR_CNST_F64:
-            hhg_printf("%f", opnd->value.cnst.value.d);
+            fprintf(stream, "%f", opnd->value.cnst.value.d);
             break;
         case HHG_MIR_CNST_BOOL:
-            hhg_printf("%b", opnd->value.cnst.value.b);
+            fputs(opnd->value.cnst.value.b ? "true" : "false", stream);
             break;
         case HHG_MIR_CNST_CHAR:
-            hhg_printf("'%c'", opnd->value.cnst.value.c);
+            fprintf(stream, "'%c'", opnd->value.cnst.value.c);
             break;
         case HHG_MIR_CNST_STR:
-            hhg_printf("\"%s\"", opnd->value.cnst.value.str);
+            fprintf(stream, "\"%s\"", opnd->value.cnst.value.str);
             break;
         }
         break;
     default:
-        hhg_compiler_error("invalid operand type: %o", opnd->type);
+        hhg_compiler_error("invalid operand type: %i", opnd->type);
         break;
     }
 }
 
-void hhg_mir_instr_print_stream(
-    hhg_mir_instr_t *instr,
-    const hhg_stream_t *stream
-)
+
+void hhg_mir_instr_print(hhg_mir_instr_t *instr)
+{
+    hhg_mir_instr_fprint(instr, stdout);
+}
+
+void hhg_mir_instr_fprint(hhg_mir_instr_t *instr, FILE *stream)
 {
     switch (instr->op) {
     case HHG_MIR_ADD:
@@ -125,24 +116,24 @@ void hhg_mir_instr_print_stream(
     case HHG_MIR_NOT:
     case HHG_MIR_NEG: {
         hhg_mir_expr_t *expr = &instr->value->expr;
-        hhg_stream_printf(stream, "%%%r = ", expr->dst);
+        fprintf(stream, "%%%" HHG_PRIreg " = ", expr->dst);
         break;
     }
     case HHG_MIR_LOAD: {
         hhg_mir_load_t *load = &instr->value->load;
-        hhg_stream_printf(stream, "%%%r = ", load->dst);
+        fprintf(stream, "%%%" HHG_PRIreg " = ", load->dst);
         break;
     }
     case HHG_MIR_STORE: {
         hhg_mir_store_t *store = &instr->value->store;
-        hhg_stream_printf(stream, "$%s = ", store->dst->key);
+        fprintf(stream, "$%s = ", store->dst->key);
         break;
     }
     default:
         break;
     }
 
-    hhg_stream_printf(stream, "%s ", mir_instr_op_to_str[instr->op]);
+    fprintf(stream, "%s ", mir_instr_op_to_str[instr->op]);
     
     switch (instr->op) {
     case HHG_MIR_ADD:
@@ -159,38 +150,44 @@ void hhg_mir_instr_print_stream(
     case HHG_MIR_NOT:
     case HHG_MIR_NEG: {
         hhg_mir_expr_t *expr = &instr->value->expr;
-        hhg_stream_printf(stream, "%O, %O", expr->left, expr->right);
+        hhg_mir_opnd_fprint(&expr->left, stream);
+        fputs(", ", stream);
+        hhg_mir_opnd_fprint(&expr->right, stream);
         break;
     }
     case HHG_MIR_LOAD: {
         hhg_mir_load_t *load = &instr->value->load;
-        hhg_stream_printf(stream, "$%s", load->src->key);
+        fprintf(stream, "$%s", load->src->key);
         break;
     }
     case HHG_MIR_STORE: {
         hhg_mir_store_t *store = &instr->value->store;
-        hhg_mir_opnd_print_stream(&store->src, stream);
+        hhg_mir_opnd_fprint(&store->src, stream);
         break;
     }
     default:
         break;
     }
-    stream->out_char(stream->arg, '\n');
+    fputc('\n', stream);
 }
 
-void hhg_mir_func_print_stream(
-    hhg_mir_func_t *func,
-    const hhg_stream_t *stream
-)
+void hhg_mir_func_print(hhg_mir_func_t *func)
 {
-    hhg_stream_printf(stream, "def %s\n", func->sym->key);
+    hhg_mir_func_fprint(func, stdout);
+}
+
+void hhg_mir_func_fprint(hhg_mir_func_t *func, FILE *stream)
+{
+    fprintf(stream, "fn %s\n", func->sym->key);
     
     size_t len = arrlenu(func->instrs);
     for (size_t i = 0; i < len; i++) {
-        stream->out_str(stream->arg, "  ");
-        hhg_mir_instr_print_stream(&func->instrs[i], stream);
+        fputs("  ", stream);
+        hhg_mir_instr_fprint(&func->instrs[i], stream);
     }
 }
+
+
 
 void hhg_mir_instr_free(hhg_mir_instr_t *instr)
 {

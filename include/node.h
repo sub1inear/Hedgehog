@@ -2,6 +2,7 @@
 #define HHG_NODE_H
 
 #include <stdbool.h>
+#include <stdio.h>
 
 #include "token.h"
 #include "sym.h"
@@ -9,8 +10,6 @@
 
 typedef struct hhg_file_src hhg_file_src_t;
 typedef struct hhg_type hhg_type_t;
-
-#define HHG_NODE_INDENT_START 0
 
 #define HHG_NODE_START HHG_TOKEN_END
 #define HHG_NODE_END (HHG_NODE_OBJ_INIT + 1)
@@ -147,18 +146,26 @@ struct hhg_node {
     hhg_node_type_t type;
 };
 
+enum hhg_node_print_mode {
+    HHG_NODE_PRINT_MODE_SYM,
+    HHG_NODE_PRINT_MODE_NO_SYM,
+};
+typedef int hhg_node_print_mode_t; // for printing
+
+void hhg_node_type_print(hhg_node_type_t type);
+void hhg_node_type_fprint(hhg_node_type_t type, FILE *stream);
+
 hhg_node_t *hhg_node_new(
     hhg_arena_t *arena,
     hhg_node_type_t type,
     hhg_file_src_t *src
 );
 
-void hhg_node_print(hhg_node_t *node, int32_t indent, bool use_sym);
-void hhg_node_print_stream(
+void hhg_node_print(hhg_node_t *node, hhg_node_print_mode_t mode);
+void hhg_node_fprint(
     hhg_node_t *node,
-    int32_t indent,
-    bool use_sym,
-    const hhg_stream_t *stream
+    hhg_node_print_mode_t mode,
+    FILE *stream
 );
 
 void hhg_node_free(hhg_node_t *node);

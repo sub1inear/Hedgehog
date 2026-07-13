@@ -6,6 +6,7 @@
 #include "main.h"
 #include "mir.h"
 #include "mem.h"
+#include "str.h"
 #include "msg.h"
 #include "utils.h"
 

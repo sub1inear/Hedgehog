@@ -7,6 +7,9 @@
 #include "file_pos.h"
 #include "file_src.h"
 #include "file_range.h"
+#include "token.h"
+#include "node.h"
+#include "type.h"
 #include "cmd_args.h"
 #include "main.h"
 #include "utils.h"
@@ -41,6 +44,8 @@ static void hhg_msg_process_msg_type(
 // prints the message type (error, warning, ...) with color if enabled
 // if color is not enabled, color can be NULL
 static void hhg_msg_print_msg_type_str(const char *str, const char *color);
+
+static void hhg_vfprintf(FILE *stream, const char *fmt, va_list args);
 
 void hhg_msg_ctx_init(hhg_msg_ctx_t *msg_ctx, hhg_cmd_args_t *cmd_args)
 {
@@ -86,7 +91,9 @@ void hhg_msg(
     for (int32_t i = 0; i < max_line_width; i++)
         fputc(' ', stderr);
 
-    hhg_fprintf(stderr, "--> %s:%P\n", src->filename, &range->start);
+    fprintf(stderr, "--> %s:", src->filename);
+    hhg_file_pos_fprint(&range->start, stderr);
+    fputc('\n', stderr);
 
     for (int32_t line = range->start.line; line <= range->end.line; line++) {
         hhg_msg_print_src_line(src, line, max_line_width);
@@ -102,7 +109,7 @@ void hhg_msg(
 
     if (note) {
         fputc(' ', stderr);
-        hhg_vfprintf(stderr, note, va_note);
+        vfprintf(stderr, note, va_note);
     }
 
     fputs("\n\n", stderr);
@@ -154,7 +161,7 @@ void hhg_fatal_error(const char *msg, ...)
     
     fputs("fatal error: ", stderr);
 
-    hhg_vfprintf(stderr, msg, va);
+    vfprintf(stderr, msg, va);
 
     va_end(va);
     exit(EXIT_FAILURE);
@@ -241,4 +248,53 @@ static void hhg_msg_process_msg_type(
 static void hhg_msg_print_msg_type_str(const char *str, const char *color)
 {
     fprintf(stderr, "%s%s" HHG_ANSI_COLOR_CLEAR ": ", color ? color : "", str);
+}
+
+static void hhg_vfprintf(FILE *stream, const char *fmt, va_list va)
+{
+    char c;
+    while ((c = *fmt++) != '\0') {
+        if (c == '%') {
+            switch (c = *++fmt) {
+            case 's': {
+                const char *str_arg = va_arg(va, const char *);
+                fputs(str_arg ? str_arg : "(null)", stream);
+                break;
+            }
+            case 'i':
+                fprintf(stream, "%i", va_arg(va, int));
+                break;
+            case 'l': {
+                c = *++fmt;
+                if (c == 'u')
+                    fprintf(stream, "%lu", va_arg(va, unsigned long));
+                else
+                    hhg_compiler_error("unknown format specifier: %%%c", c);
+                break;
+            }
+            case 'c':
+                fputc((char)va_arg(va, int), stream);
+                break;
+            case 'b':
+                fputs((bool)va_arg(va, int) ? "true" : "false", stream);
+                break;
+            case 'n':
+                hhg_node_type_fprint(va_arg(va, hhg_node_type_t), stream);
+                break;
+            case 't':
+                hhg_token_type_fprint(va_arg(va, hhg_token_type_t), stream);
+                break;
+            case 'T':
+                hhg_type_fprint(va_arg(va, hhg_type_t *), stream);
+                break;
+            case '%':
+                fputc('%', stream);
+                break;
+            default:
+                hhg_compiler_error("unknown format specifier: %%%c", c);
+                break;
+            }
+        } else
+            fputc(c, stream);
+    }
 }

@@ -83,8 +83,8 @@ void hhg_arena_free(hhg_arena_t *arena)
 
 #ifdef HHG_MEM_DEBUG
 
-// note: no hhg_printf in this file to avoid allocations
-// hhg_printf could use hhg_malloc
+// note: no printf in this file to avoid allocations
+// printf could use hhg_malloc
 
 #include <stdio.h>
 #include <string.h>

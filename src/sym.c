@@ -3,7 +3,7 @@
 #include "sym.h"
 #include "mem.h"
 #include "type.h"
-#include "utils.h"
+#include "str.h"
 
 hhg_sym_t *hhg_sym_new(
     hhg_arena_t *arena,
@@ -21,13 +21,13 @@ hhg_sym_t *hhg_sym_new(
 
 void hhg_sym_print(hhg_sym_t *sym)
 {
-    hhg_sym_print_stream(sym, hhg_stream_get_stdout());
+    hhg_sym_fprint(sym, stdout);
 }
 
-void hhg_sym_print_stream(hhg_sym_t *sym, const hhg_stream_t *stream)
+void hhg_sym_fprint(hhg_sym_t *sym, FILE *stream)
 {
-    hhg_type_print_stream(sym->value.type, stream);
-    hhg_stream_printf(stream, " %s\n", sym->key);
+    hhg_type_fprint(sym->value.type, stream);
+    fprintf(stream, " %s\n", sym->key);
 }
 
 void hhg_sym_del(hhg_sym_t *sym)

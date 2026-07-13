@@ -9,8 +9,8 @@
 #include "file_pos.h"
 #include "file_range.h"
 #include "msg.h"
+#include "str.h"
 #include "utils.h"
-#include "mem.h"
 
 #define hhg_lexer_msg(lexer, type, ...) \
     hhg_msg(                            \
@@ -37,42 +37,42 @@ static void hhg_lexer_lex_char_literal(hhg_lexer_t *lexer, int c);
 static bool hhg_lexer_lex_default(hhg_lexer_t *lexer, int c);
 
 static const hhg_lexer_op_data_t op_data[] = {
-    { { '-',  '>',  '\0' },  HHG_TOKEN_THIN_ARROW, 0,  },
-    { { '=' , '>' , '\0' },  HHG_TOKEN_FAT_ARROW,  0,  },
-    { { '<' , '<' , '='  },  HHG_TOKEN_LSHIFT_EQ,  1,  },
-    { { '>' , '>' , '='  },  HHG_TOKEN_RSHIFT_EQ,  1,  },
-                                                  
-    { { '+' , '=' , '\0' },  HHG_TOKEN_ADD_EQ,     1,  },
-    { { '-' , '=' , '\0' },  HHG_TOKEN_SUB_EQ,     1,  },
-    { { '*' , '=' , '\0' },  HHG_TOKEN_MUL_EQ,     1,  },
-    { { '/' , '=' , '\0' },  HHG_TOKEN_DIV_EQ,     1,  },
-    { { '%' , '=' , '\0' },  HHG_TOKEN_MOD_EQ,     1,  },
-    { { '&' , '=' , '\0' },  HHG_TOKEN_AND_EQ,     1,  },
-    { { '|' , '=' , '\0' },  HHG_TOKEN_OR_EQ,      1,  },
-    { { '^' , '=' , '\0' },  HHG_TOKEN_XOR_EQ,     1,  },
-                                                  
-    { { '<' , '<' , '\0' },  HHG_TOKEN_LSHIFT,     10, },
-    { { '>' , '>' , '\0' },  HHG_TOKEN_RSHIFT,     10, },
-                                                   
-    { { '<' , '=' , '\0' },  HHG_TOKEN_LT_EQ,      9,  },
-    { { '>' , '=' , '\0' },  HHG_TOKEN_GT_EQ,      9,  },
-                                                   
-    { { '=' , '=' , '\0' },  HHG_TOKEN_EQ,         8,  },
-    { { '!' , '=' , '\0' },  HHG_TOKEN_NOT_EQ,     8,  },
-                                                   
-    { { '*' , '\0', '\0' },  '*',                  12, },
-    { { '/' , '\0', '\0' },  '/',                  12, },
-    { { '%' , '\0', '\0' },  '%',                  12, },
-                                                   
-    { { '+' , '\0', '\0' },  '+',                  11, },
-    { { '-' , '\0', '\0' },  '-',                  11, },
-                                                   
-    { { '<' , '\0', '\0' },  '<',                  9,  },
-    { { '>' , '\0', '\0' },  '>',                  9,  },
-                                                   
-    { { '&' , '\0', '\0' },  '&',                  7,  },
-    { { '^' , '\0', '\0' },  '^',                  6,  },
-    { { '|' , '\0', '\0' },  '|',                  5,  },
+    { { '-',  '>',  '\0' },  HHG_TOKEN_THIN_ARROW, HHG_PREC_NONE,  },
+    { { '=' , '>' , '\0' },  HHG_TOKEN_FAT_ARROW,  HHG_PREC_NONE,  },
+    { { '<' , '<' , '='  },  HHG_TOKEN_LSHIFT_EQ,  1,              },
+    { { '>' , '>' , '='  },  HHG_TOKEN_RSHIFT_EQ,  1,              },
+                                                                   
+    { { '+' , '=' , '\0' },  HHG_TOKEN_ADD_EQ,     1,              },
+    { { '-' , '=' , '\0' },  HHG_TOKEN_SUB_EQ,     1,              },
+    { { '*' , '=' , '\0' },  HHG_TOKEN_MUL_EQ,     1,              },
+    { { '/' , '=' , '\0' },  HHG_TOKEN_DIV_EQ,     1,              },
+    { { '%' , '=' , '\0' },  HHG_TOKEN_MOD_EQ,     1,              },
+    { { '&' , '=' , '\0' },  HHG_TOKEN_AND_EQ,     1,              },
+    { { '|' , '=' , '\0' },  HHG_TOKEN_OR_EQ,      1,              },
+    { { '^' , '=' , '\0' },  HHG_TOKEN_XOR_EQ,     1,              },
+                                                                   
+    { { '<' , '<' , '\0' },  HHG_TOKEN_LSHIFT,     10,             },
+    { { '>' , '>' , '\0' },  HHG_TOKEN_RSHIFT,     10,             },
+                                                                   
+    { { '<' , '=' , '\0' },  HHG_TOKEN_LT_EQ,      9,              },
+    { { '>' , '=' , '\0' },  HHG_TOKEN_GT_EQ,      9,              },
+                                                                   
+    { { '=' , '=' , '\0' },  HHG_TOKEN_EQ,         8,              },
+    { { '!' , '=' , '\0' },  HHG_TOKEN_NOT_EQ,     8,              },
+                                                                   
+    { { '*' , '\0', '\0' },  '*',                  12,             },
+    { { '/' , '\0', '\0' },  '/',                  12,             },
+    { { '%' , '\0', '\0' },  '%',                  12,             },
+                                                                   
+    { { '+' , '\0', '\0' },  '+',                  11,             },
+    { { '-' , '\0', '\0' },  '-',                  11,             },
+                                                                   
+    { { '<' , '\0', '\0' },  '<',                  9,              },
+    { { '>' , '\0', '\0' },  '>',                  9,              },
+                                                                   
+    { { '&' , '\0', '\0' },  '&',                  7,              },
+    { { '^' , '\0', '\0' },  '^',                  6,              },
+    { { '|' , '\0', '\0' },  '|',                  5,              },
 };
 
 static const hhg_lexer_keyword_data_t keyword_data[] = {
@@ -387,7 +387,7 @@ static bool hhg_lexer_lex_default(hhg_lexer_t *lexer, int c)
     int c3 = hhg_lexer_next_char(lexer);
 
     for (size_t i = 0; i < HHG_ARR_LEN(op_data); i++) {
-        const hhg_op_data_t *data = &op_data[i];
+        const hhg_lexer_op_data_t *data = &op_data[i];
         if (data->str[0] == c && 
             (data->str[1] == c2 || data->str[1] == '\0') &&
             (data->str[2] == c3 || data->str[2] == '\0')) {

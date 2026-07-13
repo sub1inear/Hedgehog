@@ -4,15 +4,15 @@
 #include <stdint.h>
 #include <limits.h>
 
-#include "str.h"
 #include "file_range.h"
+#include "str.h"
 
 #define HHG_TOKEN_START UCHAR_MAX
 #define HHG_TOKEN_END (HHG_TOKEN_RSHIFT_EQ + 1)
 
 #define HHG_PREC_NONE (-1)
 
-typedef struct hhg_stream hhg_stream_t;
+typedef struct hhg_str hhg_str_t;
 
 enum hhg_token_type {
     HHG_TOKEN_NONE = HHG_TOKEN_START,
@@ -110,12 +110,9 @@ enum hhg_token_type {
 // guarantee being signed (for comparison with EOF)
 typedef int hhg_token_type_t;
 
-const char *hhg_token_type_to_str(hhg_token_type_t type);
 void hhg_token_type_print(hhg_token_type_t type);
-void hhg_token_type_print_stream(
-    hhg_token_type_t type,
-    const hhg_stream_t *stream
-);
+void hhg_token_type_fprint(hhg_token_type_t type, FILE *stream);
+const char *hhg_token_type_to_str(hhg_token_type_t type);
 
 typedef struct hhg_token {
     hhg_token_type_t type;
@@ -129,7 +126,7 @@ void hhg_token_init(hhg_token_t *token);
 void hhg_token_reset_aux(hhg_token_t *token);
 
 void hhg_token_print(hhg_token_t *token);
-void hhg_token_print_stream(hhg_token_t *token, const hhg_stream_t *stream);
+void hhg_token_fprint(hhg_token_t *token, FILE *stream);
 
 void hhg_token_del(hhg_token_t *token);
 

@@ -2,8 +2,9 @@
 #define HHG_FILE_POS_H
 
 #include <stdint.h>
+#include <stdio.h>
 
-typedef struct hhg_stream hhg_stream_t;
+typedef struct hhg_str hhg_str_t;
 
 typedef struct hhg_file_pos {
     int32_t line;
@@ -13,9 +14,6 @@ typedef struct hhg_file_pos {
 void hhg_file_pos_init(hhg_file_pos_t *pos);
 
 void hhg_file_pos_print(hhg_file_pos_t *pos);
-void hhg_file_pos_print_stream(
-    hhg_file_pos_t *pos,
-    const hhg_stream_t *stream
-);
+void hhg_file_pos_fprint(hhg_file_pos_t *pos, FILE *stream);
 
 #endif

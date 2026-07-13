@@ -46,14 +46,10 @@ void hhg_str_init_fmt(hhg_str_t *str, const char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
-    hhg_str_init_vfmt(str, fmt, args);
+    int len = vsnprintf(NULL, 0, fmt, args);
+    hhg_str_init_len(str, (size_t)len);
+    snprintf(str->str, str->cap, fmt, args);
     va_end(args);
-}
-
-void hhg_str_init_vfmt(hhg_str_t *str, const char *fmt, va_list args)
-{
-    hhg_str_init(str);
-    hhg_vsprintf(str, fmt, args);
 }
 
 hhg_str_t *hhg_str_new(void)
@@ -89,15 +85,10 @@ hhg_str_t *hhg_str_new_fmt(const char *fmt, ...)
     hhg_str_t *str = hhg_malloc(sizeof(*str));
     va_list args;
     va_start(args, fmt);
-    hhg_str_init_vfmt(str, fmt, args);
+    int len = vsnprintf(NULL, 0, fmt, args);
+    hhg_str_init_len(str, (size_t)len);
+    snprintf(str->str, str->cap, fmt, args);
     va_end(args);
-    return str;
-}
-
-hhg_str_t *hhg_str_new_vfmt(const char *fmt, va_list args)
-{
-    hhg_str_t *str = hhg_malloc(sizeof(*str));
-    hhg_str_init_vfmt(str, fmt, args);
     return str;
 }
 
@@ -147,6 +138,24 @@ void hhg_str_append_str_len(hhg_str_t *str, const char *append, size_t len)
     memcpy(str->str + prev_len, append, len);
     str->str[str->len] = '\0';
 }
+
+void hhg_str_append_fmt(hhg_str_t *str, const char *fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+
+    int len = vsnprintf(NULL, 0, fmt, args);
+    size_t prev_len = str->len;
+    
+    str->len += (size_t)len;
+    if (str->len >= str->cap)
+        hhg_str_set_cap(str, str->len * 2);
+    
+    snprintf(str->str + prev_len, str->cap - prev_len, fmt, args);
+    
+    va_end(args);
+}
+
 
 char hhg_str_pop(hhg_str_t *str)
 {

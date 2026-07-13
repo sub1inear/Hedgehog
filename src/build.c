@@ -261,12 +261,12 @@ static void hhg_build_emit_lexer(hhg_lexer_t *lexer)
 }
 static void hhg_build_emit_parser(hhg_node_t *prog)
 {
-    hhg_node_print(prog, HHG_NODE_INDENT_START, false /* no symbols */);
+    hhg_node_print(prog, HHG_NODE_PRINT_MODE_NO_SYM);
 }
 
 static void hhg_build_emit_sem_an(hhg_node_t *prog)
 {
-    hhg_node_print(prog, HHG_NODE_INDENT_START, true /* print symbols */);
+    hhg_node_print(prog, HHG_NODE_PRINT_MODE_SYM);
 }
 
 static void hhg_build_emit_mir_gen(hhg_mir_gen_t *mir_gen)

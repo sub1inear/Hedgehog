@@ -13,6 +13,10 @@
         sizeof(instr_type)                   \
     )
 
+#define HHG_PRIreg   PRId32
+#define HHG_PRIlbl   PRId32
+#define HHG_PRIfield PRId32
+
 typedef int32_t hhg_mir_reg_t;
 typedef int32_t hhg_mir_lbl_t;
 typedef int32_t hhg_mir_field_t;
@@ -96,11 +100,12 @@ typedef struct hhg_mir_cnst {
     hhg_mir_cnst_type_t type;
 } hhg_mir_cnst_t;
 
-typedef enum hhg_mir_opnd_type {
+enum hhg_mir_opnd_type {
     HHG_MIR_OPND_NONE,
     HHG_MIR_OPND_REG,
     HHG_MIR_OPND_CNST
-} hhg_mir_opnd_type_t;
+};
+typedef int hhg_mir_opnd_type_t; // for printing
 
 typedef union hhg_mir_opnd_value {
     hhg_mir_reg_t reg;
@@ -299,21 +304,13 @@ typedef struct hhg_mir_local {
 } hhg_mir_local_t;
 
 void hhg_mir_opnd_print(hhg_mir_opnd_t *opnd);
-void hhg_mir_instr_print(hhg_mir_instr_t *instr);
-void hhg_mir_func_print(hhg_mir_func_t *func);
+void hhg_mir_opnd_fprint(hhg_mir_opnd_t *opnd, FILE *stream);
 
-void hhg_mir_opnd_print_stream(
-    hhg_mir_opnd_t *opnd,
-    const hhg_stream_t *stream
-);
-void hhg_mir_instr_print_stream(
-    hhg_mir_instr_t *instr,
-    const hhg_stream_t *stream
-);
-void hhg_mir_func_print_stream(
-    hhg_mir_func_t *func,
-    const hhg_stream_t *stream
-);
+void hhg_mir_instr_print(hhg_mir_instr_t *instr);
+void hhg_mir_instr_fprint(hhg_mir_instr_t *instr, FILE *stream);
+
+void hhg_mir_func_print(hhg_mir_func_t *func);
+void hhg_mir_func_fprint(hhg_mir_func_t *func, FILE *stream);
 
 void hhg_mir_instr_free(hhg_mir_instr_t *instr);
 

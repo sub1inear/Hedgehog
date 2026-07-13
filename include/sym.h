@@ -3,8 +3,6 @@
 
 #include "type.h"
 
-typedef struct hhg_stream hhg_stream_t;
-
 typedef enum hhg_sym_type {
     HHG_SYM_VAR,
     
@@ -36,7 +34,7 @@ hhg_sym_t *hhg_sym_new(
 );
 
 void hhg_sym_print(hhg_sym_t *sym);
-void hhg_sym_print_stream(hhg_sym_t *sym, const hhg_stream_t *stream);
+void hhg_sym_fprint(hhg_sym_t *sym, FILE *stream);
 
 void hhg_sym_del(hhg_sym_t *sym);
 

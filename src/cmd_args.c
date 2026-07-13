@@ -165,7 +165,7 @@ void hhg_cmd_args_del(hhg_cmd_args_t *cmd_args)
 
 static void hhg_cmd_args_print_global_usage(char *prog_name)
 {
-    hhg_printf(
+    printf(
         "usage: %s <subcommand> [options]\n"
         "global options:\n"
         "    --help           -h    show help\n"
@@ -183,7 +183,7 @@ static void hhg_cmd_args_print_global_usage(char *prog_name)
 
 static void hhg_cmd_args_print_init_usage(char *prog_name)
 {
-    hhg_printf(
+    printf(
         "usage: %s init [name] [options]\n"
         "args:\n"
         "    name                project name (defaults to current directory)\n"
@@ -226,7 +226,7 @@ static void hhg_cmd_args_parse_init(
 
 static void hhg_cmd_args_print_build_usage(char *prog_name)
 {
-    hhg_printf(
+    printf(
         "usage: %s build entry [options]\n"
         "args:\n"
         "    entry                        entry file to build\n"
@@ -281,7 +281,7 @@ static hhg_cmd_args_stage_t hhg_cmd_args_parse_stage(const char *str)
 
 static void hhg_cmd_args_print_run_usage(char *prog_name)
 {
-    hhg_printf(
+    printf(
         "usage: %s run entry [options] [-- args]\n"
         "args:\n"
         "    entry                        entry file to build\n"

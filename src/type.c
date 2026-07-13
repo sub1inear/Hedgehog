@@ -7,7 +7,7 @@
 #include "token.h"
 #include "mem.h"
 #include "sym.h"
-#include "utils.h"
+#include "str.h"
 
 static const char *const base_type_to_str[] = {
     [HHG_TYPE_NONE] = "none",
@@ -154,47 +154,43 @@ bool hhg_type_eq(hhg_type_t *l, hhg_type_t *r)
 
 void hhg_type_print(hhg_type_t *type)
 {
-    hhg_type_print_stream(type, hhg_stream_get_stdout());
+    hhg_type_fprint(type, stdout);
 }
 
-void hhg_type_print_stream(hhg_type_t *type, const hhg_stream_t *stream)
+void hhg_type_fprint(hhg_type_t *type, FILE *stream)
 {
     if (type == NULL) {
-        stream->out_str(stream->arg, "none");
+        fputs("none", stream);
         return;
     }
 
     if (type->is_const)
-        stream->out_str(stream->arg, "const");
+        fputs("const ", stream);
 
     if (type->is_volatile)
-        stream->out_str(stream->arg, "volatile");
+        fputs("volatile ", stream);
 
-    stream->out_str(stream->arg, base_type_to_str[type->type]);
+    fputs(base_type_to_str[type->type], stream);
 
     switch (type->type) {
     case HHG_TYPE_REF:
-        stream->out_char(stream->arg, ' ');
-        hhg_type_print_stream(type->info.ref.base, stream);
+        fputc(' ', stream);
+        hhg_type_fprint(type->info.ref.base, stream);
         break;
     case HHG_TYPE_ARR:
-        hhg_stream_printf(stream, " [%zd] of ", type->info.arr.size);
-        hhg_type_print_stream(type->info.arr.elem, stream);
+        fprintf(stream, " [%zd] of ", type->info.arr.size);
+        hhg_type_fprint(type->info.arr.elem, stream);
         break;
     case HHG_TYPE_FUNC:
         // methods have no symbol
-        if (type->info.func.sym != NULL) {
-            stream->out_char(stream->arg, ' ');
-            stream->out_str(stream->arg, type->info.func.sym->key);
-        }
+        if (type->info.func.sym != NULL)
+            fprintf(stream, " %s", type->info.func.sym->key);
         break;
     case HHG_TYPE_CLASS:
-        stream->out_char(stream->arg, ' ');
-        stream->out_str(stream->arg, type->info.class.sym->key);
+        fprintf(stream, " %s", type->info.class.sym->key);
         break;
     case HHG_TYPE_ID:
-        stream->out_char(stream->arg, ' ');
-        stream->out_str(stream->arg, type->info.id);
+        fprintf(stream, " %s", type->info.id);
         break;
     default:
         break;

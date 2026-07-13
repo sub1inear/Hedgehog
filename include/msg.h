@@ -24,6 +24,19 @@ void hhg_msg_ctx_del(hhg_msg_ctx_t *msg_ctx);
 
 // note: in the future, hhg_msg and hhg_basic_msg may be buffered
 
+/*
+supported format specifiers:
+%s  - const char *
+%i  - int
+%lu - long unsigned int
+%c  - char
+%b  - bool
+%%  - %
+%t  - hhg_token_type_t
+%n  - hhg_node_type_t 
+%T  - hhg_type_t *
+*/
+
 void hhg_msg(
     hhg_msg_ctx_t *msg_ctx,
     hhg_msg_type_t type,

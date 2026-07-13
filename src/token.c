@@ -3,6 +3,7 @@
 #include "token.h"
 #include "node.h"
 #include "file_range.h"
+#include "str.h"
 #include "utils.h"
 
 const char *const token_type_to_str[] = {
@@ -123,29 +124,19 @@ const char *const token_type_to_str[] = {
     [HHG_NODE_OBJ_INIT] = "obj init",
 };
 
+void hhg_token_type_print(hhg_token_type_t type)
+{
+    hhg_token_type_fprint(type, stdout);
+}
+
+void hhg_token_type_fprint(hhg_token_type_t type, FILE *stream)
+{
+    fputs(hhg_token_type_to_str(type), stream);
+}
+
 const char *hhg_token_type_to_str(hhg_token_type_t type)
 {
     return type == EOF ? "EOF" : token_type_to_str[type];
-}
-
-void hhg_token_type_print(hhg_token_type_t type)
-{
-    hhg_token_type_print_stream(type, hhg_stream_get_stdout());
-}
-
-void hhg_token_type_print_stream(
-    hhg_token_type_t type,
-    const hhg_stream_t *stream
-)
-{
-    stream->out_str(stream->arg, hhg_token_type_to_str(type));   
-}
-
-void hhg_token_init(hhg_token_t *token)
-{
-    token->type = HHG_TOKEN_NONE;
-    hhg_str_init(&token->str);
-    hhg_file_range_init(&token->range);
 }
 
 void hhg_token_reset_aux(hhg_token_t *token)
@@ -156,25 +147,31 @@ void hhg_token_reset_aux(hhg_token_t *token)
 
 void hhg_token_print(hhg_token_t *token)
 {
-    hhg_token_print_stream(token, hhg_stream_get_stdout());
+    hhg_token_fprint(token, stdout);
 }
 
-void hhg_token_print_stream(hhg_token_t *token, const hhg_stream_t *stream)
+void hhg_token_fprint(hhg_token_t *token, FILE *stream)
 {
-    hhg_stream_printf(stream, "{ .type = %t, .value = ", token->type);
+    fprintf(
+        stream,
+        "{ .type = %s, .value = ",
+        hhg_token_type_to_str(token->type)
+    );
     switch (token->type) {
     case HHG_TOKEN_INT_LITERAL:
     case HHG_TOKEN_FLOAT_LITERAL:
     case HHG_TOKEN_CHAR_LITERAL:
     case HHG_TOKEN_STRING_LITERAL:
     case HHG_TOKEN_ID:
-        hhg_stream_printf(stream, "\"%s\"", token->str.str);
+        fprintf(stream, "\"%s\"", token->str.str);
         break;
     default:
-        stream->out_str(stream->arg, "null");
+        fputs("null", stream);
         break;
     }
-    hhg_stream_printf(stream, ", .range = %R }", &token->range);
+    fputs(", .range = ", stream);
+    hhg_file_range_fprint(&token->range, stream);
+    fputs(" }", stream);
 }
 
 
