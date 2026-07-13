@@ -23,10 +23,6 @@ int hhg_main(int argc, char **argv)
     hhg_cmd_args_del(&cmd_args);
     hhg_arena_free(arena);
 
-#ifdef HHG_MEM_DEBUG
-    hhg_mem_debug_print_stats();
-#endif
-
     return result ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
