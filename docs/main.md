@@ -260,9 +260,7 @@ import std.math
 class Point {
     x: f64
     y: f64
-    fn dist(&self, p: &
-
-    Point) -> f64 {
+    fn dist(&self, p: &Point) -> f64 {
         let dx = self.x - p.x
         let dy = self.y - p.y
         return std.math.sqrt(dx * dx + dy * dy)
