@@ -120,11 +120,11 @@ static void hhg_node_fprint_core(
             stream
         );
         break;
-    case HHG_TOKEN_STRING_LITERAL:
-    case HHG_TOKEN_INT_LITERAL:
-    case HHG_TOKEN_FLOAT_LITERAL:
+    case HHG_TOKEN_STR_LIT:
+    case HHG_TOKEN_INT_LIT:
+    case HHG_TOKEN_FLOAT_LIT:
         hhg_node_fprint_str(
-            node->value.literal.str,
+            node->value.lit.str,
             next_indent,
             stream
         );
@@ -287,11 +287,11 @@ static void hhg_node_fprint_core(
             stream
         );
         break;
-    case HHG_NODE_ARR_LITERAL: {
-        size_t len = arrlenu(node->value.arr_literal.elems);
+    case HHG_NODE_ARR_LIT: {
+        size_t len = arrlenu(node->value.arr_lit.elems);
         for (size_t i = 0; i < len; i++)
             hhg_node_fprint_core(
-                node->value.arr_literal.elems[i],
+                node->value.arr_lit.elems[i],
                 next_indent,
                 mode,
                 stream

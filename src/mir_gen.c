@@ -84,7 +84,7 @@ static hhg_mir_opnd_t hhg_mir_gen_run_return(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 );
-static hhg_mir_opnd_t hhg_mir_gen_run_arr_literal(
+static hhg_mir_opnd_t hhg_mir_gen_run_arr_lit(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 );
@@ -96,19 +96,19 @@ static hhg_mir_opnd_t hhg_mir_gen_run_inc_dec(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 );
-static hhg_mir_opnd_t hhg_mir_gen_run_bool_literal(
+static hhg_mir_opnd_t hhg_mir_gen_run_bool_lit(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 );
-static hhg_mir_opnd_t hhg_mir_gen_run_string_literal(
+static hhg_mir_opnd_t hhg_mir_gen_run_str_lit(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 );
-static hhg_mir_opnd_t hhg_mir_gen_run_int_literal(
+static hhg_mir_opnd_t hhg_mir_gen_run_int_lit(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 );
-static hhg_mir_opnd_t hhg_mir_gen_run_float_literal(
+static hhg_mir_opnd_t hhg_mir_gen_run_float_lit(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 );
@@ -210,8 +210,8 @@ static hhg_mir_opnd_t hhg_mir_gen_run_core(
         return hhg_mir_gen_run_func_call(gen, node);
     case HHG_TOKEN_RETURN:
         return hhg_mir_gen_run_return(gen, node);
-    case HHG_NODE_ARR_LITERAL:
-        return hhg_mir_gen_run_arr_literal(gen, node);
+    case HHG_NODE_ARR_LIT:
+        return hhg_mir_gen_run_arr_lit(gen, node);
     case '+':
     case '-':
     case '*':
@@ -246,13 +246,13 @@ static hhg_mir_opnd_t hhg_mir_gen_run_core(
         return hhg_mir_gen_run_inc_dec(gen, node);
     case HHG_TOKEN_TRUE:
     case HHG_TOKEN_FALSE:
-        return hhg_mir_gen_run_bool_literal(gen, node);
-    case HHG_TOKEN_STRING_LITERAL:
-        return hhg_mir_gen_run_string_literal(gen, node);
-    case HHG_TOKEN_INT_LITERAL:
-        return hhg_mir_gen_run_int_literal(gen, node);
-    case HHG_TOKEN_FLOAT_LITERAL:
-        return hhg_mir_gen_run_float_literal(gen, node);
+        return hhg_mir_gen_run_bool_lit(gen, node);
+    case HHG_TOKEN_STR_LIT:
+        return hhg_mir_gen_run_str_lit(gen, node);
+    case HHG_TOKEN_INT_LIT:
+        return hhg_mir_gen_run_int_lit(gen, node);
+    case HHG_TOKEN_FLOAT_LIT:
+        return hhg_mir_gen_run_float_lit(gen, node);
     case '.':
     case HHG_NODE_PARAM:
         return (hhg_mir_opnd_t){ .type = HHG_MIR_OPND_NONE };
@@ -481,7 +481,7 @@ static hhg_mir_opnd_t hhg_mir_gen_run_return(
     return (hhg_mir_opnd_t) { .type = HHG_MIR_OPND_NONE, };
 }
 
-static hhg_mir_opnd_t hhg_mir_gen_run_arr_literal(
+static hhg_mir_opnd_t hhg_mir_gen_run_arr_lit(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 )
@@ -508,7 +508,7 @@ static hhg_mir_opnd_t hhg_mir_gen_run_inc_dec(
     return (hhg_mir_opnd_t) { .type = HHG_MIR_OPND_NONE, };
 }
 
-static hhg_mir_opnd_t hhg_mir_gen_run_bool_literal(
+static hhg_mir_opnd_t hhg_mir_gen_run_bool_lit(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 )
@@ -517,7 +517,7 @@ static hhg_mir_opnd_t hhg_mir_gen_run_bool_literal(
     return (hhg_mir_opnd_t) { .type = HHG_MIR_OPND_NONE, };
 }
 
-static hhg_mir_opnd_t hhg_mir_gen_run_string_literal(
+static hhg_mir_opnd_t hhg_mir_gen_run_str_lit(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 )
@@ -526,7 +526,7 @@ static hhg_mir_opnd_t hhg_mir_gen_run_string_literal(
     return (hhg_mir_opnd_t) { .type = HHG_MIR_OPND_NONE, };
 }
 
-static hhg_mir_opnd_t hhg_mir_gen_run_int_literal(
+static hhg_mir_opnd_t hhg_mir_gen_run_int_lit(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 )
@@ -538,12 +538,12 @@ static hhg_mir_opnd_t hhg_mir_gen_run_int_literal(
         .value.cnst = (hhg_mir_cnst_t) {
             .type = HHG_MIR_CNST_SI,
             .value.si = 
-            hhg_str_to_int64(node->value.literal.str),
+            hhg_str_to_int64(node->value.lit.str),
         },
     };
 }
 
-static hhg_mir_opnd_t hhg_mir_gen_run_float_literal(
+static hhg_mir_opnd_t hhg_mir_gen_run_float_lit(
     hhg_mir_gen_t *gen,
     hhg_node_t *node
 )

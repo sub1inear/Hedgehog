@@ -30,11 +30,10 @@ const char *const token_type_to_str[] = {
     [HHG_TOKEN_ID] = "id",
 
     // literals
-    [HHG_TOKEN_INT_LITERAL] = "int literal",
-    [HHG_TOKEN_FLOAT_LITERAL] = "float literal",
-    [HHG_TOKEN_CHAR_LITERAL] = "char literal",
-    [HHG_TOKEN_STRING_LITERAL] = "string literal",
-
+    [HHG_TOKEN_INT_LIT] = "int lit",
+    [HHG_TOKEN_FLOAT_LIT] = "float lit",
+    [HHG_TOKEN_CHAR_LIT] = "char lit",
+    [HHG_TOKEN_STR_LIT] = "str lit",
     // keywords
     [HHG_TOKEN_IF] = "if",
     [HHG_TOKEN_WHILE] = "while",
@@ -120,7 +119,7 @@ const char *const token_type_to_str[] = {
     [HHG_NODE_BLOCK] = "block",
     [HHG_NODE_PARAM] = "param",
     [HHG_NODE_FUNC_CALL] = "func call",
-    [HHG_NODE_ARR_LITERAL] = "arr literal",
+    [HHG_NODE_ARR_LIT] = "arr lit",
     [HHG_NODE_OBJ_INIT] = "obj init",
 };
 
@@ -158,10 +157,10 @@ void hhg_token_fprint(hhg_token_t *token, FILE *stream)
         hhg_token_type_to_str(token->type)
     );
     switch (token->type) {
-    case HHG_TOKEN_INT_LITERAL:
-    case HHG_TOKEN_FLOAT_LITERAL:
-    case HHG_TOKEN_CHAR_LITERAL:
-    case HHG_TOKEN_STRING_LITERAL:
+    case HHG_TOKEN_INT_LIT:
+    case HHG_TOKEN_FLOAT_LIT:
+    case HHG_TOKEN_CHAR_LIT:
+    case HHG_TOKEN_STR_LIT:
     case HHG_TOKEN_ID:
         fprintf(stream, "\"%s\"", token->str.str);
         break;

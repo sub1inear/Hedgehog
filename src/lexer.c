@@ -32,8 +32,8 @@ static int hhg_lexer_next_char(hhg_lexer_t *lexer);
 static void hhg_lexer_back_char(hhg_lexer_t *lexer);
 static void hhg_lexer_lex_id(hhg_lexer_t *lexer, int c);
 static void hhg_lexer_lex_num(hhg_lexer_t *lexer, int c);
-static void hhg_lexer_lex_str_literal(hhg_lexer_t *lexer, int c);
-static void hhg_lexer_lex_char_literal(hhg_lexer_t *lexer, int c);
+static void hhg_lexer_lex_str_lit(hhg_lexer_t *lexer, int c);
+static void hhg_lexer_lex_char_lit(hhg_lexer_t *lexer, int c);
 static bool hhg_lexer_lex_default(hhg_lexer_t *lexer, int c);
 
 static const hhg_lexer_op_data_t op_data[] = {
@@ -184,10 +184,10 @@ void hhg_lexer_next(hhg_lexer_t *lexer)
                 hhg_lexer_lex_num(lexer, c);
                 break;
             } else if (c == '"') {
-                hhg_lexer_lex_str_literal(lexer, c);
+                hhg_lexer_lex_str_lit(lexer, c);
                 break;
             } else if (c == '\'') {
-                hhg_lexer_lex_char_literal(lexer, c);
+                hhg_lexer_lex_char_lit(lexer, c);
                 break;
             } else if (c == EOF) {
                 lexer->token.type = EOF;
@@ -294,15 +294,15 @@ static void hhg_lexer_lex_num(hhg_lexer_t *lexer, int c)
 
     hhg_lexer_back_char(lexer);
 
-    lexer->token.type = HHG_TOKEN_INT_LITERAL;
+    lexer->token.type = HHG_TOKEN_INT_LIT;
 
     if (seen_decimal)
-        lexer->token.type = HHG_TOKEN_FLOAT_LITERAL;
+        lexer->token.type = HHG_TOKEN_FLOAT_LIT;
 
     return;
 }
 
-static void hhg_lexer_lex_str_literal(hhg_lexer_t *lexer, int c)
+static void hhg_lexer_lex_str_lit(hhg_lexer_t *lexer, int c)
 {
     hhg_str_append_char(&lexer->token.str, c);
     while (true) {
@@ -311,7 +311,7 @@ static void hhg_lexer_lex_str_literal(hhg_lexer_t *lexer, int c)
         if (c == EOF) {
             hhg_lexer_error(
                 lexer,
-                "unexpected EOF in string literal",
+                "unexpected EOF in string lit",
                 NULL
             );
             break;
@@ -327,10 +327,10 @@ static void hhg_lexer_lex_str_literal(hhg_lexer_t *lexer, int c)
         }
         hhg_str_append_char(&lexer->token.str, c);
     }
-    lexer->token.type = HHG_TOKEN_STRING_LITERAL;
+    lexer->token.type = HHG_TOKEN_STR_LIT;
 }
 
-static void hhg_lexer_lex_char_literal(hhg_lexer_t *lexer, int c)
+static void hhg_lexer_lex_char_lit(hhg_lexer_t *lexer, int c)
 {
     hhg_str_append_char(&lexer->token.str, c);
     c = hhg_lexer_next_char(lexer);
@@ -352,7 +352,7 @@ static void hhg_lexer_lex_char_literal(hhg_lexer_t *lexer, int c)
             NULL
         );
 
-    lexer->token.type = HHG_TOKEN_CHAR_LITERAL;
+    lexer->token.type = HHG_TOKEN_CHAR_LIT;
 }
 
 static bool hhg_lexer_lex_default(hhg_lexer_t *lexer, int c)

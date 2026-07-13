@@ -18,7 +18,7 @@ enum hhg_node_type {
     HHG_NODE_BLOCK = HHG_NODE_START,
     HHG_NODE_PARAM,
     HHG_NODE_FUNC_CALL,
-    HHG_NODE_ARR_LITERAL,
+    HHG_NODE_ARR_LIT,
     HHG_NODE_OBJ_INIT,
 };
 typedef int hhg_node_type_t;
@@ -45,13 +45,13 @@ typedef struct hhg_var_decl {
     hhg_node_t *expr;
 } hhg_var_decl_t;
 
-typedef struct hhg_literal {
+typedef struct hhg_lit {
     char *str;
-} hhg_literal_t;
+} hhg_lit_t;
 
-typedef struct hhg_arr_literal {
+typedef struct hhg_arr_lit {
     hhg_node_t **elems;
-} hhg_arr_literal_t;
+} hhg_arr_lit_t;
 
 typedef struct hhg_if {
     hhg_node_t *cond;
@@ -113,11 +113,11 @@ typedef union hhg_node_value  {
     hhg_id_t id;
     // =
     hhg_var_decl_t var_decl;
-    // HHG_TOKEN_STRING_LITERAL, HHG_TOKEN_INT_LITERAL,
-    // HHG_TOKEN_FLOAT_LITERAL, HHG_TOKEN_TRUE, HHG_TOKEN_FALSE
-    hhg_literal_t literal;
-    // HHG_NODE_ARR_LITERAL
-    hhg_arr_literal_t arr_literal;
+    // HHG_TOKEN_STR_LIT, HHG_TOKEN_INT_LIT,
+    // HHG_TOKEN_FLOAT_LIT, HHG_TOKEN_TRUE, HHG_TOKEN_FALSE
+    hhg_lit_t lit;
+    // HHG_NODE_ARR_LIT
+    hhg_arr_lit_t arr_lit;
     // HHG_TOKEN_IF
     hhg_if_t if_stmt;
     // HHG_TOKEN_WHILE
