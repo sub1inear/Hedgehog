@@ -444,3 +444,15 @@ unsafe {
 
 Hedgehog can interoperate with C and C++ code by `import`ing C/C++ headers directly.
 C/C++ can call Hedgehog functions by including the generated C/C++ header file.
+
+## Hedgehog v0.1.0
+- [ ] Variables (`let`, `let mut`, `const`)
+- [ ] Arithmetic Operators (`+`, `-`, `*`, `/`, `%`, etc.)
+- [ ] Boolean Logic (`and`, `or`, `not`)
+- [ ] Functions and Return Values
+- [ ] Types
+- [ ] Integer and Array Literals
+- [ ] Control Flow (`if`, `else`, `while`, `for`)
+- [ ] Arrays
+- [ ] References
+- [ ] Comments
