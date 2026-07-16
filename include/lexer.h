@@ -18,8 +18,6 @@ typedef struct hhg_lexer {
     hhg_file_pos_t pos;
     hhg_file_pos_t last_pos;
 
-    bool newline;
-
     hhg_token_t token;
 
     hhg_msg_ctx_t *msg_ctx;

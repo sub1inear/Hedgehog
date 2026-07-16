@@ -303,8 +303,6 @@ void hhg_lexer_init(
     hhg_file_pos_init(&lexer->pos);
     hhg_file_pos_init(&lexer->last_pos);
 
-    lexer->newline = false;
-
     lexer->msg_ctx = msg_ctx;
 
     hhg_token_init(&lexer->token);
@@ -341,8 +339,11 @@ void hhg_lexer_next(hhg_lexer_t *lexer)
                 lexer->token.type = HHG_TOKEN_EOF;
                 break;
             } else if (c == '\n') {
-                lexer->token.type = HHG_TOKEN_NEWLINE;
-                break;
+                if (newline_data[lexer->token.type]) {
+                    lexer->token.type = HHG_TOKEN_NEWLINE;
+                    break;
+                } else
+                    continue;
             } else if (hhg_lexer_lex_default(lexer, c))
                 break;
         }
