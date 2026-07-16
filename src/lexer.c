@@ -96,6 +96,7 @@ static const hhg_lexer_op_data_t op_data[] = {
     { { ']', '\0', '\0', },  HHG_TOKEN_RBRACKET,     HHG_PREC_NONE, },
     { { ',', '\0', '\0', },  HHG_TOKEN_COMMA,        HHG_PREC_NONE, },
 };
+
 static const hhg_lexer_keyword_data_t keyword_data[] = {
     { "let",                 HHG_TOKEN_LET,                         },
     { "mut",                 HHG_TOKEN_MUT,                         },
@@ -518,7 +519,7 @@ static void hhg_lexer_lex_str_lit(hhg_lexer_t *lexer, int c)
         if (c == EOF) {
             hhg_lexer_error(
                 lexer,
-                "unexpected EOF in string lit",
+                "unexpected EOF in string literal",
                 NULL
             );
             break;

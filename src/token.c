@@ -73,10 +73,10 @@ const char *const token_type_to_str[] = {
     [HHG_TOKEN_COMMA] = ",",
 
     // literals
-    [HHG_TOKEN_INT_LIT] = "int lit",
-    [HHG_TOKEN_FLOAT_LIT] = "float lit",
-    [HHG_TOKEN_CHAR_LIT] = "char lit",
-    [HHG_TOKEN_STR_LIT] = "str lit",
+    [HHG_TOKEN_INT_LIT] = "int literal",
+    [HHG_TOKEN_FLOAT_LIT] = "float literal",
+    [HHG_TOKEN_CHAR_LIT] = "char literal",
+    [HHG_TOKEN_STR_LIT] = "string literal",
 
     // keywords
     [HHG_TOKEN_LET] = "let",
