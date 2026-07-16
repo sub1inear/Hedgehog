@@ -1,3 +1,4 @@
+#if 0 // lexer-only: disabled while token set is in flux
 #include <stdint.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -380,3 +381,4 @@ static void hhg_node_fprint_id(
     } else
         fputs(id.str, stream);
 }
+#endif // lexer-only

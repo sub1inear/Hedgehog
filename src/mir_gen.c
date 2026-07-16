@@ -1,3 +1,4 @@
+#if 0 // lexer-only: disabled while token set is in flux
 #include <stb_ds.h>
 
 #include "mir_gen.h"
@@ -551,3 +552,4 @@ static hhg_mir_opnd_t hhg_mir_gen_run_float_lit(
     HHG_UNUSED(gen, node);
     return (hhg_mir_opnd_t) { .type = HHG_MIR_OPND_NONE, };
 }
+#endif // lexer-only

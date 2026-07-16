@@ -26,7 +26,7 @@ void hhg_sym_print(hhg_sym_t *sym)
 
 void hhg_sym_fprint(hhg_sym_t *sym, FILE *stream)
 {
-    hhg_type_fprint(sym->value.type, stream);
+    // lexer-only: hhg_type_fprint disabled (type.c is #if 0'd)
     fprintf(stream, " %s\n", sym->key);
 }
 
@@ -34,7 +34,6 @@ void hhg_sym_del(hhg_sym_t *sym)
 {
     // string is in arena/static memory, so no need to free
     // sym is in arena (allocated by sym tab), so no need to free
-    // sym may not have a type (for classes declared in parser)
-    if (sym->value.type != NULL)
-        hhg_type_del(sym->value.type);
+    // lexer-only: hhg_type_del disabled (type.c is #if 0'd)
+    (void)sym;
 }

@@ -255,7 +255,7 @@ static void hhg_vfprintf(FILE *stream, const char *fmt, va_list va)
     char c;
     while ((c = *fmt++) != '\0') {
         if (c == '%') {
-            switch (c = *++fmt) {
+            switch (c = *fmt++) {
             case 's': {
                 const char *str_arg = va_arg(va, const char *);
                 fputs(str_arg ? str_arg : "(null)", stream);
@@ -278,14 +278,15 @@ static void hhg_vfprintf(FILE *stream, const char *fmt, va_list va)
             case 'b':
                 fputs((bool)va_arg(va, int) ? "true" : "false", stream);
                 break;
+            // lexer-only: %n and %T disabled (node.c and type.c are #if 0'd)
             case 'n':
-                hhg_node_type_fprint(va_arg(va, hhg_node_type_t), stream);
+                HHG_UNUSED(va_arg(va, hhg_node_type_t));
                 break;
             case 't':
                 hhg_token_type_fprint(va_arg(va, hhg_token_type_t), stream);
                 break;
             case 'T':
-                hhg_type_fprint(va_arg(va, hhg_type_t *), stream);
+                HHG_UNUSED(va_arg(va, hhg_type_t *));
                 break;
             case '%':
                 fputc('%', stream);
@@ -294,6 +295,7 @@ static void hhg_vfprintf(FILE *stream, const char *fmt, va_list va)
                 hhg_compiler_error("unknown format specifier: %%%c", c);
                 break;
             }
+            
         } else
             fputc(c, stream);
     }

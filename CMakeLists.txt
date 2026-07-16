@@ -46,7 +46,7 @@ if (CMAKE_C_COMPILER_ID STREQUAL "GNU" OR
     CMAKE_C_COMPILER_ID STREQUAL "IntelLLVM")
     target_compile_options(${EXECUTABLE_NAME} PRIVATE -Wall -Wextra -Wpedantic -Werror)
 elseif (CMAKE_C_COMPILER_ID STREQUAL "MSVC")
-    target_compile_options(${EXECUTABLE_NAME} PRIVATE /W4 /permissive- /WX /wd4996 /wd4063)
+    target_compile_options(${EXECUTABLE_NAME} PRIVATE /W4 /permissive- /WX /wd4996 /wd4063 /wd4206)
 else()
     # Unknown compiler - intentionally do nothing (default to no warnings)
     message(STATUS "compiler '${CMAKE_C_COMPILER_ID}' not recognized   no warning flags added for target '${PROJECT_NAME}'")

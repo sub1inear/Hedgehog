@@ -1,3 +1,4 @@
+#if 0 // lexer-only: disabled while token set is in flux
 #include <stdbool.h>
 #include <string.h>
 
@@ -716,3 +717,4 @@ static void hhg_sem_an_run_float_lit(
 {
     node->value_type = hhg_type_ctx_get_builtin(sem_an->type_ctx, HHG_TYPE_F32);
 }
+#endif // lexer-only

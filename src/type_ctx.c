@@ -6,11 +6,12 @@
 
 void hhg_type_ctx_init(hhg_type_ctx_t *type_ctx, hhg_arena_t *arena)
 {
+#if 0// lexer-only: hhg_type_init disabled (type.c is #if 0'd)
     for (hhg_base_type_t i = HHG_BUILTIN_TYPE_START;
          i < HHG_BUILTIN_TYPE_END;
          i++)
         hhg_type_init(&type_ctx->builtins[i - HHG_BUILTIN_TYPE_START], i);
-
+#endif
     type_ctx->ref_tab = NULL;
     type_ctx->arr_tab = NULL;
 

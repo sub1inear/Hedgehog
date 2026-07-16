@@ -26,7 +26,9 @@
 #define HHG_POSIX
 #endif
 
-#define hhg_assert(expr) if (!(expr)) hhg_assert_core(#expr, __FILE__, __LINE__)
+#define hhg_assert(expr) \
+    if (!(expr))         \
+        hhg_assert_core(#expr, __FILE__, __LINE__)
 
 typedef struct hhg_str hhg_str_t;
 typedef struct arena hhg_arena_t;

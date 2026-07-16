@@ -1,3 +1,4 @@
+#if 0 // lexer-only: disabled while token set is in flux
 #include <stdbool.h>
 #include <stdio.h>
 
@@ -216,4 +217,4 @@ void hhg_type_del(hhg_type_t *type)
     }
     }
 }
-
+#endif // lexer-only

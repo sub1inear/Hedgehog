@@ -11,7 +11,7 @@
 typedef struct hhg_file_src hhg_file_src_t;
 typedef struct hhg_type hhg_type_t;
 
-#define HHG_NODE_START HHG_TOKEN_END
+#define HHG_NODE_START (HHG_TOKEN_USIZE + 1)
 #define HHG_NODE_END (HHG_NODE_OBJ_INIT + 1)
 
 enum hhg_node_type {

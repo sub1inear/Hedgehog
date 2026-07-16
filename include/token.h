@@ -2,25 +2,85 @@
 #define HHG_TOKEN_H
 
 #include <stdint.h>
-#include <limits.h>
 
 #include "file_range.h"
 #include "str.h"
-
-#define HHG_TOKEN_START UCHAR_MAX
-#define HHG_TOKEN_END (HHG_TOKEN_RSHIFT_EQ + 1)
 
 #define HHG_PREC_NONE (-1)
 
 typedef struct hhg_str hhg_str_t;
 
-enum hhg_token_type {
-    HHG_TOKEN_NONE = HHG_TOKEN_START,
+typedef enum hhg_token_type {
+    // special tokens
+    HHG_TOKEN_NONE,
     HHG_TOKEN_ID,
+    HHG_TOKEN_EOF,
+    HHG_TOKEN_NEWLINE,
+
+    // arithmetic operators
+    HHG_TOKEN_PLUS,
+    HHG_TOKEN_MINUS,
+    HHG_TOKEN_STAR,
+    HHG_TOKEN_SLASH,
+    HHG_TOKEN_PERCENT,
+
+    // bitwise operators
+    HHG_TOKEN_AMPERSAND,
+    HHG_TOKEN_PIPE,
+    HHG_TOKEN_CARET,
+    HHG_TOKEN_TILDE,
+    HHG_TOKEN_LSHIFT,
+    HHG_TOKEN_RSHIFT,
+
+    // assignment operators
+    HHG_TOKEN_EQ,
+
+    HHG_TOKEN_PLUS_EQ,
+    HHG_TOKEN_MINUS_EQ,
+    HHG_TOKEN_STAR_EQ,
+    HHG_TOKEN_SLASH_EQ,
+    HHG_TOKEN_PERCENT_EQ,
+    HHG_TOKEN_AMPERSAND_EQ,
+    HHG_TOKEN_PIPE_EQ,
+    HHG_TOKEN_CARET_EQ,
+    HHG_TOKEN_LSHIFT_EQ,
+    HHG_TOKEN_RSHIFT_EQ,
+
+    // comparison operators
+    HHG_TOKEN_EQ_EQ,
+    HHG_TOKEN_NOT_EQ,
+    HHG_TOKEN_LT,
+    HHG_TOKEN_LT_EQ,
+    HHG_TOKEN_GT,
+    HHG_TOKEN_GT_EQ,
+
+    // punctuation
+    HHG_TOKEN_ARROW,
+    HHG_TOKEN_FAT_ARROW,
+
+    HHG_TOKEN_DOT,
+    HHG_TOKEN_DOT_DOT,
+    HHG_TOKEN_DOT_DOT_EQ,
+
+    HHG_TOKEN_QUESTION,
+    HHG_TOKEN_BANG,
+    HHG_TOKEN_COLON,
+    HHG_TOKEN_AT,
+
+    HHG_TOKEN_LPAREN,
+    HHG_TOKEN_RPAREN,
+    
+    HHG_TOKEN_LBRACE,
+    HHG_TOKEN_RBRACE,
+
+    HHG_TOKEN_LBRACKET,
+    HHG_TOKEN_RBRACKET,
+
+    HHG_TOKEN_COMMA,
+    
     // literals
     HHG_TOKEN_INT_LIT,
     HHG_TOKEN_FLOAT_LIT,
-
     HHG_TOKEN_CHAR_LIT,
     HHG_TOKEN_STR_LIT,
 
@@ -82,33 +142,7 @@ enum hhg_token_type {
 
     HHG_TOKEN_ISIZE,
     HHG_TOKEN_USIZE,
-
-    HHG_TOKEN_THIN_ARROW,
-    HHG_TOKEN_FAT_ARROW,
-
-    HHG_TOKEN_LSHIFT,
-    HHG_TOKEN_RSHIFT,
-
-    HHG_TOKEN_EQ,
-    HHG_TOKEN_NOT_EQ,
-    HHG_TOKEN_LT_EQ,
-    HHG_TOKEN_GT_EQ,
-
-    HHG_TOKEN_ADD_EQ,
-    HHG_TOKEN_SUB_EQ,
-    HHG_TOKEN_MUL_EQ,
-    HHG_TOKEN_DIV_EQ,
-    HHG_TOKEN_MOD_EQ,
-
-    HHG_TOKEN_AND_EQ,
-    HHG_TOKEN_OR_EQ,
-    HHG_TOKEN_XOR_EQ,
-
-    HHG_TOKEN_LSHIFT_EQ,
-    HHG_TOKEN_RSHIFT_EQ,
-};
-// guarantee being signed (for comparison with EOF)
-typedef int hhg_token_type_t;
+} hhg_token_type_t;
 
 void hhg_token_type_print(hhg_token_type_t type);
 void hhg_token_type_fprint(hhg_token_type_t type, FILE *stream);

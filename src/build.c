@@ -44,9 +44,11 @@ static hhg_build_check_exit_result_t hhg_build_check_exit(
     hhg_build_data_t *build_data
 );
 static void hhg_build_emit_lexer(hhg_lexer_t *lexer);
+#if 0 // lexer-only
 static void hhg_build_emit_parser(hhg_node_t *prog);
 static void hhg_build_emit_sem_an(hhg_node_t *prog);
 static void hhg_build_emit_mir_gen(hhg_mir_gen_t *mir_gen);
+#endif // lexer-only
 static void hhg_build_emit_code_gen(hhg_code_gen_t *code_gen);
 static void hhg_build_emit_ext_build(void *arg);
 
@@ -76,9 +78,12 @@ bool hhg_build(
     if (lexer_result == HHG_BUILD_CHECK_EXIT_ERROR) return false;
     else if (lexer_result == HHG_BUILD_CHECK_EXIT_SAFE_EXIT) return true;
 
+#if 1
+    HHG_UNUSED(arena);
+#else // lexer-only: stages 1-5 disabled while token set is in flux
     hhg_sym_tab_t sym_tab;
     hhg_sym_tab_init(&sym_tab, arena);
-    
+
     hhg_type_ctx_t type_ctx;
     hhg_type_ctx_init(&type_ctx, arena);
 
@@ -131,7 +136,7 @@ bool hhg_build(
     hhg_mir_gen_t mir_gen;
     hhg_mir_gen_init(&mir_gen, arena);
     hhg_mir_gen_run(&mir_gen, prog);
-    
+
     hhg_build_check_exit_result_t mir_gen_result = hhg_build_check_exit(
         build,
         msg_ctx,
@@ -153,10 +158,10 @@ bool hhg_build(
     // 4th stage: code generation
     hhg_code_gen_t code_gen;
     hhg_code_gen_init(&code_gen, arena);
-    
+
     const char *code_gen_filename;
     hhg_code_gen_run(&code_gen, &mir_gen, build->entry, &code_gen_filename);
-    
+
     hhg_build_check_exit_result_t code_gen_result = hhg_build_check_exit(
         build,
         msg_ctx,
@@ -208,8 +213,8 @@ bool hhg_build(
         );
     if (ext_build_result == HHG_BUILD_CHECK_EXIT_ERROR) return false;
     else if (ext_build_result == HHG_BUILD_CHECK_EXIT_SAFE_EXIT) return true;
-    
-    
+
+
     // 6th stage: cleanup
     hhg_build_cleanup(&(hhg_build_data_t) {
         .lexer = &lexer,
@@ -218,7 +223,9 @@ bool hhg_build(
         .mir_gen = &mir_gen,
         .code_gen = &code_gen,
     });
+#endif // lexer-only
 
+    hhg_lexer_del(&lexer);
     return true;
 }
 
@@ -244,7 +251,9 @@ static hhg_build_check_exit_result_t hhg_build_check_exit(
 
 void hhg_build_cleanup(hhg_build_data_t *build_data)
 {
+#if 0 // lexer-only
     if (build_data->mir_gen)  hhg_mir_gen_del(build_data->mir_gen);
+#endif // lexer-only
     if (build_data->type_ctx) hhg_type_ctx_del(build_data->type_ctx);
     if (build_data->sym_tab)  hhg_sym_tab_del(build_data->sym_tab);
     if (build_data->lexer)    hhg_lexer_del(build_data->lexer);
@@ -257,8 +266,9 @@ static void hhg_build_emit_lexer(hhg_lexer_t *lexer)
         hhg_lexer_next(lexer);
         hhg_token_print(&lexer->token);
         putchar('\n');
-    } while (lexer->token.type != EOF);
+    } while (lexer->token.type != HHG_TOKEN_EOF);
 }
+#if 0 // lexer-only: disabled while token set is in flux
 static void hhg_build_emit_parser(hhg_node_t *prog)
 {
     hhg_node_print(prog, HHG_NODE_PRINT_MODE_NO_SYM);
@@ -273,6 +283,7 @@ static void hhg_build_emit_mir_gen(hhg_mir_gen_t *mir_gen)
 {
     hhg_mir_gen_print(mir_gen);
 }
+#endif // lexer-only
 
 static void hhg_build_emit_code_gen(hhg_code_gen_t *code_gen)
 {
