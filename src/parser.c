@@ -1,4 +1,3 @@
-#if 0 // lexer-only: disabled while token set is in flux
 #include <stdbool.h>
 
 #include <stb_ds.h>
@@ -701,4 +700,3 @@ static char *hhg_parser_strdup(hhg_parser_t *parser, const char *str)
 {
     return hhg_arena_strdup(parser->arena, str);
 }
-#endif // lexer-only

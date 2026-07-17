@@ -451,7 +451,7 @@ C/C++ can call Hedgehog functions by including the generated C/C++ header file.
 - [ ] Boolean Logic (`and`, `or`, `not`)
 - [ ] Functions and Return Values
 - [ ] Types
-- [ ] Integer and Array Literals
+- [ ] Integer, Boolean, and Array Literals
 - [ ] Control Flow (`if`, `else`, `while`, `for`)
 - [ ] Arrays
 - [ ] References

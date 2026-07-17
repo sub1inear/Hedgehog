@@ -4,138 +4,202 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#include "token.h"
 #include "sym.h"
 #include "file_range.h"
 
 typedef struct hhg_file_src hhg_file_src_t;
 typedef struct hhg_type hhg_type_t;
 
-#define HHG_NODE_START (HHG_TOKEN_USIZE + 1)
-#define HHG_NODE_END (HHG_NODE_OBJ_INIT + 1)
-
 enum hhg_node_type {
-    HHG_NODE_BLOCK = HHG_NODE_START,
+    HHG_NODE_ID,
+    HHG_NODE_BLOCK,
+
+    HHG_NODE_FN_DECL,
     HHG_NODE_PARAM,
-    HHG_NODE_FUNC_CALL,
+    HHG_NODE_VAR_DECL,
+
+    HHG_NODE_IF,
+    HHG_NODE_WHILE,
+    HHG_NODE_RETURN,
+    HHG_NODE_FOR,
+
+    HHG_NODE_INT_LIT,
+    HHG_NODE_FLOAT_LIT,
+    HHG_NODE_STR_LIT,
+    HHG_NODE_BOOL_LIT,
+    HHG_NODE_CHAR_LIT,
     HHG_NODE_ARR_LIT,
-    HHG_NODE_OBJ_INIT,
+
+    HHG_NODE_ADD,
+    HHG_NODE_SUB,
+    HHG_NODE_MUL,
+    HHG_NODE_DIV,
+    HHG_NODE_MOD,
+
+    HHG_NODE_BIT_AND,
+    HHG_NODE_BIT_OR,
+    HHG_NODE_BIT_XOR,
+    HHG_NODE_BIT_NOT,
+    HHG_NODE_LSHIFT,
+    HHG_NODE_RSHIFT,
+    
+    HHG_NODE_ADD_EQ,
+    HHG_NODE_SUB_EQ,
+    HHG_NODE_MUL_EQ,
+    HHG_NODE_DIV_EQ,
+    HHG_NODE_MOD_EQ,
+    HHG_NODE_BIT_AND_EQ,
+    HHG_NODE_BIT_OR_EQ,
+    HHG_NODE_BIT_XOR_EQ,
+    HHG_NODE_LSHIFT_EQ,
+    HHG_NODE_RSHIFT_EQ,
+
+    HHG_NODE_EQ_EQ,
+    HHG_NODE_NOT_EQ,
+    HHG_NODE_LT,
+    HHG_NODE_LT_EQ,
+    HHG_NODE_GT,
+    HHG_NODE_GT_EQ,
+
+    HHG_NODE_AND,
+    HHG_NODE_OR,
+    HHG_NODE_NOT,
+
+    HHG_NODE_NEG,
+    HHG_NODE_BIT_NOT,
+
+    HHG_NODE_REF,
+    HHG_NODE_DEREF,
+    HHG_NODE_ARR_IDX,
+    HHG_NODE_FN_CALL,
+    HHG_NODE_ASSIGN,
+    HHG_NODE_RANGE,
 };
-typedef int hhg_node_type_t;
+typedef int hhg_node_type_t; // for printing
 
 typedef struct hhg_node hhg_node_t;
 
-typedef struct hhg_expr {
-    hhg_node_t *left;
-    hhg_node_t *right;
-} hhg_expr_t;
-
-typedef struct hhg_block {
-    hhg_node_t **body;
-} hhg_block_t;
-
-typedef union hhg_id {
+typedef union hhg_node_id {
+    char *str;
     hhg_sym_t *sym;
-    char *str;
-} hhg_id_t;
+} hhg_node_id_t;
 
-typedef struct hhg_var_decl {
-    bool first;
-    hhg_id_t id;
-    hhg_node_t *expr;
-} hhg_var_decl_t;
+typedef struct hhg_node_block {
+    hhg_node_t **body;
+} hhg_node_block_t;
 
-typedef struct hhg_lit {
-    char *str;
-} hhg_lit_t;
+typedef struct hhg_node_fn_decl {
+    hhg_node_id_t id;
+    hhg_node_t **params;
+    hhg_type_t *return_type;
+    hhg_node_t *body;
+} hhg_node_fn_decl_t;
 
-typedef struct hhg_arr_lit {
-    hhg_node_t **elems;
-} hhg_arr_lit_t;
+typedef struct hhg_node_param {
+    hhg_node_id_t id;
+} hhg_node_param_t;
 
-typedef struct hhg_if {
+typedef struct hhg_node_var_decl {
+    hhg_node_id_t id;
+    hhg_node_t *value;
+} hhg_node_var_decl_t;
+
+typedef struct hhg_node_if {
     hhg_node_t *cond;
     hhg_node_t *if_body;
     hhg_node_t *else_body;
-} hhg_if_t;
+} hhg_node_if_t;
 
-typedef struct hhg_while {
+typedef struct hhg_node_while {
     hhg_node_t *cond;
     hhg_node_t *body;
-} hhg_while_t;
+} hhg_node_while_t;
 
-typedef struct hhg_ret {
-    hhg_node_t *expr;
-} hhg_ret_t;
+typedef struct hhg_node_return {
+    hhg_node_t *value;
+} hhg_node_return_t;
 
-typedef struct hhg_param {
-    hhg_id_t id;
-} hhg_param_t;
+typedef struct hhg_node_for {
+    hhg_node_id_t id;
+    hhg_node_t *iter;
+} hhg_node_for_t;
 
-typedef struct hhg_func_decl {
-    hhg_id_t id;
-    hhg_node_t **params;
-    hhg_node_t *body;
-} hhg_func_decl_t;
-
-typedef struct hhg_func_call {
-    hhg_id_t id;
-    hhg_node_t **args;
-} hhg_func_call_t;
-
-typedef struct hhg_class_decl {
-    hhg_id_t id;
-    hhg_node_t **var_decls;
-    hhg_node_t **func_decls;
-} hhg_class_decl_t;
-
-typedef struct hhg_field_access_t {
+typedef struct hhg_node_int_lit {
     char *str;
-    hhg_node_t *next;
-} hhg_field_access_t;
+} hhg_node_int_lit_t;
 
-typedef struct hhg_obj_init {
+typedef struct hhg_node_float_lit {
+    char *str;
+} hhg_node_float_lit_t;
+
+typedef struct hhg_node_str_lit {
+    char *str;
+} hhg_node_str_lit_t;
+
+typedef struct hhg_node_char_lit {
+    char *str;
+} hhg_node_char_lit_t;
+
+typedef struct hhg_node_bool_lit {
+    bool value;
+} hhg_node_bool_lit_t;
+
+typedef struct hhg_node_arr_lit {
+    hhg_node_t **elems;
+} hhg_node_arr_lit_t;
+
+typedef struct hhg_node_expr {
+    hhg_node_t *left;
+    hhg_node_t *right;
+} hhg_node_expr_t;
+
+typedef struct hhg_node_unary {
+    hhg_node_t *opnd;
+} hhg_node_unary_t;
+
+typedef struct hhg_node_arr_idx {
+    hhg_node_t *arr;
+    hhg_node_t *idx;
+} hhg_node_arr_idx_t;
+
+typedef struct hhg_node_fn_call {
+    hhg_node_t *fn;
     hhg_node_t **args;
-} hhg_obj_init_t;
+} hhg_node_fn_call_t;
 
-typedef union hhg_node_value  {
-    // +, -, *, /, %, <, >, &, ^, |
-    // HHG_TOKEN_LSHIFT, HHG_TOKEN_RSHIFT, HHG_TOKEN_EQ, HHG_TOKEN_NOT_EQ
-    // HHG_TOKEN_LT_EQ, HHG_TOKEN_GT_EQ, HHG_TOKEN_PLUS_EQ,
-    // HHG_TOKEN_SUB_EQ, HHG_TOKEN_MUL_EQ, HHG_TOKEN_DIV_EQ,
-    // HHG_TOKEN_MOD_EQ, HHG_TOKEN_AND_EQ, HHG_TOKEN_OR_EQ,
-    // HHG_TOKEN_XOR_EQ, HHG_TOKEN_LSHIFT_EQ, HHG_TOKEN_RSHIFT_EQ,
-    // HHG_TOKEN_INC, HHG_TOKEN_DEC, HHG_TOKEN_AND, HHG_TOKEN_OR,
-    hhg_expr_t expr;
-    // HHG_NODE_BLOCK
-    hhg_block_t block;
-    // HHG_TOKEN_ID
-    hhg_id_t id;
-    // =
-    hhg_var_decl_t var_decl;
-    // HHG_TOKEN_STR_LIT, HHG_TOKEN_INT_LIT,
-    // HHG_TOKEN_FLOAT_LIT, HHG_TOKEN_TRUE, HHG_TOKEN_FALSE
-    hhg_lit_t lit;
-    // HHG_NODE_ARR_LIT
-    hhg_arr_lit_t arr_lit;
-    // HHG_TOKEN_IF
-    hhg_if_t if_stmt;
-    // HHG_TOKEN_WHILE
-    hhg_while_t while_stmt;
-    // HHG_TOKEN_RETURN
-    hhg_ret_t ret;
-    // HHG_NODE_PARAM
-    hhg_param_t param;
-    // HHG_TOKEN_DEF
-    hhg_func_decl_t func_decl;
-    // HHG_NODE_FUNC_CALL
-    hhg_func_call_t func_call;
-    // HHG_TOKEN_CLASS
-    hhg_class_decl_t class_decl;
-    // .
-    hhg_field_access_t field_access;
-    // HHG_NODE_OBJ_INIT
-    hhg_obj_init_t obj_init;
+typedef struct hhg_node_assign {
+    hhg_node_t *left;
+    hhg_node_t *right;
+} hhg_node_assign_t;
+
+typedef struct hhg_node_range {
+    hhg_node_t *start;
+    hhg_node_t *end;
+    bool inclusive;
+} hhg_node_range_t;
+
+typedef union hhg_node_value {
+    hhg_node_id_t id;
+    hhg_node_block_t block;
+    hhg_node_fn_decl_t fn_decl;
+    hhg_node_param_t param;
+    hhg_node_var_decl_t var_decl;
+    hhg_node_if_t if_stmt;
+    hhg_node_while_t while_stmt;
+    hhg_node_return_t return_stmt;
+    hhg_node_for_t for_stmt;
+    hhg_node_int_lit_t int_lit;
+    hhg_node_float_lit_t float_lit;
+    hhg_node_str_lit_t str_lit;
+    hhg_node_char_lit_t char_lit;
+    hhg_node_bool_lit_t bool_lit;
+    hhg_node_arr_lit_t arr_lit;
+    hhg_node_expr_t expr;
+    hhg_node_unary_t unary;
+    hhg_node_arr_idx_t arr_idx;
+    hhg_node_fn_call_t fn_call;
+    hhg_node_assign_t assign;
+    hhg_node_range_t range;
 } hhg_node_value_t;
 
 struct hhg_node {
@@ -148,12 +212,13 @@ struct hhg_node {
 
 enum hhg_node_print_mode {
     HHG_NODE_PRINT_MODE_SYM,
-    HHG_NODE_PRINT_MODE_NO_SYM,
+    HHG_NODE_PRINT_MODE_STR,
 };
 typedef int hhg_node_print_mode_t; // for printing
 
 void hhg_node_type_print(hhg_node_type_t type);
 void hhg_node_type_fprint(hhg_node_type_t type, FILE *stream);
+const char *hhg_node_type_to_str(hhg_node_type_t type);
 
 hhg_node_t *hhg_node_new(
     hhg_arena_t *arena,

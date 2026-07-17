@@ -278,15 +278,14 @@ static void hhg_vfprintf(FILE *stream, const char *fmt, va_list va)
             case 'b':
                 fputs((bool)va_arg(va, int) ? "true" : "false", stream);
                 break;
-            // lexer-only: %n and %T disabled (node.c and type.c are #if 0'd)
             case 'n':
-                HHG_UNUSED(va_arg(va, hhg_node_type_t));
+                hhg_node_type_fprint(va_arg(va, hhg_node_type_t), stream);
                 break;
             case 't':
                 hhg_token_type_fprint(va_arg(va, hhg_token_type_t), stream);
                 break;
             case 'T':
-                HHG_UNUSED(va_arg(va, hhg_type_t *));
+                hhg_type_fprint(va_arg(va, hhg_type_t *), stream);
                 break;
             case '%':
                 fputc('%', stream);

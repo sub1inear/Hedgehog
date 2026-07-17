@@ -160,11 +160,6 @@ void hhg_type_print(hhg_type_t *type)
 
 void hhg_type_fprint(hhg_type_t *type, FILE *stream)
 {
-    if (type == NULL) {
-        fputs("none", stream);
-        return;
-    }
-
     if (type->is_const)
         fputs("const ", stream);
 
