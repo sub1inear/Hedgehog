@@ -4,18 +4,8 @@ import CodeWindow from '../components/CodeWindow.astro';
 import SpikeDivider from '../components/SpikeDivider.astro';
 import HedgehogCursor from '../components/HedgehogCursor.astro';
 
-const heroCode = `import std.math
-
-fn distance(a: Point, b: Point) -> f64 {
-    let dx = a.x - b.x
-    let dy = a.y - b.y
-    return std.math.sqrt(dx * dx + dy * dy)
-}
-
-fn main() {
-    let origin = Point(0.0, 0.0)
-    let target = Point(3.0, 4.0)
-    println(f"distance = {distance(origin, target)}")
+const heroCode = `fn main() {
+    println("Hello, World!")
 }`;
 
 const principles = [
