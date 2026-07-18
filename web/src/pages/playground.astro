@@ -1,0 +1,537 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+// Code examples (also duplicated in the client script for the picker)
+const INIT_CODE = `import std.math
+
+fn fib(n: u32) -> u64 {
+    if n < 2 {
+        return u64(n)
+    }
+    let mut a: u64 = 0
+    let mut b: u64 = 1
+    for _ in 0..n {
+        let t = a + b
+        a = b
+        b = t
+    }
+    return a
+}
+
+fn main() {
+    for i in 0..10 {
+        println(f"fib({i}) = {fib(i)}")
+    }
+}`;
+---
+<BaseLayout
+  title="Playground — Hedgehog"
+  description="Try Hedgehog in the browser. Zero install."
+>
+  <style>
+    /*
+     * Editor overlay: the <pre> and <textarea> sit in the same cell,
+     * pixel-perfectly aligned. Both share identical font / size / padding /
+     * line-height. The textarea is transparent so only the pre is visible;
+     * its caret-color keeps the cursor visible while typing.
+     *
+     * ALL measurements here must exactly match the JS constants below.
+     */
+    :root {
+      --ed-font: 'JetBrains Mono', ui-monospace, 'Cascadia Code', Menlo, monospace;
+      --ed-size: 13.5px;
+      --ed-lh:   21px;
+      --ed-pt:   12px;   /* padding-top / bottom */
+      --ed-pl:   16px;   /* padding-left / right */
+    }
+
+    #pg-code-wrap {
+      position: relative;
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    /*
+     * The highlighted <pre> is injected by Shiki into #pg-hl.
+     * We override its position / font / background here so it perfectly
+     * underlays the textarea.
+     */
+    #pg-hl {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 0;
+    }
+    /*
+     * Shiki injects <pre><code> without the Astro scope attribute, so we
+     * must use :global() to escape scoping.  JS also sets these in applyHighlight()
+     * as a belt-and-braces measure.
+     */
+    :global(#pg-hl pre) {
+      position: absolute !important;
+      inset: 0 !important;
+      margin: 0 !important;
+      padding: var(--ed-pt) var(--ed-pl) !important;
+      font-family: var(--ed-font) !important;
+      font-size: var(--ed-size) !important;
+      line-height: var(--ed-lh) !important;
+      white-space: pre !important;
+      tab-size: 4 !important;
+      -moz-tab-size: 4 !important;
+      background: transparent !important;
+      border: none !important;
+      border-radius: 0 !important;
+      overflow: hidden !important;
+    }
+    :global(#pg-hl code) {
+      display: block !important;
+      font: inherit !important;
+      background: transparent !important;
+    }
+
+    /* Transparent input layer — text invisible, caret shows through */
+    #pg-ta {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      padding: var(--ed-pt) var(--ed-pl);
+      font-family: var(--ed-font);
+      font-size: var(--ed-size);
+      line-height: var(--ed-lh);
+      white-space: pre;
+      tab-size: 4;
+      -moz-tab-size: 4;
+      word-wrap: normal;
+      overflow-wrap: normal;
+      background: transparent;
+      color: transparent;
+      -webkit-text-fill-color: transparent;
+      caret-color: var(--text);
+      border: none;
+      outline: none;
+      resize: none;
+      overflow: auto;
+      z-index: 1;
+    }
+
+    /* Gutter: overflow hidden so TranslateY clip works */
+    #pg-gutter-clip {
+      flex-shrink: 0;
+      overflow: hidden;
+      border-right: 1px solid var(--border);
+      background: var(--bg-soft);
+    }
+    /* Inner content scrolls up via JS transform */
+    #pg-gutter {
+      padding: var(--ed-pt) 10px var(--ed-pt) 14px;
+      font-family: var(--ed-font);
+      font-size: var(--ed-size);
+      line-height: var(--ed-lh);
+      color: var(--text-muted);
+      text-align: right;
+      user-select: none;
+      will-change: transform;
+      /*
+       * white-space:pre lets textContent with "\n" render as vertical lines.
+       * This avoids block-display child elements that can go horizontal in
+       * some CSS contexts.
+       */
+      white-space: pre;
+    }
+  </style>
+
+  <section
+    class="wrap flex flex-col py-6 gap-4"
+    style="height: calc(100vh - 4rem); min-height: 520px;"
+  >
+    <!-- Coming soon banner -->
+    <div class="flex items-start gap-3 rounded-xl border border-[var(--accent)] bg-[var(--accent-soft)] p-3 flex-shrink-0">
+      <span class="text-xl leading-none mt-0.5" aria-hidden="true">🦔</span>
+      <div class="min-w-0">
+        <div class="font-semibold text-[var(--accent-strong)]">The playground is being built.</div>
+        <p class="text-sm text-[var(--text-soft)] mt-0.5">
+          You can browse and edit, but Run is asleep. In the meantime,
+          <a href="/docs/introduction" class="underline decoration-dashed hover:decoration-solid">read the docs</a>
+          or grab the compiler from <a href="https://github.com" class="underline decoration-dashed hover:decoration-solid">GitHub</a>.
+        </p>
+      </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="flex flex-wrap items-center justify-between gap-3 flex-shrink-0">
+      <div class="flex items-center gap-3">
+        <h1 class="font-display text-2xl font-bold">Playground</h1>
+        <select
+          id="pg-example"
+          class="bg-[var(--bg-elevated)] border border-[var(--border)] rounded-md px-2 py-1 text-sm text-[var(--text-soft)] cursor-pointer"
+        >
+          <option value="fib">Example: Fibonacci</option>
+          <option value="point">Example: Point class</option>
+          <option value="union">Example: Tagged unions</option>
+        </select>
+      </div>
+      <div class="flex items-center gap-2">
+        <button type="button" disabled
+          class="inline-flex items-center gap-1.5 rounded-lg bg-quill-gradient px-4 py-2 text-white text-sm font-semibold opacity-50 cursor-not-allowed">
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          Run
+        </button>
+        <button type="button" class="rounded-lg border border-[var(--border)] bg-[var(--bg-elevated)] px-3 py-1.5 text-sm text-[var(--text-soft)] opacity-60 cursor-not-allowed">Share</button>
+        <button type="button" class="rounded-lg border border-[var(--border)] bg-[var(--bg-elevated)] px-3 py-1.5 text-sm text-[var(--text-soft)] opacity-60 cursor-not-allowed">Format</button>
+      </div>
+    </div>
+
+    <!-- Editor + output (fills remaining vertical space) -->
+    <div class="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] flex-1 min-h-0">
+
+      <!-- Left: editor panel -->
+      <div class="flex flex-col rounded-xl border border-[var(--border)] overflow-hidden bg-[var(--bg-soft)] min-h-0">
+        <!-- Window chrome -->
+        <div class="flex items-center gap-2 px-3 py-2 border-b border-[var(--border)] bg-[var(--bg-elevated)] flex-shrink-0">
+          <span class="text-base leading-none" aria-hidden="true">🦔</span>
+          <span class="text-sm font-mono text-[var(--text-soft)]">main.hhg</span>
+          <span class="ml-auto text-[10px] uppercase tracking-wider text-[var(--accent)] bg-[var(--accent-soft)] px-2 py-0.5 rounded-full font-mono">unsaved</span>
+        </div>
+
+        <!-- Gutter + code overlay -->
+        <div class="flex flex-1 min-h-0 overflow-hidden">
+          <div id="pg-gutter-clip">
+            <div id="pg-gutter"><!-- filled by JS --></div>
+          </div>
+          <div id="pg-code-wrap">
+            <div id="pg-hl" aria-hidden="true"><!-- Shiki output injected here --></div>
+            <textarea
+              id="pg-ta"
+              spellcheck="false"
+              autocomplete="off"
+              autocorrect="off"
+              autocapitalize="off"
+              wrap="off"
+            ></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: output panel -->
+      <div class="flex flex-col rounded-xl border border-[var(--border)] overflow-hidden bg-[var(--bg-soft)] min-h-0">
+        <div class="flex items-center gap-2 px-3 py-2 border-b border-[var(--border)] bg-[var(--bg-elevated)] flex-shrink-0">
+          <span class="text-sm font-mono text-[var(--text-soft)]">output</span>
+          <span class="ml-auto flex items-center gap-1.5 text-xs text-[var(--text-muted)]">
+            <span class="h-1.5 w-1.5 rounded-full bg-[var(--text-muted)]" aria-hidden="true"></span>
+            idle
+          </span>
+        </div>
+        <pre
+          id="pg-output"
+          class="flex-1 overflow-auto text-[var(--text-soft)]"
+          style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:13.5px;line-height:21px;padding:12px 16px;white-space:pre;"
+        ></pre>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<!--
+  Bundled module script: Vite code-splits Shiki into a separate chunk so it
+  only loads on this page, and only when this page is visited.
+-->
+<script>
+// ── Code examples ─────────────────────────────────────────────────────────────
+const EXAMPLES: Record<string, string> = {
+  fib: `import std.math
+
+fn fib(n: u32) -> u64 {
+    if n < 2 {
+        return u64(n)
+    }
+    let mut a: u64 = 0
+    let mut b: u64 = 1
+    for _ in 0..n {
+        let t = a + b
+        a = b
+        b = t
+    }
+    return a
+}
+
+fn main() {
+    for i in 0..10 {
+        println(f"fib({i}) = {fib(i)}")
+    }
+}`,
+
+  point: `import std.math
+
+class Point {
+    x: f64
+    y: f64
+
+    fn dist(&self, p: &Point) -> f64 {
+        let dx = self.x - p.x
+        let dy = self.y - p.y
+        return std.math.sqrt(dx*dx + dy*dy)
+    }
+}
+
+fn main() {
+    let a = Point(3.0, 4.0)
+    let b = Point(0.0, 0.0)
+    println(a.dist(&b)) // 5.0
+}`,
+
+  union: `type zero_error = !void
+
+fn divide(a: f64, b: f64) -> f64 | zero_error {
+    if b == 0.0 {
+        return zero_error
+    }
+    return a / b
+}
+
+fn main() {
+    match divide(10.0, 2.0) {
+        result: f64 => println(f"result = {result}"),
+        zero_error  => println("division by zero"),
+    }
+}`,
+};
+
+// ── Expected outputs (shown in the right panel) ───────────────────────────────
+const M = 'style="color:var(--text-muted)"'; // muted colour via CSS var — safe in innerHTML
+const OUTPUTS: Record<string, string> = {
+  fib: `<span ${M}>// Compiler output will appear here.\n// Expected output for this example:\n//\n</span`
+     + `>fib(0) = 0\nfib(1) = 1\nfib(2) = 1\nfib(3) = 2\nfib(4) = 3\nfib(5) = 5\nfib(6) = 8\nfib(7) = 13\nfib(8) = 21\nfib(9) = 34`,
+  point: `<span ${M}>// Compiler output will appear here.\n// Expected output for this example:\n//\n</span>5`,
+  union: `<span ${M}>// Compiler output will appear here.\n// Expected output for this example:\n//\n</span>result = 5`,
+};
+
+// ── TextMate grammar for Hedgehog ─────────────────────────────────────────────
+//
+// Patterns are tried top-to-bottom; longer/more-specific alternatives are
+// listed first within each alternation so the engine matches greedily.
+//
+const hhgGrammar = {
+  name: 'hedgehog',
+  scopeName: 'source.hhg',
+  fileTypes: ['hhg'],
+  patterns: [
+    { include: '#comment-line' },
+    { include: '#comment-block' },
+    { include: '#string' },           // covers both " and f" (treated uniformly)
+    { include: '#keyword-control' },
+    { include: '#keyword-decl' },
+    { include: '#keyword-logical' },
+    { include: '#constant-lang' },
+    { include: '#type-builtin' },
+    { include: '#number' },
+    { include: '#function-call' },
+    { include: '#operator' },
+  ],
+  repository: {
+    'comment-line': {
+      name: 'comment.line.double-slash.hhg',
+      match: '//.*$',
+    },
+    'comment-block': {
+      name: 'comment.block.hhg',
+      begin: '/\\*',
+      end: '\\*/',
+    },
+    // f?"   matches both  "…"  and  f"…"  opening quotes
+    'string': {
+      name: 'string.quoted.double.hhg',
+      begin: 'f?"',
+      end: '"',
+      patterns: [
+        // {…} interpolation pockets — given a distinct scope so themes colour them
+        { name: 'meta.interpolation.hhg', match: '\\{[^}]*\\}' },
+        { name: 'constant.character.escape.hhg', match: '\\\\.' },
+      ],
+    },
+    'keyword-control': {
+      name: 'keyword.control.hhg',
+      match: '\\b(if|else|while|for|in|match|break|continue|return)\\b',
+    },
+    'keyword-decl': {
+      name: 'keyword.other.declaration.hhg',
+      match: '\\b(let|mut|const|fn|class|interface|enum|type|import|from|as|pub|unsafe|static)\\b',
+    },
+    'keyword-logical': {
+      name: 'keyword.operator.word.hhg',
+      match: '\\b(and|or|not)\\b',
+    },
+    'constant-lang': {
+      name: 'constant.language.hhg',
+      match: '\\b(true|false|null|self)\\b',
+    },
+    'type-builtin': {
+      name: 'support.type.primitive.hhg',
+      match: '\\b(i8|u8|i16|u16|i32|u32|i64|u64|f32|f64|bool|char|usize|isize|void|str|list|dict|unique|shared|weak)\\b',
+    },
+    'number': {
+      patterns: [
+        { name: 'constant.numeric.hex.hhg',     match: '\\b0[xX][0-9a-fA-F_]+\\b' },
+        { name: 'constant.numeric.binary.hhg',  match: '\\b0[bB][01_]+\\b' },
+        { name: 'constant.numeric.octal.hhg',   match: '\\b0[oO][0-7_]+\\b' },
+        { name: 'constant.numeric.float.hhg',   match: '\\b\\d[\\d_]*\\.\\d[\\d_]*([eE][+-]?\\d+)?\\b' },
+        { name: 'constant.numeric.integer.hhg', match: '\\b\\d[\\d_]*\\b' },
+      ],
+    },
+    'function-call': {
+      // identifier immediately followed by '('
+      name: 'entity.name.function.hhg',
+      match: '\\b([a-zA-Z_][a-zA-Z0-9_]*)(?=\\s*\\()',
+    },
+    'operator': {
+      name: 'keyword.operator.hhg',
+      // Order: multi-char before single-char to avoid partial matches
+      // ..=  ..  <<=  >>=  ->  ==  !=  <=  >=  +=  -=  *=  etc.  single-char  lone =
+      match: '(\\.\\.=?|<<=?|>>=?|->|[=!<>]=|[+\\-*/%&|^]=|[+\\-*/%<>&|^~!?]|=)',
+    },
+  },
+};
+
+// ── Shiki integration ─────────────────────────────────────────────────────────
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let highlighter: any = null;
+
+function isDark() {
+  return document.documentElement.classList.contains('dark');
+}
+
+function esc(s: string) {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+/** Render `code` to HTML, falling back to plain escaped text. */
+function renderCode(code: string): string {
+  if (highlighter) {
+    try {
+      return highlighter.codeToHtml(code, {
+        lang: 'hedgehog',
+        theme: isDark() ? 'github-dark' : 'github-light',
+      });
+    } catch { /* fall through */ }
+  }
+  // Plain-text fallback: wrap in a <pre> that looks like the real thing
+  return `<pre><code>${esc(code)}</code></pre>`;
+}
+
+async function loadShiki() {
+  try {
+    const { createHighlighter } = await import('shiki');
+    highlighter = await createHighlighter({
+      themes: ['github-light', 'github-dark'],
+      langs: [hhgGrammar as any],
+    });
+  } catch (e) {
+    console.warn('[playground] Shiki failed to load:', e);
+  }
+}
+
+// ── Editor setup ──────────────────────────────────────────────────────────────
+const ta      = document.getElementById('pg-ta') as HTMLTextAreaElement | null;
+const hlEl    = document.getElementById('pg-hl');
+const gutter  = document.getElementById('pg-gutter');
+const output  = document.getElementById('pg-output');
+const exSel   = document.getElementById('pg-example') as HTMLSelectElement | null;
+
+if (ta && hlEl && gutter) {
+  // --- Helpers ---
+
+  /** Rebuild line numbers — one number per line, right-padded to same width. */
+  function updateGutter(code: string) {
+    const n = code.split('\n').length;
+    const w = String(n).length;
+    // textContent with \n works because #pg-gutter has white-space:pre.
+    // This is immune to any flex/inline CSS that could scatter <div> children.
+    gutter.textContent = Array.from({length: n}, (_, i) => String(i + 1).padStart(w)).join('\n');
+  }
+
+  /** Apply Shiki (or fallback) HTML to the overlay <pre>. */
+  function applyHighlight(code: string) {
+    hlEl.innerHTML = renderCode(code);
+
+    // Style the Shiki <pre> inline — :global CSS covers it too, but inline
+    // wins over any theme styles Shiki puts on the element attribute.
+    const pre = hlEl.querySelector('pre') as HTMLElement | null;
+    if (pre) {
+      pre.style.position     = 'absolute';
+      pre.style.inset        = '0';
+      pre.style.margin       = '0';
+      pre.style.padding      = '12px 16px';
+      pre.style.fontFamily   = "var(--ed-font,'JetBrains Mono',ui-monospace,monospace)";
+      pre.style.fontSize     = '13.5px';
+      pre.style.lineHeight   = '21px';
+      pre.style.whiteSpace   = 'pre';
+      (pre.style as any).tabSize = '4';
+      pre.style.background   = 'transparent';
+      pre.style.border       = 'none';
+      pre.style.borderRadius = '0';
+      pre.style.overflow     = 'hidden';
+      pre.scrollTop  = ta.scrollTop;
+      pre.scrollLeft = ta.scrollLeft;
+      const codeEl = pre.querySelector('code') as HTMLElement | null;
+      if (codeEl) {
+        codeEl.style.display    = 'block';
+        codeEl.style.font       = 'inherit';
+        codeEl.style.background = 'transparent';
+      }
+    }
+  }
+
+  let hlTimer: ReturnType<typeof setTimeout> | null = null;
+
+  /** Full update: gutter + debounced highlight. */
+  function update(code: string) {
+    updateGutter(code);
+    if (hlTimer) clearTimeout(hlTimer);
+    hlTimer = setTimeout(() => applyHighlight(code), 40);
+  }
+
+  function setExample(key: string) {
+    const code = EXAMPLES[key];
+    if (code) { ta.value = code; update(code); }
+    if (output) output.innerHTML = OUTPUTS[key] ?? '';
+  }
+
+  // --- Initial content ---
+  setExample('fib');
+
+  // --- Example picker ---
+  exSel?.addEventListener('change', () => setExample(exSel.value));
+
+  // --- Live editing ---
+  ta.addEventListener('input', () => update(ta.value));
+
+  // --- Scroll sync: textarea drives both the pre and the gutter ---
+  ta.addEventListener('scroll', () => {
+    const pre = hlEl.querySelector('pre') as HTMLElement | null;
+    if (pre) {
+      pre.scrollTop  = ta.scrollTop;
+      pre.scrollLeft = ta.scrollLeft;
+    }
+    gutter.style.transform = `translateY(-${ta.scrollTop}px)`;
+  });
+
+  // --- Tab key inserts 4 spaces ---
+  ta.addEventListener('keydown', (e) => {
+    if (e.key !== 'Tab') return;
+    e.preventDefault();
+    const s = ta.selectionStart, en = ta.selectionEnd;
+    ta.value = ta.value.slice(0, s) + '    ' + ta.value.slice(en);
+    ta.selectionStart = ta.selectionEnd = s + 4;
+    update(ta.value);
+  });
+
+  // --- Re-highlight when theme changes ---
+  new MutationObserver(() => applyHighlight(ta.value))
+    .observe(document.documentElement, { attributeFilter: ['class'] });
+
+  // --- Load Shiki in the background, re-highlight once ready ---
+  loadShiki().then(() => applyHighlight(ta.value));
+}
+</script>

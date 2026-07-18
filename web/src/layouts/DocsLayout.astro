@@ -1,0 +1,46 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import DocsSidebar from '../components/DocsSidebar.astro';
+import { getCollection } from 'astro:content';
+
+export interface Props {
+  title: string;
+  description?: string;
+  currentSlug: string;
+}
+
+const { title, description, currentSlug } = Astro.props;
+
+const docs = (await getCollection('docs')).sort((a, b) => a.data.order - b.data.order);
+const index = docs.findIndex(d => d.slug === currentSlug);
+const prev = index > 0 ? docs[index - 1] : null;
+const next = index >= 0 && index < docs.length - 1 ? docs[index + 1] : null;
+---
+<BaseLayout title={`${title} — Hedgehog`} description={description}>
+  <div class="wrap grid gap-10 lg:grid-cols-[16rem_minmax(0,1fr)] py-10">
+    <aside class="lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto pr-2">
+      <DocsSidebar />
+    </aside>
+
+    <article class="min-w-0">
+      <div class="prose-hhg">
+        <slot />
+      </div>
+
+      <nav class="not-prose mt-16 grid gap-4 sm:grid-cols-2 border-t border-[var(--border)] pt-8">
+        {prev ? (
+          <a href={`/docs/${prev.slug}`} class="card p-4 group">
+            <div class="text-xs text-[var(--text-muted)] mb-1">← Previous</div>
+            <div class="font-semibold group-hover:text-[var(--accent)]">{prev.data.title}</div>
+          </a>
+        ) : <div />}
+        {next ? (
+          <a href={`/docs/${next.slug}`} class="card p-4 group text-right">
+            <div class="text-xs text-[var(--text-muted)] mb-1">Next →</div>
+            <div class="font-semibold group-hover:text-[var(--accent)]">{next.data.title}</div>
+          </a>
+        ) : <div />}
+      </nav>
+    </article>
+  </div>
+</BaseLayout>

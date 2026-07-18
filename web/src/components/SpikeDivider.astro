@@ -1,0 +1,33 @@
+---
+export interface Props {
+  flip?: boolean;
+  color?: string;
+}
+const { flip = false, color = 'var(--bg-soft)' } = Astro.props;
+---
+<div
+  class="w-full block"
+  style={`transform: ${flip ? 'scaleY(-1)' : 'none'}; line-height: 0;`}
+  aria-hidden="true"
+>
+  <svg
+    viewBox="0 0 1200 60"
+    preserveAspectRatio="none"
+    class="w-full h-[38px] md:h-[54px]"
+  >
+    <!-- Repeating quill-spike triangles pointing up -->
+    <path
+      d={
+        `M0,60 ` +
+        Array.from({ length: 40 }, (_, i) => {
+          const x0 = i * 30;
+          const x1 = x0 + 15;
+          const x2 = x0 + 30;
+          return `L${x0},60 L${x1},0 L${x2},60`;
+        }).join(' ') +
+        ` L1200,60 Z`
+      }
+      fill={color}
+    />
+  </svg>
+</div>

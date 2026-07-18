@@ -1,0 +1,45 @@
+---
+import SpikeDivider from './SpikeDivider.astro';
+---
+<footer class="mt-24">
+  <SpikeDivider flip />
+  <div class="bg-[var(--bg-soft)] border-t border-[var(--border)]">
+    <div class="wrap py-12 grid gap-10 md:grid-cols-4 text-sm">
+      <div class="md:col-span-2">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="text-2xl" aria-hidden="true">🦔</span>
+          <span class="font-display text-lg font-bold">Hedgehog</span>
+        </div>
+        <p class="text-[var(--text-muted)] max-w-sm">
+          A toy systems language pursuing the power of C++, the simplicity of Python, and the safety of Rust.
+        </p>
+      </div>
+
+      <div>
+        <h3 class="font-semibold mb-3 text-[var(--text)]">Learn</h3>
+        <ul class="space-y-2 text-[var(--text-muted)]">
+          <li><a class="hover:text-[var(--accent)]" href="/docs/introduction">Introduction</a></li>
+          <li><a class="hover:text-[var(--accent)]" href="/docs/types">Types</a></li>
+          <li><a class="hover:text-[var(--accent)]" href="/docs/classes">Classes</a></li>
+          <li><a class="hover:text-[var(--accent)]" href="/playground">Playground</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h3 class="font-semibold mb-3 text-[var(--text)]">Community</h3>
+        <ul class="space-y-2 text-[var(--text-muted)]">
+          <li><a class="hover:text-[var(--accent)]" href="https://github.com">GitHub</a></li>
+          <li><a class="hover:text-[var(--accent)]" href="#">Discord</a></li>
+          <li><a class="hover:text-[var(--accent)]" href="#">Blog</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="border-t border-[var(--border)]">
+      <div class="wrap py-5 flex flex-col md:flex-row items-center justify-between gap-2 text-xs text-[var(--text-muted)]">
+        <div>© {new Date().getFullYear()} Hedgehog Language. All rights curled up.</div>
+        <div class="italic">Built with prickly attention to detail.</div>
+      </div>
+    </div>
+  </div>
+</footer>

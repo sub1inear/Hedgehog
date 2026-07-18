@@ -1,0 +1,301 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import CodeWindow from '../components/CodeWindow.astro';
+import SpikeDivider from '../components/SpikeDivider.astro';
+import HedgehogCursor from '../components/HedgehogCursor.astro';
+
+const heroCode = `import std.math
+
+fn distance(a: Point, b: Point) -> f64 {
+    let dx = a.x - b.x
+    let dy = a.y - b.y
+    return std.math.sqrt(dx * dx + dy * dy)
+}
+
+fn main() {
+    let origin = Point(0.0, 0.0)
+    let target = Point(3.0, 4.0)
+    println(f"distance = {distance(origin, target)}")
+}`;
+
+const principles = [
+  {
+    n: 'I',
+    title: 'Power without ceremony',
+    body: "As powerful as C++, as simple as Python, as safe as Rust. When these conflict: speed › simplicity › safety.",
+  },
+  {
+    n: 'II',
+    title: "Don't reinvent the wheel",
+    body: 'No drastic changes from C++ or Python — Hedgehog should look familiar and be easy to learn from either.',
+  },
+  {
+    n: 'III',
+    title: 'One obvious way',
+    body: 'Duplicates and slight reinventions that cause perplexity when choosing between them should be avoided.',
+  },
+];
+
+const features = [
+  {
+    icon: 'shield',
+    title: 'Borrow-checked, minus the paperwork',
+    body: 'A simplified borrow checker with no generic lifetime parameters. XOR mutability: one mutable reference or many immutable, never both.',
+  },
+  {
+    icon: 'zap',
+    title: 'Tagged unions with sugar',
+    body: '`A | B`, nominal and flat. `expr?` propagates nulls and errors; `expr!` panics loudly. `!type` declares an error variant.',
+  },
+  {
+    icon: 'brace',
+    title: 'Classes, templates, interfaces',
+    body: 'Familiar OO shape with structural interfaces and angle-bracket generics. No `::` clutter — everything is a `.`.',
+  },
+  {
+    icon: 'plug',
+    title: 'C & C++ interop, first-class',
+    body: 'Import C/C++ headers directly. Emit a C/C++ header so foreign code can call back into Hedgehog.',
+  },
+  {
+    icon: 'grid',
+    title: 'A stdlib that curls up nicely',
+    body: '`core` and `std` are always there. Disable `std` for bare-metal work. `core.*` aliases to `std.*` for convenience.',
+  },
+  {
+    icon: 'wrench',
+    title: 'Tooling that gets out of the way',
+    body: '`hhg init`, `hhg build`, `hhg run`. No YAML mountains, no vendored config folders.',
+  },
+];
+
+const icons: Record<string, string> = {
+  shield: `<path d="M12 2 4 5v7c0 5 3.5 8.5 8 10 4.5-1.5 8-5 8-10V5l-8-3Z"/>`,
+  zap:    `<path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z"/>`,
+  brace:  `<path d="M9 3H7a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2 2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h2M15 3h2a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2 2 2 0 0 0-2 2v4a2 2 0 0 1-2 2h-2"/>`,
+  plug:   `<path d="M9 2v6M15 2v6M6 8h12v4a6 6 0 0 1-12 0V8ZM12 18v4"/>`,
+  grid:   `<path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z"/>`,
+  wrench: `<path d="m14.7 6.3-1 1a4 4 0 0 0-5.7 5.7l-5 5 1.9 1.9 5-5a4 4 0 0 0 5.7-5.7l-1 1L14 7l.7-.7Z"/>`,
+};
+---
+<BaseLayout>
+  <HedgehogCursor />
+
+  <!-- ============ HERO ============ -->
+  <section class="hero-bg pt-16 pb-24 md:pt-24 md:pb-32">
+    <div class="wrap grid gap-14 md:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] items-center">
+      <!-- Left: Copy -->
+      <div class="relative">
+        <div class="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--bg-elevated)] px-3 py-1 text-xs text-[var(--text-soft)] mb-6">
+          <span class="h-1.5 w-1.5 rounded-full bg-[var(--accent)] animate-glow-pulse" />
+          v0.1.0 — small, spiky, still growing
+        </div>
+
+        <h1 class="font-display font-extrabold tracking-tight leading-[1.05] text-[clamp(3rem,7vw,5.5rem)]">
+          A <span class="italic text-[var(--accent)]">small,</span><br />
+          prickly systems<br />
+          language.
+        </h1>
+
+        <p class="mt-6 max-w-xl text-lg text-[var(--text-soft)] leading-relaxed">
+          <strong class="text-[var(--text)]">Hedgehog</strong> pursues the power of C++,
+          the simplicity of Python, and the safety of Rust.
+          When those pull in different directions,
+          it picks <span class="text-[var(--accent)]">speed › simplicity › safety</span>.
+        </p>
+
+        <div class="mt-8 flex flex-wrap items-center gap-3">
+          <a
+            href="/docs/introduction"
+            class="group inline-flex items-center gap-2 rounded-lg bg-quill-gradient px-5 py-3 text-white font-semibold shadow-lg shadow-quill-500/25 hover:shadow-quill-500/50 transition-shadow"
+          >
+            Read the Docs
+            <svg class="h-4 w-4 transition-transform group-hover:translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 12h14M13 5l7 7-7 7"/>
+            </svg>
+          </a>
+          <a
+            href="/playground"
+            class="inline-flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--bg-elevated)] px-5 py-3 font-semibold text-[var(--text)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors"
+          >
+            <span aria-hidden="true">🦔</span>
+            Try the Playground
+          </a>
+        </div>
+
+        <div class="mt-6 flex items-center gap-4 text-xs text-[var(--text-muted)]">
+          <span>Install:</span>
+          <code class="rounded-md bg-[var(--bg-soft)] border border-[var(--border)] px-2 py-1 font-mono">$ hhg init</code>
+          <span>|</span>
+          <a href="/docs/introduction#installation" class="hover:text-[var(--accent)]">Installation Guide →</a>
+        </div>
+      </div>
+
+      <!-- Right: Code window, slightly rotated -->
+      <div class="relative">
+        <!-- Decorative blob -->
+        <div class="absolute -inset-6 -z-10 rounded-3xl bg-quill-gradient opacity-20 blur-3xl" aria-hidden="true" />
+        <div class="rotate-[1.2deg] hover:rotate-0 transition-transform duration-500">
+          <CodeWindow title="hello.hhg" code={heroCode} />
+        </div>
+        <!-- Little spike accents -->
+        <div class="absolute -top-4 -right-4 text-4xl select-none opacity-40" aria-hidden="true">✦</div>
+        <div class="absolute -bottom-6 -left-4 text-3xl select-none opacity-40" aria-hidden="true">✦</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PRINCIPLES STRIP ============ -->
+  <SpikeDivider />
+  <section class="bg-[var(--bg-soft)] py-20">
+    <div class="wrap">
+      <div class="mb-12 text-center">
+        <div class="text-xs uppercase tracking-[0.2em] text-[var(--accent)] mb-2">Three principles</div>
+        <h2 class="font-display text-3xl md:text-4xl font-bold tracking-tight">
+          I <span class="text-[var(--text-muted)]">›</span> II <span class="text-[var(--text-muted)]">›</span> III
+        </h2>
+        <p class="mt-3 text-[var(--text-soft)]">In order of importance. When they conflict, higher wins.</p>
+      </div>
+
+      <div class="grid gap-5 md:grid-cols-3">
+        {principles.map(p => (
+          <div class="card p-6 relative">
+            <div class="font-display text-6xl font-extrabold text-[var(--accent)] opacity-20 absolute top-2 right-4 select-none">
+              {p.n}
+            </div>
+            <div class="relative">
+              <div class="font-mono text-xs text-[var(--accent)] mb-2">principle {p.n}</div>
+              <h3 class="font-display text-xl font-bold mb-2">{p.title}</h3>
+              <p class="text-sm text-[var(--text-soft)] leading-relaxed">{p.body}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+  <SpikeDivider flip />
+
+  <!-- ============ FEATURES ============ -->
+  <section class="py-24">
+    <div class="wrap">
+      <div class="mb-14 max-w-2xl">
+        <div class="text-xs uppercase tracking-[0.2em] text-[var(--accent)] mb-2">What's inside</div>
+        <h2 class="font-display text-3xl md:text-5xl font-bold tracking-tight leading-tight">
+          Familiar syntax.<br />
+          <span class="text-[var(--accent)]">Uncommon</span> care.
+        </h2>
+      </div>
+
+      <div class="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+        {features.map((f) => (
+          <div class="card p-6 group">
+            <div class="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-quill-gradient text-white shadow-md">
+              <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" set:html={icons[f.icon]}/>
+            </div>
+            <h3 class="font-display text-lg font-bold mb-1.5">{f.title}</h3>
+            <p class="text-sm text-[var(--text-soft)] leading-relaxed" set:html={f.body.replace(/`([^`]+)`/g, '<code class="rounded bg-[var(--accent-soft)] px-1 text-[var(--accent)]">$1</code>')} />
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SIDE-BY-SIDE CODE COMPARE ============ -->
+  <SpikeDivider />
+  <section class="bg-[var(--bg-soft)] py-24">
+    <div class="wrap">
+      <div class="mb-12 max-w-2xl">
+        <div class="text-xs uppercase tracking-[0.2em] text-[var(--accent)] mb-2">A taste</div>
+        <h2 class="font-display text-3xl md:text-4xl font-bold tracking-tight">
+          Two ideas Hedgehog is proud of.
+        </h2>
+      </div>
+
+      <div class="grid gap-6 md:grid-cols-2">
+        <div>
+          <h3 class="font-display text-lg font-bold mb-3">Tagged unions with propagation</h3>
+          <p class="text-sm text-[var(--text-soft)] mb-4">
+            Errors and nulls fold into the type system. <code class="rounded bg-[var(--accent-soft)] px-1 text-[var(--accent)] text-xs">?</code>
+            propagates, <code class="rounded bg-[var(--accent-soft)] px-1 text-[var(--accent)] text-xs">!</code> panics.
+          </p>
+          <CodeWindow
+            title="divide.hhg"
+            code={`type zero_error = !void
+
+fn divide(a: f64, b: f64) -> f64 | zero_error {
+    if b == 0.0 {
+        return zero_error
+    }
+    return a / b
+}
+
+fn main() {
+    let x = divide(10.0, 2.0)!
+    println(f"x = {x}")
+}`}
+          />
+        </div>
+
+        <div>
+          <h3 class="font-display text-lg font-bold mb-3">Classes, move-by-default</h3>
+          <p class="text-sm text-[var(--text-soft)] mb-4">
+            Basic types copy; complex types move.
+            Call <code class="rounded bg-[var(--accent-soft)] px-1 text-[var(--accent)] text-xs">.copy()</code>
+            to opt in — no accidental clones.
+          </p>
+          <CodeWindow
+            title="point.hhg"
+            code={`class Point {
+    x: f64
+    y: f64
+
+    fn dist(&self, p: &Point) -> f64 {
+        let dx = self.x - p.x
+        let dy = self.y - p.y
+        return std.math.sqrt(dx*dx + dy*dy)
+    }
+}
+
+let a = Point(3.0, 4.0)
+let b = Point(0.0, 0.0)
+println(a.dist(&b)) // 5.0`}
+          />
+        </div>
+      </div>
+    </div>
+  </section>
+  <SpikeDivider flip />
+
+  <!-- ============ GET STARTED ============ -->
+  <section class="py-24">
+    <div class="wrap">
+      <div class="text-center mb-14">
+        <h2 class="font-display text-4xl md:text-5xl font-bold tracking-tight">
+          Ready to <span class="text-[var(--accent)]">roll up</span>?
+        </h2>
+        <p class="mt-3 text-[var(--text-soft)]">Pick a path. All of them lead somewhere prickly.</p>
+      </div>
+
+      <div class="grid gap-5 md:grid-cols-3">
+        <a href="/docs/introduction" class="card p-8 text-center group block">
+          <div class="text-4xl mb-3">📖</div>
+          <h3 class="font-display text-xl font-bold mb-1">Learn</h3>
+          <p class="text-sm text-[var(--text-soft)]">Walk through the language from `let` to lifetimes.</p>
+          <span class="mt-4 inline-block text-[var(--accent)] font-mono text-sm">docs →</span>
+        </a>
+        <a href="/playground" class="card p-8 text-center group block">
+          <div class="text-4xl mb-3">🧪</div>
+          <h3 class="font-display text-xl font-bold mb-1">Play</h3>
+          <p class="text-sm text-[var(--text-soft)]">Poke at Hedgehog in the browser. Zero install.</p>
+          <span class="mt-4 inline-block text-[var(--accent)] font-mono text-sm">playground →</span>
+        </a>
+        <a href="https://github.com" class="card p-8 text-center group block">
+          <div class="text-4xl mb-3">🤝</div>
+          <h3 class="font-display text-xl font-bold mb-1">Contribute</h3>
+          <p class="text-sm text-[var(--text-soft)]">The compiler is small and the roadmap is open.</p>
+          <span class="mt-4 inline-block text-[var(--accent)] font-mono text-sm">github →</span>
+        </a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

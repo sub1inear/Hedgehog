@@ -1,0 +1,155 @@
+---
+export interface Props {
+  title?: string;
+  lang?: string;
+  code: string;
+}
+const { title = 'hello.hhg', lang = 'hhg', code } = Astro.props;
+
+// Very light hhg syntax coloring — Shiki doesn't know Hedgehog, so we tokenize
+// a small keyword set client-independently at build time.
+const keywords = new Set([
+  'let','mut','const','fn','return','if','else','while','for','in','match',
+  'break','continue','import','from','as','pub','class','interface','enum',
+  'type','unsafe','static','and','or','not','true','false','null','self',
+]);
+const types = new Set([
+  'i8','u8','i16','u16','i32','u32','i64','u64','f32','f64','bool','char',
+  'usize','isize','void','str','list','dict','unique','shared','weak',
+]);
+
+function esc(s: string): string {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function highlight(src: string): string {
+  const lines = src.split('\n');
+  return lines.map(line => {
+    let out = '';
+    let i = 0;
+    while (i < line.length) {
+      const ch = line[i];
+      // comments
+      if (ch === '/' && line[i+1] === '/') {
+        out += `<span class="tk-c">${esc(line.slice(i))}</span>`;
+        break;
+      }
+      // strings
+      if (ch === '"' || ch === "'") {
+        let j = i+1;
+        while (j < line.length && line[j] !== ch) {
+          if (line[j] === '\\') j++;
+          j++;
+        }
+        out += `<span class="tk-s">${esc(line.slice(i, j+1))}</span>`;
+        i = j+1; continue;
+      }
+      // numbers
+      if (/[0-9]/.test(ch)) {
+        let j = i;
+        while (j < line.length && /[0-9._xXbBoOa-fA-F]/.test(line[j])) j++;
+        out += `<span class="tk-n">${esc(line.slice(i, j))}</span>`;
+        i = j; continue;
+      }
+      // identifiers
+      if (/[A-Za-z_]/.test(ch)) {
+        let j = i;
+        while (j < line.length && /[A-Za-z0-9_]/.test(line[j])) j++;
+        const word = line.slice(i, j);
+        if (keywords.has(word))      out += `<span class="tk-k">${esc(word)}</span>`;
+        else if (types.has(word))    out += `<span class="tk-t">${esc(word)}</span>`;
+        else if (line[j] === '(')    out += `<span class="tk-f">${esc(word)}</span>`;
+        else                          out += esc(word);
+        i = j; continue;
+      }
+      out += esc(ch);
+      i++;
+    }
+    return out;
+  }).join('\n');
+}
+
+const highlighted = highlight(code);
+---
+<div class="hhg-window not-prose">
+  <div class="hhg-window-bar">
+    <span class="hhg-mascot" aria-hidden="true">🦔</span>
+    <span class="hhg-window-title">{title}</span>
+    <span class="hhg-window-lang">{lang}</span>
+  </div>
+  <pre class="hhg-window-code"><code set:html={highlighted} /></pre>
+</div>
+
+<style>
+  .hhg-window {
+    border-radius: 0.75rem;
+    border: 1px solid var(--border);
+    background: var(--bg-soft);
+    box-shadow: 0 20px 60px -25px rgba(0,0,0,0.25);
+    overflow: hidden;
+  }
+  .dark .hhg-window { background: #16161c; border-color: #2a2a36; }
+
+  .hhg-window-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 0.9rem;
+    background: var(--bg-elevated);
+    border-bottom: 1px solid var(--border);
+  }
+  .dark .hhg-window-bar { background: #1a1a22; border-color: #2a2a36; }
+
+  .hhg-mascot {
+    font-size: 1.05rem;
+    line-height: 1;
+    filter: drop-shadow(0 1px 2px rgba(249, 115, 22, 0.35));
+    animation: quill-wiggle 3s ease-in-out infinite;
+    transform-origin: 50% 80%;
+  }
+  @keyframes quill-wiggle {
+    0%,100% { transform: rotate(-4deg); }
+    50%     { transform: rotate(4deg); }
+  }
+
+  .hhg-window-title {
+    color: var(--text-soft);
+    font-size: 0.82rem;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+  }
+  .hhg-window-lang {
+    margin-left: auto;
+    font-size: 0.7rem;
+    color: var(--accent);
+    background: var(--accent-soft);
+    padding: 0.1rem 0.5rem;
+    border-radius: 999px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .hhg-window-code {
+    margin: 0;
+    padding: 1rem 1.1rem;
+    background: transparent;
+    color: var(--text);
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.86rem;
+    line-height: 1.55;
+    overflow-x: auto;
+  }
+  .hhg-window-code :global(.tk-k) { color: #c026d3; }
+  .hhg-window-code :global(.tk-t) { color: #0891b2; }
+  .hhg-window-code :global(.tk-f) { color: #7c3aed; }
+  .hhg-window-code :global(.tk-s) { color: #16a34a; }
+  .hhg-window-code :global(.tk-n) { color: #d97706; }
+  .hhg-window-code :global(.tk-c) { color: #6b7280; font-style: italic; }
+
+  :global(.dark) .hhg-window-code :global(.tk-k) { color: #f0abfc; }
+  :global(.dark) .hhg-window-code :global(.tk-t) { color: #67e8f9; }
+  :global(.dark) .hhg-window-code :global(.tk-f) { color: #c4b5fd; }
+  :global(.dark) .hhg-window-code :global(.tk-s) { color: #86efac; }
+  :global(.dark) .hhg-window-code :global(.tk-n) { color: #fdba74; }
+  :global(.dark) .hhg-window-code :global(.tk-c) { color: #71717a; }
+</style>
