@@ -151,7 +151,7 @@ void hhg_compiler_error(const char *msg, ...)
     );
 
     va_end(va);
-    exit(EXIT_FAILURE);
+    abort();
 }
 
 void hhg_fatal_error(const char *msg, ...)
