@@ -45,10 +45,10 @@ print(f"There are {4 * 5} ducks.")
 
 ## Installation
 
-The CLI is small on purpose:
+Download the latest binary for your platform from the [GitHub Releases page](https://github.com/sub1inear/Hedgehog/releases), extract it, and add it to your `PATH`.
 
-| Command | Description |
-|---------|-------------|
-| `hhg init` | Initializes a new Hedgehog project |
-| `hhg build` | Builds the project |
-| `hhg run` | Builds and runs the project |
+Verify the install:
+
+```sh
+hhg --version
+```
