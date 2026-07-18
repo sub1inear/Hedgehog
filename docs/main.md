@@ -227,8 +227,8 @@ Hedgehog bans implicit casting except for widening conversions (e.g. `i32` to `i
 
 ## Borrow Checker
 Hedgehog has a simplified borrow checker.
-There are no explicit lifetimes.
-Hedgehog will infer function lifetimes, but `class` lifetimes require `unsafe`.
+There are no generic lifetime parameters.
+Hedgehog will infer function lifetimes, but non-`static` `class` lifetimes require `unsafe`
 
 Types:
 - `unique<T>` (`Box<T>` in Rust)
@@ -351,7 +351,7 @@ fn divide(a: f64, b: f64) -> f64 | zero_error {
 
 To bind from tagged unions:
 ```
-if result: u32 = test() {
+if let result: u32 = test() {
     print(result)
 } else {
     print("no value")
