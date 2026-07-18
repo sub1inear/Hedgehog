@@ -36,9 +36,7 @@ typedef struct hhg_str hhg_str_t;
 typedef struct arena hhg_arena_t;
 
 // safe fopen of a file
-// crashes with hhg_fatal
-// 
-// 
+// crashes with hhg_fatal_error
 // if file cannot be opened
 FILE *hhg_fopen(const char *filename, const char *mode);
 
