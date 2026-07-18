@@ -196,6 +196,16 @@ void hhg_assert_core(const char *expr_str, const char *file, int line)
     );
 }
 
+void hhg_todo_core(const char *msg, const char *file, int line)
+{
+    hhg_compiler_error(
+        "TODO: %s, at %s:%i",
+        msg,
+        file,
+        line
+    );
+}
+
 #ifdef HHG_WINDOWS
 static bool hhg_arg_needs_escape(const char *arg)
 {

@@ -30,6 +30,8 @@
     if (!(expr))         \
         hhg_assert_core(#expr, __FILE__, __LINE__)
 
+#define hhg_todo(msg) hhg_todo_core(msg, __FILE__, __LINE__)
+
 typedef struct hhg_str hhg_str_t;
 typedef struct arena hhg_arena_t;
 
@@ -70,5 +72,8 @@ const char *hhg_file_to_exec(hhg_arena_t *arena, const char *name);
 
 // internal function for hhg_assert, not meant to be called directly
 void hhg_assert_core(const char *expr_str, const char *file, int line);
+
+// internal function for hhg_todo, not meant to be called directly
+void hhg_todo_core(const char *msg, const char *file, int line);
 
 #endif
