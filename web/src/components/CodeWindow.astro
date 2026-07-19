@@ -34,10 +34,11 @@ function highlight(src: string): string {
         out += `<span class="tk-c">${esc(line.slice(i))}</span>`;
         break;
       }
-      // strings
-      if (ch === '"' || ch === "'") {
-        let j = i+1;
-        while (j < line.length && line[j] !== ch) {
+      // strings (including f"…" interpolated strings)
+      if (ch === '"' || ch === "'" || (ch === 'f' && line[i+1] === '"')) {
+        const q = ch === 'f' ? '"' : ch;
+        let j = (ch === 'f' ? i + 1 : i) + 1;
+        while (j < line.length && line[j] !== q) {
           if (line[j] === '\\') j++;
           j++;
         }
