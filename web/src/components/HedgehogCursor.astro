@@ -97,6 +97,8 @@ import sleepTransitionPng from '../assets/hedgehog/sleep_transition.png';
   const transPreload = document.getElementById('hhg-trans-preload');
 
   let logoSlot = null;
+  let listenerAttached = false;
+  let revealed = false;
 
   // ── Constants ────────────────────────────────────────────────
   const SPEED       = 1.2;   // px / frame
@@ -120,13 +122,22 @@ import sleepTransitionPng from '../assets/hedgehog/sleep_transition.png';
   let idleSince  = Date.now();
 
   function computeHome() {
-    if (logoSlot) {
-      const rs = logoSlot.getBoundingClientRect();
-      homeX = Math.round(rs.left + rs.width / 2);
-      homeY = Math.round(rs.top + rs.height / 3);
-    } else {
-      homeX = 1000; homeY = 1000;
+    if (!logoSlot) logoSlot = document.getElementById('hhg-logo-slot');
+    if (!logoSlot) return false;
+    if (!listenerAttached) {
+      listenerAttached = true;
+      logoSlot.addEventListener('click', (e) => {
+        if (following) return;
+        e.preventDefault();
+        following = true;
+        outer.style.pointerEvents = 'none';
+        enterState(S.IDLE);
+      });
     }
+    const rs = logoSlot.getBoundingClientRect();
+    homeX = Math.round(rs.left + rs.width / 2);
+    homeY = Math.round(rs.top + rs.height / 3);
+    return true;
   }
 
   // ── Layer switching (opacity, no src change = no flicker) ────
@@ -184,29 +195,15 @@ import sleepTransitionPng from '../assets/hedgehog/sleep_transition.png';
     }
   });
 
-  // ── Init: cache header refs (unavailable at parse time) and position ──
+  // ── Init: position and reveal once the logo slot is in the DOM ──
+  // computeHome() may fail if the slot isn't parsed yet; tick() retries every frame.
   requestAnimationFrame(() => {
-    logoSlot = document.getElementById('hhg-logo-slot');
-
-    // Click activates following via the slot rather than the sprite itself,
-    // so the underlying <a href="/"> anchor stays reachable.
-    if (logoSlot) {
-      logoSlot.addEventListener('click', (e) => {
-        if (following) return; // already following — let click reach the anchor
-        e.preventDefault();
-        following = true;
-        outer.style.pointerEvents = 'none';
-        enterState(S.IDLE);
-      });
+    if (computeHome()) {
+      hx = homeX; hy = homeY;
+      cx = homeX; cy = homeY;
+      revealed = true;
+      outer.style.opacity = '1';
     }
-
-    computeHome();
-    hx = homeX; hy = homeY;
-    cx = homeX; cy = homeY;
-
-    const reveal = () => { outer.style.opacity = '1'; };
-    reveal();
-
   });
 
   // ── Main loop ────────────────────────────────────────────────
@@ -216,10 +213,19 @@ import sleepTransitionPng from '../assets/hedgehog/sleep_transition.png';
     rafHandle = requestAnimationFrame(tick);
 
     if (!following) {
-      // Track the slot every frame so font-load reflows don't drift the position
-      computeHome();
-      hx = homeX;
-      hy = homeY;
+      // Track the slot every frame so font-load reflows don't drift the position.
+      // Also handles late DOM availability: first successful computeHome() reveals the sprite.
+      if (computeHome()) {
+        if (!revealed) {
+          revealed = true;
+          hx = homeX; hy = homeY;
+          cx = homeX; cy = homeY;
+          outer.style.opacity = '1';
+        } else {
+          hx = homeX;
+          hy = homeY;
+        }
+      }
       // Stay frozen (STATIC) — no state machine until the user clicks
 
     } else {
