@@ -2,6 +2,7 @@
 import BaseLayout from './BaseLayout.astro';
 import DocsSidebar from '../components/DocsSidebar.astro';
 import { getCollection } from 'astro:content';
+import { BASE } from '../lib/consts';
 
 export interface Props {
   title: string;
@@ -29,13 +30,13 @@ const next = index >= 0 && index < docs.length - 1 ? docs[index + 1] : null;
 
       <nav class="not-prose mt-16 grid gap-4 sm:grid-cols-2 border-t border-[var(--border)] pt-8">
         {prev ? (
-          <a href={`/docs/${prev.slug}`} class="card p-4 group">
+          <a href={`${BASE}/docs/${prev.slug}`} class="card p-4 group">
             <div class="text-xs text-[var(--text-muted)] mb-1">← Previous</div>
             <div class="font-semibold group-hover:text-[var(--accent)]">{prev.data.title}</div>
           </a>
         ) : <div />}
         {next ? (
-          <a href={`/docs/${next.slug}`} class="card p-4 group text-right">
+          <a href={`${BASE}/docs/${next.slug}`} class="card p-4 group text-right">
             <div class="text-xs text-[var(--text-muted)] mb-1">Next →</div>
             <div class="font-semibold group-hover:text-[var(--accent)]">{next.data.title}</div>
           </a>

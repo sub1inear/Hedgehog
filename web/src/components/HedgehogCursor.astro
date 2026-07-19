@@ -3,6 +3,10 @@
 // Sits at the logo slot idle/sleeping until clicked, then follows the cursor.
 // Three GIF layers are always loaded (opacity-swap = no reload flicker).
 // Reduced-motion / mobile: disabled.
+import idleGif from '../assets/hedgehog/idle.gif';
+import moveGif from '../assets/hedgehog/move.gif';
+import sleepGif from '../assets/hedgehog/sleep.gif';
+import sleepTransitionPng from '../assets/hedgehog/sleep_transition.png';
 ---
 
 <!--
@@ -18,15 +22,15 @@
   aria-hidden="true"
 >
   <div id="hhg-inner" style="position:relative;width:48px;height:48px;transform-origin:50% 50%;">
-    <img id="hhg-f-idle"  src="/hedgehog/idle.gif"  alt="" class="hhg-f" />
-    <img id="hhg-f-walk"  src="/hedgehog/move.gif"  alt="" class="hhg-f" />
-    <img id="hhg-f-sleep" src="/hedgehog/sleep.gif" alt="" class="hhg-f" />
+    <img id="hhg-f-idle"  src={idleGif.src}  alt="" class="hhg-f" />
+    <img id="hhg-f-walk"  src={moveGif.src}  alt="" class="hhg-f" />
+    <img id="hhg-f-sleep" src={sleepGif.src} alt="" class="hhg-f" />
     <!--
       hhg-f-trans doubles as the pre-click FROZEN state.
       At background-position:0 0 with no animation it shows frame 0 of
       sleep_transition.png — a static standing pose.
     -->
-    <div id="hhg-f-trans" class="hhg-f hhg-active"></div>
+    <div id="hhg-f-trans" class="hhg-f hhg-active" style={`--sleep-transition:url(${sleepTransitionPng.src});`}></div>
   </div>
 </div>
 
@@ -48,7 +52,7 @@
 
   /* Sleep-transition sprite sheet: 5 frames × 48 px = 240 px wide */
   #hhg-f-trans {
-    background-image: url('/hedgehog/sleep_transition.png');
+    background-image: var(--sleep-transition);
     background-size: 240px 48px;
     background-repeat: no-repeat;
     background-position: 0 0;

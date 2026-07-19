@@ -1,9 +1,14 @@
 ---
 import { getCollection } from 'astro:content';
+import { BASE } from '../lib/consts';
 
 const docs = (await getCollection('docs')).sort((a, b) => a.data.order - b.data.order);
 
-const currentSlug = Astro.url.pathname.replace(/^\/docs\//, '').replace(/\/$/, '');
+// Strip the base path (e.g. "/Hedgehog") before extracting the slug
+const currentSlug = Astro.url.pathname
+  .replace(new RegExp(`^${BASE}`), '')
+  .replace(/^\/docs\//, '')
+  .replace(/\/$/, '');
 
 // Group by section
 const sections = new Map<string, typeof docs>();
@@ -15,7 +20,7 @@ for (const doc of docs) {
 ---
 <nav class="docs-sidebar text-sm">
   <div class="mb-4 pb-4 border-b border-[var(--border)]">
-    <a href="/" class="flex items-center gap-2 text-[var(--text-soft)] hover:text-[var(--accent)]">
+    <a href={BASE} class="flex items-center gap-2 text-[var(--text-soft)] hover:text-[var(--accent)]">
       <span aria-hidden="true">🦔</span>
       <span class="font-display font-bold">Hedgehog Docs</span>
     </a>
@@ -30,7 +35,7 @@ for (const doc of docs) {
           return (
             <li>
               <a
-                href={`/docs/${item.slug}`}
+                href={`${BASE}/docs/${item.slug}`}
                 class:list={[
                   'block px-2 py-1.5 rounded-md transition-colors',
                   isActive

@@ -2,6 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import CodeWindow from '../components/CodeWindow.astro';
 import SpikeDivider from '../components/SpikeDivider.astro';
+import { BASE } from '../lib/consts';
 
 const heroCode = `fn greet(name: &str) -> str {
     return f"Hello, {name}!"
@@ -103,7 +104,7 @@ const icons: Record<string, string> = {
 
         <div class="mt-8 flex flex-wrap items-center gap-3">
           <a
-            href="/docs/introduction"
+            href={`${BASE}/docs/introduction`}
             class="group inline-flex items-center gap-2 rounded-lg bg-quill-gradient px-5 py-3 text-white font-semibold shadow-lg shadow-quill-500/25 hover:shadow-quill-500/50 transition-shadow"
           >
             Read the Docs
@@ -112,7 +113,7 @@ const icons: Record<string, string> = {
             </svg>
           </a>
           <a
-            href="/playground"
+            href={`${BASE}/playground`}
             class="inline-flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--bg-elevated)] px-5 py-3 font-semibold text-[var(--text)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors"
           >
             <span aria-hidden="true">🦔</span>
@@ -124,7 +125,7 @@ const icons: Record<string, string> = {
           <span>Install:</span>
           <a href="https://github.com/sub1inear/Hedgehog/releases" class="rounded-md bg-[var(--bg-soft)] border border-[var(--border)] px-2 py-1 font-mono hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors">GitHub Releases</a>
           <span>|</span>
-          <a href="/docs/introduction#installation" class="hover:text-[var(--accent)]">Installation Guide →</a>
+          <a href={`${BASE}/docs/introduction#installation`} class="hover:text-[var(--accent)]">Installation Guide →</a>
         </div>
       </div>
 
@@ -273,13 +274,13 @@ fn main() {
       </div>
 
       <div class="grid gap-5 md:grid-cols-3">
-        <a href="/docs/introduction" class="card p-8 text-center group block">
+        <a href={`${BASE}/docs/introduction`} class="card p-8 text-center group block">
           <div class="text-4xl mb-3">📖</div>
           <h3 class="font-display text-xl font-bold mb-1">Learn</h3>
           <p class="text-sm text-[var(--text-soft)]">Walk through the language from `let` to lifetimes.</p>
           <span class="mt-4 inline-block text-[var(--accent)] font-mono text-sm">docs →</span>
         </a>
-        <a href="/playground" class="card p-8 text-center group block">
+        <a href={`${BASE}/playground`} class="card p-8 text-center group block">
           <div class="text-4xl mb-3">🧪</div>
           <h3 class="font-display text-xl font-bold mb-1">Play</h3>
           <p class="text-sm text-[var(--text-soft)]">Poke at Hedgehog in the browser. Zero install.</p>

@@ -1,5 +1,6 @@
 ---
 import SpikeDivider from './SpikeDivider.astro';
+import { BASE } from '../lib/consts';
 ---
 <footer class="mt-24">
   <SpikeDivider flip />
@@ -18,10 +19,10 @@ import SpikeDivider from './SpikeDivider.astro';
       <div>
         <h3 class="font-semibold mb-3 text-[var(--text)]">Learn</h3>
         <ul class="space-y-2 text-[var(--text-muted)]">
-          <li><a class="hover:text-[var(--accent)]" href="/docs/introduction">Introduction</a></li>
-          <li><a class="hover:text-[var(--accent)]" href="/docs/types">Types</a></li>
-          <li><a class="hover:text-[var(--accent)]" href="/docs/classes">Classes</a></li>
-          <li><a class="hover:text-[var(--accent)]" href="/playground">Playground</a></li>
+          <li><a class="hover:text-[var(--accent)]" href={`${BASE}/docs/introduction`}>Introduction</a></li>
+          <li><a class="hover:text-[var(--accent)]" href={`${BASE}/docs/types`}>Types</a></li>
+          <li><a class="hover:text-[var(--accent)]" href={`${BASE}/docs/classes`}>Classes</a></li>
+          <li><a class="hover:text-[var(--accent)]" href={`${BASE}/playground`}>Playground</a></li>
         </ul>
       </div>
 

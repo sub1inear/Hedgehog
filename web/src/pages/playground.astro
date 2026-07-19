@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { BASE } from '../lib/consts';
 
 // Code examples (also duplicated in the client script for the picker)
 const INIT_CODE = `import std.math
@@ -154,7 +155,7 @@ fn main() {
         <div class="font-semibold text-[var(--accent-strong)]">The playground is being built.</div>
         <p class="text-sm text-[var(--text-soft)] mt-0.5">
           You can browse and edit, but Run is asleep. In the meantime,
-          <a href="/docs/introduction" class="underline decoration-dashed hover:decoration-solid">read the docs</a>
+          <a href={`${BASE}/docs/introduction`} class="underline decoration-dashed hover:decoration-solid">read the docs</a>
           or grab the compiler from <a href="https://github.com" class="underline decoration-dashed hover:decoration-solid">GitHub</a>.
         </p>
       </div>
