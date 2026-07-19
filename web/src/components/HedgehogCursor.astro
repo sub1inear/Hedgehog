@@ -76,9 +76,10 @@
   const fWalk    = document.getElementById('hhg-f-walk');
   const fSleep   = document.getElementById('hhg-f-sleep');
   const fTrans   = document.getElementById('hhg-f-trans');
-  const logoSlot = document.getElementById('hhg-logo-slot');
-  const logoText = document.getElementById('hhg-logo-text');
   if (!outer || !inner || !fIdle || !fWalk || !fSleep || !fTrans) return;
+
+  let logoSlot = null;
+  let logoText = null;
 
   // ── Constants ────────────────────────────────────────────────
   const SPEED       = 1.2;   // px / frame
@@ -107,7 +108,7 @@
       homeX = Math.round(rs.left + rs.width / 2);
       const el = logoText || logoSlot;
       const r  = el.getBoundingClientRect();
-      homeY = Math.round(r.top + r.height / 2);
+      homeY = Math.round(r.top + r.height / 6);
     } else {
       homeX = 40; homeY = 32;
     }
@@ -157,19 +158,6 @@
     }
   }
 
-  // ── Click: activate following via the logo slot (not the sprite itself,
-  //    which would block the underlying <a href="/"> anchor) ──────────────
-  if (logoSlot) {
-    logoSlot.addEventListener('click', (e) => {
-      if (following) return; // already following — let click reach the anchor
-      e.preventDefault();
-      following = true;
-      outer.style.pointerEvents = 'none';
-      document.body.style.cursor = 'none';
-      enterState(S.IDLE);
-    });
-  }
-
   // ── Cursor tracking (only after click) ───────────────────────
   document.addEventListener('mousemove', (e) => {
     if (!following) return;
@@ -181,8 +169,23 @@
     }
   });
 
-  // ── Position from logo slot (after first layout pass) ────────
+  // ── Init: cache header refs (unavailable at parse time) and position ──
   requestAnimationFrame(() => {
+    logoSlot = document.getElementById('hhg-logo-slot');
+    logoText = document.getElementById('hhg-logo-text');
+
+    // Click activates following via the slot rather than the sprite itself,
+    // so the underlying <a href="/"> anchor stays reachable.
+    if (logoSlot) {
+      logoSlot.addEventListener('click', (e) => {
+        if (following) return; // already following — let click reach the anchor
+        e.preventDefault();
+        following = true;
+        outer.style.pointerEvents = 'none';
+        enterState(S.IDLE);
+      });
+    }
+
     computeHome();
     hx = homeX; hy = homeY;
     cx = homeX; cy = homeY;
