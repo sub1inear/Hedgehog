@@ -14,8 +14,7 @@
   id="hhg-outer"
   class="hidden md:block"
   style="position:fixed;left:0;top:0;z-index:50;will-change:transform;
-         transform:translate(-200px,-200px);opacity:0;cursor:pointer;"
-  title="Click to follow!"
+         transform:translate(-200px,-200px);opacity:0;pointer-events:none;"
   aria-hidden="true"
 >
   <div id="hhg-inner" style="position:relative;width:48px;height:48px;transform-origin:50% 50%;">
@@ -69,13 +68,16 @@
 <script is:inline>
 (function () {
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  if (!window.matchMedia('(min-width: 768px)').matches) return;
 
-  const outer   = document.getElementById('hhg-outer');
-  const inner   = document.getElementById('hhg-inner');
-  const fIdle   = document.getElementById('hhg-f-idle');
-  const fWalk   = document.getElementById('hhg-f-walk');
-  const fSleep  = document.getElementById('hhg-f-sleep');
-  const fTrans  = document.getElementById('hhg-f-trans');
+  const outer    = document.getElementById('hhg-outer');
+  const inner    = document.getElementById('hhg-inner');
+  const fIdle    = document.getElementById('hhg-f-idle');
+  const fWalk    = document.getElementById('hhg-f-walk');
+  const fSleep   = document.getElementById('hhg-f-sleep');
+  const fTrans   = document.getElementById('hhg-f-trans');
+  const logoSlot = document.getElementById('hhg-logo-slot');
+  const logoText = document.getElementById('hhg-logo-text');
   if (!outer || !inner || !fIdle || !fWalk || !fSleep || !fTrans) return;
 
   // ── Constants ────────────────────────────────────────────────
@@ -98,6 +100,18 @@
   let facingLeft = false;
   let following  = false;
   let idleSince  = Date.now();
+
+  function computeHome() {
+    if (logoSlot) {
+      const rs = logoSlot.getBoundingClientRect();
+      homeX = Math.round(rs.left + rs.width / 2);
+      const el = logoText || logoSlot;
+      const r  = el.getBoundingClientRect();
+      homeY = Math.round(r.top + r.height / 2);
+    } else {
+      homeX = 40; homeY = 32;
+    }
+  }
 
   // ── Layer switching (opacity, no src change = no flicker) ────
   function showLayer(key) {
@@ -143,15 +157,18 @@
     }
   }
 
-  // ── Click: leave STATIC, detach from home, start following ──
-  outer.addEventListener('click', () => {
-    if (following) return;
-    following = true;
-    outer.style.cursor = 'none';
-    outer.style.pointerEvents = 'none';
-    // Come alive — transition from the frozen pose to idle
-    enterState(S.IDLE);
-  });
+  // ── Click: activate following via the logo slot (not the sprite itself,
+  //    which would block the underlying <a href="/"> anchor) ──────────────
+  if (logoSlot) {
+    logoSlot.addEventListener('click', (e) => {
+      if (following) return; // already following — let click reach the anchor
+      e.preventDefault();
+      following = true;
+      outer.style.pointerEvents = 'none';
+      document.body.style.cursor = 'none';
+      enterState(S.IDLE);
+    });
+  }
 
   // ── Cursor tracking (only after click) ───────────────────────
   document.addEventListener('mousemove', (e) => {
@@ -166,43 +183,21 @@
 
   // ── Position from logo slot (after first layout pass) ────────
   requestAnimationFrame(() => {
-    const slot = document.getElementById('hhg-logo-slot');
-    const text = document.getElementById('hhg-logo-text');
-    if (slot) {
-      const rs = slot.getBoundingClientRect();
-      homeX = Math.round(rs.left + rs.width / 2);
-      if (text) {
-        const rt = text.getBoundingClientRect();
-        homeY = Math.round(rt.top + rt.height / 6);
-      } else {
-        homeY = Math.round(rs.top + rs.height / 6);
-      }
-    } else {
-      homeX = 40; homeY = 32;
-    }
+    computeHome();
     hx = homeX; hy = homeY;
     cx = homeX; cy = homeY;
     outer.style.opacity = '1';
   });
 
   // ── Main loop ────────────────────────────────────────────────
+  let rafHandle;
+
   function tick() {
-    requestAnimationFrame(tick);
+    rafHandle = requestAnimationFrame(tick);
 
     if (!following) {
       // Track the slot every frame so font-load reflows don't drift the position
-      const slot = document.getElementById('hhg-logo-slot');
-      const text = document.getElementById('hhg-logo-text');
-      if (slot) {
-        const rs = slot.getBoundingClientRect();
-        homeX = Math.round(rs.left + rs.width / 2);
-        if (text) {
-          const rt = text.getBoundingClientRect();
-          homeY = Math.round(rt.top + rt.height / 6);
-        } else {
-          homeY = Math.round(rs.top + rs.height / 6);
-        }
-      }
+      computeHome();
       hx = homeX;
       hy = homeY;
       // Stay frozen (STATIC) — no state machine until the user clicks
@@ -240,6 +235,8 @@
 
     outer.style.transform = `translate(${hx - HALF}px,${hy - HALF}px)`;
   }
+
+  document.addEventListener('astro:before-swap', () => cancelAnimationFrame(rafHandle), { once: true });
 
   tick();
 })();

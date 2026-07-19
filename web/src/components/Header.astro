@@ -1,8 +1,10 @@
 ---
 import ThemeToggle from './ThemeToggle.astro';
 const { pathname } = Astro.url;
-const active = (href: string) =>
-  pathname === href || (href !== '/' && pathname.startsWith(href));
+const active = (href: string) => {
+  const path = href.split('#')[0];
+  return pathname === path || (path !== '/' && pathname.startsWith(path + '/'));
+};
 ---
 <header class="sticky top-0 z-40 backdrop-blur-md bg-[color:var(--bg)]/75 border-b border-[var(--border)]">
   <div class="wrap flex h-16 items-center justify-between gap-6">
@@ -28,7 +30,7 @@ const active = (href: string) =>
     <div class="flex items-center gap-1">
       <nav class="hidden md:flex items-center gap-1 text-sm">
         {[
-          ['/docs/introduction', 'Docs'],
+          ['/docs', 'Docs'],
           ['/playground', 'Playground'],
           ['/docs/introduction#stdlib', 'Stdlib'],
         ].map(([href, label]) => (
@@ -68,7 +70,7 @@ const active = (href: string) =>
 
   <div id="mobile-menu" class="md:hidden hidden border-t border-[var(--border)]">
     <div class="wrap py-3 flex flex-col gap-1 text-sm">
-      <a href="/docs/introduction" class="px-3 py-2 rounded-md text-[var(--text-soft)] hover:text-[var(--text)]">Docs</a>
+      <a href="/docs" class="px-3 py-2 rounded-md text-[var(--text-soft)] hover:text-[var(--text)]">Docs</a>
       <a href="/playground" class="px-3 py-2 rounded-md text-[var(--text-soft)] hover:text-[var(--text)]">Playground</a>
       <a href="https://github.com/sub1inear/Hedgehog" class="px-3 py-2 rounded-md text-[var(--text-soft)] hover:text-[var(--text)]">GitHub</a>
     </div>
