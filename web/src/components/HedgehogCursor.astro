@@ -97,7 +97,6 @@ import sleepTransitionPng from '../assets/hedgehog/sleep_transition.png';
   const transPreload = document.getElementById('hhg-trans-preload');
 
   let logoSlot = null;
-  let logoText = null;
 
   // ── Constants ────────────────────────────────────────────────
   const SPEED       = 1.2;   // px / frame
@@ -124,9 +123,7 @@ import sleepTransitionPng from '../assets/hedgehog/sleep_transition.png';
     if (logoSlot) {
       const rs = logoSlot.getBoundingClientRect();
       homeX = Math.round(rs.left + rs.width / 2);
-      const el = logoText || logoSlot;
-      const r  = el.getBoundingClientRect();
-      homeY = Math.round(r.top + r.height / 6);
+      homeY = Math.round(rs.top + rs.height / 2);
     } else {
       homeX = 40; homeY = 32;
     }
@@ -190,7 +187,6 @@ import sleepTransitionPng from '../assets/hedgehog/sleep_transition.png';
   // ── Init: cache header refs (unavailable at parse time) and position ──
   requestAnimationFrame(() => {
     logoSlot = document.getElementById('hhg-logo-slot');
-    logoText = document.getElementById('hhg-logo-text');
 
     // Click activates following via the slot rather than the sprite itself,
     // so the underlying <a href="/"> anchor stays reachable.
