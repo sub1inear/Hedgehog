@@ -33,6 +33,19 @@ import sleepTransitionPng from '../assets/hedgehog/sleep_transition.png';
     <div id="hhg-f-trans" class="hhg-f hhg-active" style={`--sleep-transition:url(${sleepTransitionPng.src});`}></div>
   </div>
 </div>
+<!--
+  Preload the sprite-sheet PNG via an <img> so the browser fetches it during
+  HTML parsing rather than waiting until CSS custom-property resolution.
+  Without this, on a cold first load the hedgehog container turns visible
+  before the background-image has arrived, showing an empty slot.
+-->
+<img
+  id="hhg-trans-preload"
+  src={sleepTransitionPng.src}
+  alt=""
+  aria-hidden="true"
+  style="position:absolute;width:0;height:0;overflow:hidden;opacity:0;pointer-events:none;"
+/>
 
 <style>
   /* All frame layers: stacked, same size, pixel-perfect */
@@ -81,6 +94,7 @@ import sleepTransitionPng from '../assets/hedgehog/sleep_transition.png';
   const fSleep   = document.getElementById('hhg-f-sleep');
   const fTrans   = document.getElementById('hhg-f-trans');
   if (!outer || !inner || !fIdle || !fWalk || !fSleep || !fTrans) return;
+  const transPreload = document.getElementById('hhg-trans-preload');
 
   let logoSlot = null;
   let logoText = null;
@@ -193,7 +207,17 @@ import sleepTransitionPng from '../assets/hedgehog/sleep_transition.png';
     computeHome();
     hx = homeX; hy = homeY;
     cx = homeX; cy = homeY;
-    outer.style.opacity = '1';
+
+    // Reveal the hedgehog only once the sprite-sheet PNG is in the browser
+    // cache; on cold first loads the background-image arrives after the first
+    // RAF would otherwise make the container visible, producing an empty slot.
+    const reveal = () => { outer.style.opacity = '1'; };
+    if (!transPreload || transPreload.complete) {
+      reveal();
+    } else {
+      transPreload.addEventListener('load',  reveal, { once: true });
+      transPreload.addEventListener('error', reveal, { once: true });
+    }
   });
 
   // ── Main loop ────────────────────────────────────────────────
