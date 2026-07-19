@@ -1,10 +1,20 @@
 ---
 import ThemeToggle from './ThemeToggle.astro';
 import { BASE } from '../lib/consts';
+import { links } from '../lib/nav';
 const { pathname } = Astro.url;
+
+// Collect "leaf" paths (more specific nav items) so parent prefix-matches can yield to them.
+const leafPaths = new Set(links.map(l => l.href.split('#')[0]));
+
 const active = (href: string) => {
   const path = href.split('#')[0];
-  return pathname === path || (path !== '/' && pathname.startsWith(path + '/'));
+  if (pathname === path) return true;
+  // If a more specific sibling nav item exactly matches the current path,
+  // don't highlight this parent via prefix-match.
+  if (path !== '/' && pathname.startsWith(path + '/') && leafPaths.has(pathname)) return false;
+  if (path !== '/' && pathname.startsWith(path + '/')) return true;
+  return false;
 };
 ---
 <header class="sticky top-0 z-40 backdrop-blur-md bg-[color:var(--bg)]/75 border-b border-[var(--border)]">
@@ -30,11 +40,7 @@ const active = (href: string) => {
 
     <div class="flex items-center gap-1">
       <nav class="hidden md:flex items-center gap-1 text-sm">
-        {[
-          [`${BASE}/docs`, 'Docs'],
-          [`${BASE}/playground`, 'Playground'],
-          [`${BASE}/docs/introduction#stdlib`, 'Stdlib'],
-        ].map(([href, label]) => (
+        {links.map(({ href, label }) => (
           <a
             href={href}
             class:list={[
@@ -71,8 +77,9 @@ const active = (href: string) => {
 
   <div id="mobile-menu" class="md:hidden hidden border-t border-[var(--border)]">
     <div class="wrap py-3 flex flex-col gap-1 text-sm">
-      <a href={`${BASE}/docs`} class="px-3 py-2 rounded-md text-[var(--text-soft)] hover:text-[var(--text)]">Docs</a>
-      <a href={`${BASE}/playground`} class="px-3 py-2 rounded-md text-[var(--text-soft)] hover:text-[var(--text)]">Playground</a>
+      {links.map(({ href, label }) => (
+        <a href={href} class="px-3 py-2 rounded-md text-[var(--text-soft)] hover:text-[var(--text)]">{label}</a>
+      ))}
       <a href="https://github.com/sub1inear/Hedgehog" class="px-3 py-2 rounded-md text-[var(--text-soft)] hover:text-[var(--text)]">GitHub</a>
     </div>
   </div>

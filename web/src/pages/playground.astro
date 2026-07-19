@@ -423,7 +423,7 @@ function renderCode(code: string): string {
 
 async function loadShiki() {
   try {
-    const { createHighlighter } = await import('shiki');
+    const { createHighlighter } = await import('shiki/bundle/web');
     highlighter = await createHighlighter({
       themes: ['github-light', 'github-dark'],
       langs: [hhgGrammar as any],

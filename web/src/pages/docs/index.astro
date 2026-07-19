@@ -1,6 +1,16 @@
 ---
-import { BASE } from '../../lib/consts';
+import { getCollection } from 'astro:content';
+import DocsLayout from '../../layouts/DocsLayout.astro';
 
-// /docs redirects to the first section.
-return Astro.redirect(`${BASE}/docs/introduction`);
+const docs = await getCollection('docs');
+const intro = docs.find(d => d.slug === 'introduction');
+if (!intro) throw new Error('Introduction doc not found');
+const { Content } = await intro.render();
 ---
+<DocsLayout
+  title={intro.data.title}
+  description={intro.data.description}
+  currentSlug="introduction"
+>
+  <Content />
+</DocsLayout>
