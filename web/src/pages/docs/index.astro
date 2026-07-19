@@ -1,4 +1,6 @@
 ---
+import { BASE } from '../../lib/consts';
+
 // /docs redirects to the first section.
-return Astro.redirect('/docs/introduction');
+return Astro.redirect(`${BASE}/docs/introduction`);
 ---
