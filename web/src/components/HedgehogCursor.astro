@@ -85,8 +85,10 @@ import sleepTransitionPng from '../assets/hedgehog/sleep_transition.png';
 <script is:inline>
 (function () {
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  if (!window.matchMedia('(min-width: 768px)').matches) return;
 
+  const mql = window.matchMedia('(min-width: 768px)');
+
+  function init() {
   const outer    = document.getElementById('hhg-outer');
   const inner    = document.getElementById('hhg-inner');
   const fIdle    = document.getElementById('hhg-f-idle');
@@ -265,5 +267,17 @@ import sleepTransitionPng from '../assets/hedgehog/sleep_transition.png';
   document.addEventListener('astro:before-swap', () => cancelAnimationFrame(rafHandle), { once: true });
 
   tick();
+  } // end init
+
+  if (mql.matches) {
+    init();
+  } else {
+    mql.addEventListener('change', function handler(e) {
+      if (e.matches) {
+        mql.removeEventListener('change', handler);
+        init();
+      }
+    });
+  }
 })();
 </script>
