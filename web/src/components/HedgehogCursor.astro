@@ -123,9 +123,9 @@ import sleepTransitionPng from '../assets/hedgehog/sleep_transition.png';
     if (logoSlot) {
       const rs = logoSlot.getBoundingClientRect();
       homeX = Math.round(rs.left + rs.width / 2);
-      homeY = Math.round(rs.top + rs.height / 2);
+      homeY = Math.round(rs.top + rs.height / 3);
     } else {
-      homeX = 40; homeY = 32;
+      homeX = 1000; homeY = 1000;
     }
   }
 
@@ -204,16 +204,9 @@ import sleepTransitionPng from '../assets/hedgehog/sleep_transition.png';
     hx = homeX; hy = homeY;
     cx = homeX; cy = homeY;
 
-    // Reveal the hedgehog only once the sprite-sheet PNG is in the browser
-    // cache; on cold first loads the background-image arrives after the first
-    // RAF would otherwise make the container visible, producing an empty slot.
     const reveal = () => { outer.style.opacity = '1'; };
-    if (!transPreload || transPreload.complete) {
-      reveal();
-    } else {
-      transPreload.addEventListener('load',  reveal, { once: true });
-      transPreload.addEventListener('error', reveal, { once: true });
-    }
+    reveal();
+
   });
 
   // ── Main loop ────────────────────────────────────────────────
