@@ -167,10 +167,16 @@
   // ── Position from logo slot (after first layout pass) ────────
   requestAnimationFrame(() => {
     const slot = document.getElementById('hhg-logo-slot');
+    const text = document.getElementById('hhg-logo-text');
     if (slot) {
-      const r = slot.getBoundingClientRect();
-      homeX = Math.round(r.left + r.width  / 2);
-      homeY = Math.round(r.top  + r.height / 2);
+      const rs = slot.getBoundingClientRect();
+      homeX = Math.round(rs.left + rs.width / 2);
+      if (text) {
+        const rt = text.getBoundingClientRect();
+        homeY = Math.round(rt.top + rt.height / 6);
+      } else {
+        homeY = Math.round(rs.top + rs.height / 6);
+      }
     } else {
       homeX = 40; homeY = 32;
     }
@@ -186,10 +192,16 @@
     if (!following) {
       // Track the slot every frame so font-load reflows don't drift the position
       const slot = document.getElementById('hhg-logo-slot');
+      const text = document.getElementById('hhg-logo-text');
       if (slot) {
-        const r = slot.getBoundingClientRect();
-        homeX = Math.round(r.left + r.width  / 2);
-        homeY = Math.round(r.top  + r.height / 2);
+        const rs = slot.getBoundingClientRect();
+        homeX = Math.round(rs.left + rs.width / 2);
+        if (text) {
+          const rt = text.getBoundingClientRect();
+          homeY = Math.round(rt.top + rt.height / 6);
+        } else {
+          homeY = Math.round(rs.top + rs.height / 6);
+        }
       }
       hx = homeX;
       hy = homeY;

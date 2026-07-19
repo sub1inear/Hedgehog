@@ -2,26 +2,35 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import CodeWindow from '../components/CodeWindow.astro';
 import SpikeDivider from '../components/SpikeDivider.astro';
-import HedgehogCursor from '../components/HedgehogCursor.astro';
 
-const heroCode = `fn main() {
-    println("Hello, World!")
+const heroCode = `fn greet(name: &str) -> str {
+    return f"Hello, {name}!"
+}
+
+fn main() {
+    println(greet("World"))
+
+    let mut sum = 0
+    for i in 1..=10 {
+        sum += i
+    }
+    println(f"1..10 = {sum}")
 }`;
 
 const principles = [
   {
     n: 'I',
-    title: 'Power without ceremony',
+    title: 'Power Without Ceremony',
     body: "As powerful as C++, as simple as Python, as safe as Rust. When these conflict: speed › simplicity › safety.",
   },
   {
     n: 'II',
-    title: "Don't reinvent the wheel",
-    body: 'No drastic changes from C++ or Python — Hedgehog should look familiar and be easy to learn from either.',
+    title: "Don't Reinvent the Wheel",
+    body: 'No drastic changes from C++ or Python. Hedgehog should look familiar and be easy to learn from either.',
   },
   {
     n: 'III',
-    title: 'One obvious way',
+    title: 'One Obvious Way',
     body: 'Duplicates and slight reinventions that cause perplexity when choosing between them should be avoided.',
   },
 ];
@@ -29,32 +38,32 @@ const principles = [
 const features = [
   {
     icon: 'shield',
-    title: 'Borrow-checked, minus the paperwork',
+    title: 'Borrow-Checked, Minus the Paperwork',
     body: 'A simplified borrow checker with no generic lifetime parameters. XOR mutability: one mutable reference or many immutable, never both.',
   },
   {
     icon: 'zap',
-    title: 'Tagged unions with sugar',
+    title: 'Tagged Unions with Sugar',
     body: '`A | B`, nominal and flat. `expr?` propagates nulls and errors; `expr!` panics loudly. `!type` declares an error variant.',
   },
   {
     icon: 'brace',
-    title: 'Classes, templates, interfaces',
-    body: 'Familiar OO shape with structural interfaces and angle-bracket generics. No `::` clutter — everything is a `.`.',
+    title: 'Classes, Templates, Interfaces',
+    body: 'Familiar OO shape with structural interfaces and angle-bracket generics. No `::` clutter, everything is a `.`.',
   },
   {
     icon: 'plug',
-    title: 'C & C++ interop, first-class',
+    title: 'C & C++ Interop, First-Class',
     body: 'Import C/C++ headers directly. Emit a C/C++ header so foreign code can call back into Hedgehog.',
   },
   {
     icon: 'grid',
-    title: 'A stdlib that curls up nicely',
+    title: 'A Stdlib That Curls Up Nicely',
     body: '`core` and `std` are always there. Disable `std` for bare-metal work. `core.*` aliases to `std.*` for convenience.',
   },
   {
     icon: 'wrench',
-    title: 'Tooling that gets out of the way',
+    title: 'Tooling That Gets Out of the Way',
     body: '`hhg build`, `hhg run`. No YAML mountains, no vendored config folders.',
   },
 ];
@@ -69,8 +78,6 @@ const icons: Record<string, string> = {
 };
 ---
 <BaseLayout>
-  <HedgehogCursor />
-
   <!-- ============ HERO ============ -->
   <section class="hero-bg pt-16 pb-24 md:pt-24 md:pb-32">
     <div class="wrap grid gap-14 md:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] items-center">
@@ -78,7 +85,7 @@ const icons: Record<string, string> = {
       <div class="relative">
         <div class="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--bg-elevated)] px-3 py-1 text-xs text-[var(--text-soft)] mb-6">
           <span class="h-1.5 w-1.5 rounded-full bg-[var(--accent)] animate-glow-pulse" />
-          v0.1.0 — small, spiky, still growing
+          v0.1.0 · small, spiky, still growing
         </div>
 
         <h1 class="font-display font-extrabold tracking-tight leading-[1.05] text-[clamp(3rem,7vw,5.5rem)]">
@@ -126,7 +133,7 @@ const icons: Record<string, string> = {
         <!-- Decorative blob -->
         <div class="absolute -inset-6 -z-10 rounded-3xl bg-quill-gradient opacity-20 blur-3xl" aria-hidden="true" />
         <div class="rotate-[1.2deg] hover:rotate-0 transition-transform duration-500">
-          <CodeWindow title="hello.hhg" code={heroCode} />
+          <CodeWindow title="example.hhg" code={heroCode} />
         </div>
         <!-- Little spike accents -->
         <div class="absolute -top-4 -right-4 text-4xl select-none opacity-40" aria-hidden="true">✦</div>
@@ -154,7 +161,7 @@ const icons: Record<string, string> = {
               {p.n}
             </div>
             <div class="relative">
-              <div class="font-mono text-xs text-[var(--accent)] mb-2">principle {p.n}</div>
+              <div class="font-mono text-xs text-[var(--accent)] mb-2">Principle {p.n}</div>
               <h3 class="font-display text-xl font-bold mb-2">{p.title}</h3>
               <p class="text-sm text-[var(--text-soft)] leading-relaxed">{p.body}</p>
             </div>
@@ -227,28 +234,27 @@ fn main() {
         </div>
 
         <div>
-          <h3 class="font-display text-lg font-bold mb-3">Classes, move-by-default</h3>
+          <h3 class="font-display text-lg font-bold mb-3">Move-by-default</h3>
           <p class="text-sm text-[var(--text-soft)] mb-4">
             Basic types copy; complex types move.
             Call <code class="rounded bg-[var(--accent-soft)] px-1 text-[var(--accent)] text-xs">.copy()</code>
-            to opt in — no accidental clones.
+            to opt in, no accidental clones.
           </p>
           <CodeWindow
-            title="point.hhg"
-            code={`class Point {
-    x: f64
-    y: f64
+            title="move.hhg"
+            code={`fn main() {
+    let x = 5
+    let y = x
+    let z = y
+    print(x) // 5
 
-    fn dist(&self, p: &Point) -> f64 {
-        let dx = self.x - p.x
-        let dy = self.y - p.y
-        return std.math.sqrt(dx*dx + dy*dy)
-    }
-}
-
-let a = Point(3.0, 4.0)
-let b = Point(0.0, 0.0)
-println(a.dist(&b)) // 5.0`}
+    let s1: str = "hello"
+    let s2 = s1.copy()
+    let s3 = s1 // move
+    print(s1) // error: s1 has been moved
+    print(s2) // "hello"
+    print(s3) // "hello"
+}`}
           />
         </div>
       </div>
@@ -279,7 +285,7 @@ println(a.dist(&b)) // 5.0`}
           <p class="text-sm text-[var(--text-soft)]">Poke at Hedgehog in the browser. Zero install.</p>
           <span class="mt-4 inline-block text-[var(--accent)] font-mono text-sm">playground →</span>
         </a>
-        <a href="https://github.com" class="card p-8 text-center group block">
+        <a href="https://github.com/sub1inear/Hedgehog" class="card p-8 text-center group block">
           <div class="text-4xl mb-3">🤝</div>
           <h3 class="font-display text-xl font-bold mb-1">Contribute</h3>
           <p class="text-sm text-[var(--text-soft)]">The compiler is small and the roadmap is open.</p>
