@@ -5,15 +5,18 @@ import { links } from '../lib/nav';
 const { pathname } = Astro.url;
 
 // Collect "leaf" paths (more specific nav items) so parent prefix-matches can yield to them.
-const leafPaths = new Set(links.map(l => l.href.split('#')[0]));
+const stripSlash = (s: string) => s.endsWith('/') ? s.slice(0, -1) : s;
+
+const leafPaths = new Set(links.map(l => stripSlash(l.href.split('#')[0])));
 
 const active = (href: string) => {
-  const path = href.split('#')[0];
-  if (pathname === path) return true;
+  const path = stripSlash(href.split('#')[0]);
+  const current = stripSlash(pathname);
+  if (current === path) return true;
   // If a more specific sibling nav item exactly matches the current path,
   // don't highlight this parent via prefix-match.
-  if (path !== '/' && pathname.startsWith(path + '/') && leafPaths.has(pathname)) return false;
-  if (path !== '/' && pathname.startsWith(path + '/')) return true;
+  if (path !== '/' && current.startsWith(path + '/') && leafPaths.has(current)) return false;
+  if (path !== '/' && current.startsWith(path + '/')) return true;
   return false;
 };
 ---
