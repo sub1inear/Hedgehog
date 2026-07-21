@@ -23,17 +23,17 @@ let a = x > 0 and y < 10 or not z
 
 | # | Category | Operators | Assoc. |
 |---|----------|-----------|--------|
-| 1 | Postfix / access | `.`, `()`, `[]`, `?`, `!` | left |
-| 2 | Unary prefix | `-` (neg), `~`, `*` (deref), `&`, `&mut` | right |
-| 3 | Multiplicative | `*`, `/`, `%` | left |
-| 4 | Additive | `+`, `-` | left |
-| 5 | Shift | `<<`, `>>` | left |
-| 6 | Bitwise AND | `&` | left |
-| 7 | Bitwise XOR | `^` | left |
-| 8 | Bitwise OR | `\|` | left |
-| 9 | Range | `..`, `..=` | non-assoc |
-| 10 | Comparison | `==`, `!=`, `<`, `>`, `<=`, `>=` | **non-assoc** |
-| 11 | Logical NOT | `not` | right |
-| 12 | Logical AND | `and` | left |
-| 13 | Logical OR | `or` | left |
-| 14 | Assignment | `=`, `+=`, `-=`, `*=`, `/=`, `%=`, `&=`, `\|=`, `^=`, `<<=`, `>>=` | right |
+| 1 | Postfix / access | `.`, `()`, `[]`, `?`, `!` | Left |
+| 2 | Unary prefix | `-` (neg), `~`, `*` (deref), `&`, `&mut` | Right |
+| 3 | Multiplicative | `*`, `/`, `%` | Left |
+| 4 | Additive | `+`, `-` | Left |
+| 5 | Shift | `<<`, `>>` | Left |
+| 6 | Bitwise AND | `&` | Left |
+| 7 | Bitwise XOR | `^` | Left |
+| 8 | Bitwise OR | `\|` | Left |
+| 9 | Range | `..`, `..=` | None |
+| 10 | Comparison | `==`, `!=`, `<`, `>`, `<=`, `>=` | None |
+| 11 | Logical NOT | `not` | Right |
+| 12 | Logical AND | `and` | Left |
+| 13 | Logical OR | `or` | Left |
+| 14 | Assignment | `=`, `+=`, `-=`, `*=`, `/=`, `%=`, `&=`, `\|=`, `^=`, `<<=`, `>>=` | None |

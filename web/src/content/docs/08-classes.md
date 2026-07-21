@@ -50,7 +50,7 @@ Generic functions/classes use angle-bracket syntax.
 
 ```hhg
 fn identity<T>(x: T) -> T {
-    x
+    return x
 }
 ```
 
