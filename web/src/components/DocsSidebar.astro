@@ -31,11 +31,11 @@ for (const doc of docs) {
       <div class="text-xs uppercase tracking-wider text-[var(--text-muted)] mb-2 px-2">{section}</div>
       <ul class="flex flex-col gap-0.5">
         {items.map(item => {
-          const isActive = item.slug === currentSlug;
+          const isActive = item.id === currentSlug;
           return (
             <li>
               <a
-                href={`${BASE}/docs/${item.slug}`}
+                href={`${BASE}/docs/${item.id}`}
                 class:list={[
                   'block px-2 py-1.5 rounded-md transition-colors',
                   isActive

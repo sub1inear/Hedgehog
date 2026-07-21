@@ -13,7 +13,7 @@ export interface Props {
 const { title, description, currentSlug } = Astro.props;
 
 const docs = (await getCollection('docs')).sort((a, b) => a.data.order - b.data.order);
-const index = docs.findIndex(d => d.slug === currentSlug);
+const index = docs.findIndex(d => d.id === currentSlug);
 const prev = index > 0 ? docs[index - 1] : null;
 const next = index >= 0 && index < docs.length - 1 ? docs[index + 1] : null;
 ---
@@ -30,13 +30,13 @@ const next = index >= 0 && index < docs.length - 1 ? docs[index + 1] : null;
 
       <nav class="not-prose mt-16 grid gap-4 sm:grid-cols-2 border-t border-[var(--border)] pt-8">
         {prev ? (
-          <a href={`${BASE}/docs/${prev.slug}`} class="card p-4 group">
+          <a href={`${BASE}/docs/${prev.id}`} class="card p-4 group">
             <div class="text-xs text-[var(--text-muted)] mb-1">← Previous</div>
             <div class="font-semibold group-hover:text-[var(--accent)]">{prev.data.title}</div>
           </a>
         ) : <div />}
         {next ? (
-          <a href={`${BASE}/docs/${next.slug}`} class="card p-4 group text-right">
+          <a href={`${BASE}/docs/${next.id}`} class="card p-4 group text-right">
             <div class="text-xs text-[var(--text-muted)] mb-1">Next →</div>
             <div class="font-semibold group-hover:text-[var(--accent)]">{next.data.title}</div>
           </a>

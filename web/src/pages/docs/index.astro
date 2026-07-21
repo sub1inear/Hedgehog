@@ -1,11 +1,11 @@
 ---
-import { getCollection } from 'astro:content';
+import { getCollection, render } from 'astro:content';
 import DocsLayout from '../../layouts/DocsLayout.astro';
 
 const docs = await getCollection('docs');
-const intro = docs.find(d => d.slug === 'introduction');
+const intro = docs.find(d => d.id === 'introduction');
 if (!intro) throw new Error('Introduction doc not found');
-const { Content } = await intro.render();
+const { Content } = await render(intro);
 ---
 <DocsLayout
   title={intro.data.title}
