@@ -4,8 +4,8 @@
 #include <stb_ds.h>
 
 #include "file_src.h"
-#include "msg.h"
 #include "mem.h"
+#include "msg.h"
 #include "utils.h"
 
 void hhg_file_src_init(hhg_file_src_t *src, const char *filename)
@@ -25,20 +25,12 @@ void hhg_file_src_init(hhg_file_src_t *src, const char *filename)
         // read file chunk
         size_t to_read = fsize - psize;
         size_t nread =
-            fread(
-                src->txt + psize,
-                sizeof(src->txt[0]),
-                to_read,
-                file
-            );
+            fread(src->txt + psize, sizeof(src->txt[0]), to_read, file);
         // check if end of file reached
         if (nread < to_read) {
             if (ferror(file))
-                hhg_fatal_error(
-                    "%s: error reading file: %s",
-                    filename,
-                    strerror(errno)
-                );
+                hhg_fatal_error("%s: error reading file: %s", filename,
+                                strerror(errno));
             // shrink buffer to actual size + 1 for '\0'
             src->txt = hhg_realloc(src->txt, psize + nread + 1);
             src->txt[psize + nread] = '\0';

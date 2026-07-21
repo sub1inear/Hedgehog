@@ -1,15 +1,15 @@
 #include <stdarg.h>
 #include <string.h>
 
-#include "str.h"
 #include "mem.h"
+#include "str.h"
 #include "utils.h"
 
 void hhg_str_init(hhg_str_t *str)
 {
     str->len = 0;
     str->cap = 8;
-    
+
     str->str = hhg_malloc(str->cap * sizeof(*str->str));
     str->str[0] = '\0';
 }
@@ -146,16 +146,15 @@ void hhg_str_append_fmt(hhg_str_t *str, const char *fmt, ...)
 
     int len = vsnprintf(NULL, 0, fmt, args);
     size_t prev_len = str->len;
-    
+
     str->len += (size_t)len;
     if (str->len >= str->cap)
         hhg_str_set_cap(str, str->len * 2);
-    
+
     snprintf(str->str + prev_len, str->cap - prev_len, fmt, args);
-    
+
     va_end(args);
 }
-
 
 char hhg_str_pop(hhg_str_t *str)
 {

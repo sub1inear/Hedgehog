@@ -4,9 +4,9 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+#include "file_range.h"
 #include "token.h"
 #include "type.h"
-#include "file_range.h"
 
 typedef struct hhg_file_src hhg_file_src_t;
 typedef struct hhg_type hhg_type_t;
@@ -227,11 +227,8 @@ void hhg_node_type_print(hhg_node_type_t type);
 void hhg_node_type_fprint(hhg_node_type_t type, FILE *stream);
 const char *hhg_node_type_to_str(hhg_node_type_t type);
 
-hhg_node_t *hhg_node_new(
-    hhg_arena_t *arena,
-    hhg_node_type_t type,
-    hhg_file_src_t *src
-);
+hhg_node_t *hhg_node_new(hhg_arena_t *arena, hhg_node_type_t type,
+                         hhg_file_src_t *src);
 
 void hhg_node_print(hhg_node_t *node);
 void hhg_node_fprint(hhg_node_t *node, FILE *stream);

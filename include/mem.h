@@ -3,7 +3,11 @@
 
 #include <arena.h>
 
-#define hhg_free_s(ptr) do { hhg_free(ptr); (ptr) = NULL; } while (0)
+#define hhg_free_s(ptr)                                                        \
+    do {                                                                       \
+        hhg_free(ptr);                                                         \
+        (ptr) = NULL;                                                          \
+    } while (0)
 
 typedef arena_t hhg_arena_t;
 

@@ -1,8 +1,8 @@
 #include <stdio.h>
 
-#include "token.h"
 #include "file_range.h"
 #include "str.h"
+#include "token.h"
 #include "utils.h"
 
 const char *const token_type_to_str[] = {
@@ -134,11 +134,8 @@ void hhg_token_print(hhg_token_t *token)
 
 void hhg_token_fprint(hhg_token_t *token, FILE *stream)
 {
-    fprintf(
-        stream,
-        "{ .type = `%s`, .value = ",
-        hhg_token_type_to_str(token->type)
-    );
+    fprintf(stream,
+            "{ .type = `%s`, .value = ", hhg_token_type_to_str(token->type));
     switch (token->type) {
     case HHG_TOKEN_INT_LIT:
     case HHG_TOKEN_FLOAT_LIT:
@@ -159,7 +156,6 @@ void hhg_token_fprint(hhg_token_t *token, FILE *stream)
     hhg_file_range_fprint(&token->range, stream);
     fputs(" }", stream);
 }
-
 
 void hhg_token_del(hhg_token_t *token)
 {

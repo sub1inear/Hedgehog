@@ -51,11 +51,7 @@ typedef struct hhg_cmd_args {
     hhg_cmd_args_subcmd_t subcmd;
 } hhg_cmd_args_t;
 
-void hhg_cmd_args_init(
-    hhg_cmd_args_t *cmd_args,
-    int argc,
-    char **argv
-);
+void hhg_cmd_args_init(hhg_cmd_args_t *cmd_args, int argc, char **argv);
 void hhg_cmd_args_del(hhg_cmd_args_t *cmd_args);
 
 #endif

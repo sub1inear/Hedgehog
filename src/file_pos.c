@@ -1,5 +1,5 @@
-#include <stdio.h>
 #include <inttypes.h>
+#include <stdio.h>
 
 #include "file_pos.h"
 #include "str.h"

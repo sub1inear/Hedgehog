@@ -26,9 +26,9 @@
 #define HHG_POSIX
 #endif
 
-#define hhg_assert(expr) \
-    if (!(expr))         \
-        hhg_assert_core(#expr, __FILE__, __LINE__)
+#define hhg_assert(expr)                                                       \
+    if (!(expr))                                                               \
+    hhg_assert_core(#expr, __FILE__, __LINE__)
 
 #define hhg_todo(msg) hhg_todo_core(msg, __FILE__, __LINE__)
 
@@ -44,12 +44,7 @@ FILE *hhg_fopen(const char *filename, const char *mode);
 // crashes with hhg_fatal_error
 // if the result does not fit in the buffer
 // or format fails
-void hhg_join_path(
-    char *buf,
-    size_t size,
-    const char *left,
-    const char *right
-);
+void hhg_join_path(char *buf, size_t size, const char *left, const char *right);
 
 int64_t hhg_str_to_int64(const char *str);
 
@@ -69,7 +64,7 @@ int hhg_spawn_cmdline(const char *cmdline, hhg_str_t *stdouterr);
 const char *hhg_file_to_exec(hhg_arena_t *arena, const char *name);
 
 void hhg_print_indent(int32_t indent);
-void hhg_fprint_indent(int32_t indent, FILE * stream);
+void hhg_fprint_indent(int32_t indent, FILE *stream);
 
 // internal function for hhg_assert, not meant to be called directly
 void hhg_assert_core(const char *expr_str, const char *file, int line);

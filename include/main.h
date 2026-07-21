@@ -4,7 +4,7 @@
 #define HHG_VERSION "0.1.0"
 #define HHG_TMP_DIR ".hhg"
 #define HHG_MAIN_FILENAME "main.hhg"
-#define HHG_CL_ENV_CACHE_FILENAME /* .hhg */ "cl.env" 
+#define HHG_CL_ENV_CACHE_FILENAME /* .hhg */ "cl.env"
 #define HHG_GITHUB_URL "https://github.com/sub1inear/Hedgehog"
 #define HHG_GITHUB_ISSUES_URL HHG_GITHUB_URL "/issues"
 

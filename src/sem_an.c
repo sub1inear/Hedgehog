@@ -4,31 +4,25 @@
 
 #include <stb_ds.h>
 
+#include "msg.h"
+#include "node.h"
 #include "sem_an.h"
 #include "sym.h"
 #include "sym_tab.h"
-#include "node.h"
-#include "msg.h"
 #include "type.h"
 #include "type_ctx.h"
 #include "utils.h"
 
-#define hhg_sem_an_msg(sem_an, type, node, ...) \
-    hhg_msg(                                    \
-        sem_an->msg_ctx,                        \
-        type,                                   \
-        node->src,                              \
-        &node->range,                           \
-        __VA_ARGS__                             \
-    )
+#define hhg_sem_an_msg(sem_an, type, node, ...)                                \
+    hhg_msg(sem_an->msg_ctx, type, node->src, &node->range, __VA_ARGS__)
 
-#define hhg_sem_an_error(sem_an, node, ...) \
+#define hhg_sem_an_error(sem_an, node, ...)                                    \
     hhg_sem_an_msg(sem_an, HHG_MSG_ERROR, node, __VA_ARGS__)
 
-#define hhg_sem_an_warning(sem_an, node, ...) \
+#define hhg_sem_an_warning(sem_an, node, ...)                                  \
     hhg_sem_an_msg(sem_an, HHG_MSG_WARNING, node, __VA_ARGS__)
 
-#define hhg_sem_an_info(sem_an, node, ...) \
+#define hhg_sem_an_info(sem_an, node, ...)                                     \
     hhg_sem_an_msg(sem_an, HHG_MSG_INFO, node, __VA_ARGS__)
 
 static void hhg_sem_an_run_children(

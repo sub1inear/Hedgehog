@@ -73,7 +73,7 @@ typedef enum hhg_token_type {
 
     HHG_TOKEN_LPAREN,
     HHG_TOKEN_RPAREN,
-    
+
     HHG_TOKEN_LBRACE,
     HHG_TOKEN_RBRACE,
 
@@ -81,7 +81,7 @@ typedef enum hhg_token_type {
     HHG_TOKEN_RBRACKET,
 
     HHG_TOKEN_COMMA,
-    
+
     // literals
     HHG_TOKEN_INT_LIT,
     HHG_TOKEN_FLOAT_LIT,
@@ -101,7 +101,7 @@ typedef enum hhg_token_type {
     HHG_TOKEN_IMPORT,
     HHG_TOKEN_FROM,
     HHG_TOKEN_AS,
-    
+
     HHG_TOKEN_IF,
     HHG_TOKEN_ELSE,
     HHG_TOKEN_WHILE,
@@ -111,16 +111,16 @@ typedef enum hhg_token_type {
     HHG_TOKEN_BREAK,
     HHG_TOKEN_CONTINUE,
     HHG_TOKEN_RETURN,
-    
+
     HHG_TOKEN_AND,
     HHG_TOKEN_OR,
     HHG_TOKEN_NOT,
-    
+
     HHG_TOKEN_TRUE,
     HHG_TOKEN_FALSE,
     HHG_TOKEN_NULL,
     HHG_TOKEN_SELF,
-    
+
     HHG_TOKEN_STATIC,
     HHG_TOKEN_UNSAFE,
     HHG_TOKEN_PUB,
@@ -131,7 +131,7 @@ typedef enum hhg_token_type {
 
     HHG_TOKEN_I16,
     HHG_TOKEN_U16,
-    
+
     HHG_TOKEN_I32,
     HHG_TOKEN_U32,
 

@@ -1,27 +1,27 @@
-#include <stdbool.h>
+#include <math.h>
 #include <stdarg.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
-#include <math.h>
 
 #include <fs.h>
 
-#include "utils.h"
-#include "str.h"
-#include "mem.h"
-#include "msg.h"
-#include "token.h"
-#include "type.h"
-#include "node.h"
-#include "mir.h"
 #include "file_pos.h"
 #include "file_range.h"
+#include "mem.h"
+#include "mir.h"
+#include "msg.h"
+#include "node.h"
+#include "str.h"
+#include "token.h"
+#include "type.h"
+#include "utils.h"
 
 #ifdef HHG_WINDOWS
 #include <windows.h>
 #elif defined(HHG_POSIX)
-#include <unistd.h>
 #include <sys/wait.h>
+#include <unistd.h>
 #endif
 
 #define HHG_SPAWN_PIPE_FD_BUFFER_SIZE 4096
@@ -32,7 +32,8 @@
 static bool hhg_arg_needs_escape(const char *arg);
 static hhg_str_t *hhg_escape_arg(const char *arg);
 static void hhg_read_pipe_to_str(HANDLE pipe, hhg_str_t *out);
-static int hhg_spawn_core(char *cmdline, const char *exec, hhg_str_t *stdouterr);
+static int hhg_spawn_core(char *cmdline, const char *exec,
+                          hhg_str_t *stdouterr);
 #elif defined(HHG_POSIX)
 static void hhg_read_fd_to_str(int fd, hhg_str_t *out);
 #endif
@@ -41,34 +42,17 @@ FILE *hhg_fopen(const char *filename, const char *mode)
 {
     FILE *file = fopen(filename, mode);
     if (file == NULL)
-        hhg_fatal_error(
-            "opening %s: %s",
-            filename,
-            strerror(errno)
-        );
+        hhg_fatal_error("opening %s: %s", filename, strerror(errno));
     return file;
 }
 
-void hhg_join_path(
-    char *buf,
-    size_t size,
-    const char *left,
-    const char *right
-)
+void hhg_join_path(char *buf, size_t size, const char *left, const char *right)
 {
     int result = fs_join_path(buf, size, left, right);
     if (result >= size)
-        hhg_fatal_error(
-            "joined path is too long: `%s` `%s`",
-            left,
-            right
-        );
+        hhg_fatal_error("joined path is too long: `%s` `%s`", left, right);
     else if (result < 0)
-        hhg_fatal_error(
-            "failed to join paths: `%s` `%s`",
-            left,
-            right
-        );
+        hhg_fatal_error("failed to join paths: `%s` `%s`", left, right);
 }
 
 #ifdef HHG_WINDOWS
@@ -104,7 +88,7 @@ int hhg_spawn_cmdline(const char *cmdline, hhg_str_t *stdouterr)
 #elif defined(HHG_POSIX)
 int hhg_spawn(const char **argv, hhg_str_t *stdouterr)
 {
-    int pipefd[2] = { -1, -1 };
+    int pipefd[2] = {-1, -1};
 
     if (stdouterr != NULL)
         if (pipe(pipefd) != 0)
@@ -166,7 +150,6 @@ const char *hhg_file_to_exec(hhg_arena_t *arena, const char *name)
 }
 #endif
 
-
 int64_t hhg_str_to_int64(const char *str)
 {
     const char *ptr = str;
@@ -189,22 +172,12 @@ int64_t hhg_str_to_int64(const char *str)
 
 void hhg_assert_core(const char *expr_str, const char *file, int line)
 {
-    hhg_compiler_error(
-        "assertion failed: %s, at %s:%i",
-        expr_str,
-        file,
-        line
-    );
+    hhg_compiler_error("assertion failed: %s, at %s:%i", expr_str, file, line);
 }
 
 void hhg_todo_core(const char *msg, const char *file, int line)
 {
-    hhg_fatal_error(
-        "TODO: %s, at %s:%i",
-        msg,
-        file,
-        line
-    );
+    hhg_fatal_error("TODO: %s, at %s:%i", msg, file, line);
 }
 
 #ifdef HHG_WINDOWS
@@ -271,7 +244,7 @@ static int hhg_spawn_core(char *cmdline, const char *exec, hhg_str_t *stdouterr)
     STARTUPINFOA si = {
         .cb = sizeof(si),
     };
-    PROCESS_INFORMATION pi = { 0 };
+    PROCESS_INFORMATION pi = {0};
 
     HANDLE read_pipe = NULL;
     HANDLE write_pipe = NULL;
@@ -280,11 +253,9 @@ static int hhg_spawn_core(char *cmdline, const char *exec, hhg_str_t *stdouterr)
         si.hStdOutput = GetStdHandle(STD_OUTPUT_HANDLE);
         si.hStdError = GetStdHandle(STD_ERROR_HANDLE);
     } else {
-        SECURITY_ATTRIBUTES sa = {
-            .nLength = sizeof(sa),
-            .lpSecurityDescriptor = NULL,
-            .bInheritHandle = TRUE
-        };
+        SECURITY_ATTRIBUTES sa = {.nLength = sizeof(sa),
+                                  .lpSecurityDescriptor = NULL,
+                                  .bInheritHandle = TRUE};
 
         if (!CreatePipe(&read_pipe, &write_pipe, &sa, 0))
             hhg_fatal_error("CreatePipe failed: %lu", GetLastError());
@@ -299,18 +270,8 @@ static int hhg_spawn_core(char *cmdline, const char *exec, hhg_str_t *stdouterr)
     si.hStdInput = GetStdHandle(STD_INPUT_HANDLE);
     si.dwFlags |= STARTF_USESTDHANDLES;
 
-    BOOL result = CreateProcessA(
-        NULL,
-        cmdline,
-        NULL,
-        NULL,
-        TRUE,
-        0,
-        NULL,
-        NULL,
-        &si,
-        &pi
-    );
+    BOOL result = CreateProcessA(NULL, cmdline, NULL, NULL, TRUE, 0, NULL, NULL,
+                                 &si, &pi);
 
     if (!result) {
         DWORD error = GetLastError();

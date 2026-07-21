@@ -3,40 +3,32 @@
 
 #include <stb_ds.h>
 
-#include "type.h"
-#include "token.h"
-#include "node.h"
 #include "mem.h"
+#include "node.h"
+#include "token.h"
+#include "type.h"
 #include "utils.h"
 
 static const char *const base_type_to_str[] = {
     [HHG_TYPE_NONE] = "none",
 
-    [HHG_TYPE_I8] = "i8",
-    [HHG_TYPE_U8] = "u8",
+    [HHG_TYPE_I8] = "i8",       [HHG_TYPE_U8] = "u8",
 
-    [HHG_TYPE_I16] = "i16",
-    [HHG_TYPE_U16] = "u16",
+    [HHG_TYPE_I16] = "i16",     [HHG_TYPE_U16] = "u16",
 
-    [HHG_TYPE_I32] = "i32",
-    [HHG_TYPE_U32] = "u32",
+    [HHG_TYPE_I32] = "i32",     [HHG_TYPE_U32] = "u32",
 
-    [HHG_TYPE_I64] = "i64",
-    [HHG_TYPE_U64] = "u64",
+    [HHG_TYPE_I64] = "i64",     [HHG_TYPE_U64] = "u64",
 
-    [HHG_TYPE_F32] = "f32",
-    [HHG_TYPE_F64] = "f64",
+    [HHG_TYPE_F32] = "f32",     [HHG_TYPE_F64] = "f64",
 
-    [HHG_TYPE_BOOL] = "bool",
-    [HHG_TYPE_CHAR] = "char",
+    [HHG_TYPE_BOOL] = "bool",   [HHG_TYPE_CHAR] = "char",
 
-    [HHG_TYPE_ISIZE] = "isize",
-    [HHG_TYPE_USIZE] = "usize",
+    [HHG_TYPE_ISIZE] = "isize", [HHG_TYPE_USIZE] = "usize",
 
     [HHG_TYPE_VOID] = "void",
 
-    [HHG_TYPE_REF] = "ref",
-    [HHG_TYPE_ARR] = "arr",
+    [HHG_TYPE_REF] = "ref",     [HHG_TYPE_ARR] = "arr",
 
     [HHG_TYPE_FN] = "fn",
 };
@@ -54,7 +46,7 @@ static const hhg_base_type_t token_type_to_base_type[] = {
     [HHG_TOKEN_STAR] = HHG_TYPE_NONE,
     [HHG_TOKEN_SLASH] = HHG_TYPE_NONE,
     [HHG_TOKEN_PERCENT] = HHG_TYPE_NONE,
-    
+
     // bitwise operators
     [HHG_TOKEN_AMPERSAND] = HHG_TYPE_NONE,
     [HHG_TOKEN_PIPE] = HHG_TYPE_NONE,
@@ -75,7 +67,7 @@ static const hhg_base_type_t token_type_to_base_type[] = {
     [HHG_TOKEN_CARET_EQ] = HHG_TYPE_NONE,
     [HHG_TOKEN_LSHIFT_EQ] = HHG_TYPE_NONE,
     [HHG_TOKEN_RSHIFT_EQ] = HHG_TYPE_NONE,
-    
+
     // comparison operators
     [HHG_TOKEN_EQ_EQ] = HHG_TYPE_NONE,
     [HHG_TOKEN_NOT_EQ] = HHG_TYPE_NONE,
@@ -173,24 +165,12 @@ static const hhg_base_type_t token_type_to_base_type[] = {
 };
 
 static const bool base_type_is_arith[] = {
-    [HHG_TYPE_NONE] = false,
-    [HHG_TYPE_I8] = true,
-    [HHG_TYPE_U8] = true,
-    [HHG_TYPE_I16] = true,
-    [HHG_TYPE_U16] = true,
-    [HHG_TYPE_I32] = true,
-    [HHG_TYPE_U32] = true,
-    [HHG_TYPE_I64] = true,
-    [HHG_TYPE_U64] = true,
-    [HHG_TYPE_F32] = true,
-    [HHG_TYPE_F64] = true,
-    [HHG_TYPE_BOOL] = false,
-    [HHG_TYPE_CHAR] = false,
-    [HHG_TYPE_ISIZE] = true,
-    [HHG_TYPE_USIZE] = true,
-    [HHG_TYPE_VOID] = false,
-    [HHG_TYPE_REF] = false,
-    [HHG_TYPE_ARR] = false,
+    [HHG_TYPE_NONE] = false, [HHG_TYPE_I8] = true,    [HHG_TYPE_U8] = true,
+    [HHG_TYPE_I16] = true,   [HHG_TYPE_U16] = true,   [HHG_TYPE_I32] = true,
+    [HHG_TYPE_U32] = true,   [HHG_TYPE_I64] = true,   [HHG_TYPE_U64] = true,
+    [HHG_TYPE_F32] = true,   [HHG_TYPE_F64] = true,   [HHG_TYPE_BOOL] = false,
+    [HHG_TYPE_CHAR] = false, [HHG_TYPE_ISIZE] = true, [HHG_TYPE_USIZE] = true,
+    [HHG_TYPE_VOID] = false, [HHG_TYPE_REF] = false,  [HHG_TYPE_ARR] = false,
     [HHG_TYPE_FN] = false,
 };
 
@@ -221,7 +201,7 @@ bool hhg_base_type_is_arith(hhg_token_type_t token_type)
 
 void hhg_type_init(hhg_type_t *type, hhg_base_type_t base)
 {
-    *type = (hhg_type_t) {
+    *type = (hhg_type_t){
         .type = base,
     };
 }
@@ -254,11 +234,7 @@ void hhg_type_fprint(hhg_type_t *type, FILE *stream)
         break;
     case HHG_TYPE_ARR:
         assert(type->value.arr.size->type == HHG_NODE_INT_LIT);
-        fprintf(
-            stream,
-            " [%s] of ",
-            type->value.arr.size->value.int_lit.str
-        );
+        fprintf(stream, " [%s] of ", type->value.arr.size->value.int_lit.str);
         hhg_type_fprint(type->value.arr.elem, stream);
         break;
     case HHG_TYPE_FN:
@@ -266,7 +242,8 @@ void hhg_type_fprint(hhg_type_t *type, FILE *stream)
         size_t len = arrlenu(type->value.fn.params);
         for (size_t i = 0; i < len; i++) {
             hhg_type_fprint(type->value.fn.params[i], stream);
-            if (i > 0) fputs(", ", stream);
+            if (i > 0)
+                fputs(", ", stream);
         }
         fputs(") -> ", stream);
         hhg_type_fprint(type->value.fn.ret, stream);
@@ -275,7 +252,6 @@ void hhg_type_fprint(hhg_type_t *type, FILE *stream)
         break;
     }
 }
-
 
 void hhg_type_del(hhg_type_t *type)
 {

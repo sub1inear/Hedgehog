@@ -1,18 +1,18 @@
 #include <stdbool.h>
 
 #include "build.h"
-#include "lexer.h"
-#include "token.h"
-#include "parser.h"
-#include "node.h"
-#include "msg.h"
-#include "sym_tab.h"
-#include "type_ctx.h"
-#include "sem_an.h"
-#include "mir_gen.h"
+#include "cmd_args.h"
 #include "code_gen.h"
 #include "ext_build.h"
-#include "cmd_args.h"
+#include "lexer.h"
+#include "mir_gen.h"
+#include "msg.h"
+#include "node.h"
+#include "parser.h"
+#include "sem_an.h"
+#include "sym_tab.h"
+#include "token.h"
+#include "type_ctx.h"
 #include "utils.h"
 
 typedef struct hhg_build_data {
@@ -38,12 +38,10 @@ typedef enum hhg_build_check_exit_result_t {
 } hhg_build_check_exit_result_t;
 
 static void hhg_build_cleanup(hhg_build_data_t *build_data);
-static hhg_build_check_exit_result_t hhg_build_check_exit(
-    hhg_cmd_args_build_t *build,
-    hhg_msg_ctx_t *msg_ctx,
-    hhg_build_stage_desc_t *stage_desc,
-    hhg_build_data_t *build_data
-);
+static hhg_build_check_exit_result_t
+hhg_build_check_exit(hhg_cmd_args_build_t *build, hhg_msg_ctx_t *msg_ctx,
+                     hhg_build_stage_desc_t *stage_desc,
+                     hhg_build_data_t *build_data);
 static void hhg_build_emit_lexer(hhg_lexer_t *lexer);
 static void hhg_build_emit_parser(hhg_node_t *prog);
 static void hhg_build_emit_sem_an(hhg_node_t *prog);
@@ -51,31 +49,28 @@ static void hhg_build_emit_mir_gen(hhg_mir_gen_t *mir_gen);
 static void hhg_build_emit_code_gen(hhg_code_gen_t *code_gen);
 static void hhg_build_emit_ext_build(void *arg);
 
-bool hhg_build(
-    hhg_cmd_args_build_t *build,
-    hhg_msg_ctx_t *msg_ctx,
-    hhg_arena_t *arena
-)
+bool hhg_build(hhg_cmd_args_build_t *build, hhg_msg_ctx_t *msg_ctx,
+               hhg_arena_t *arena)
 {
     // 0th stage: init
     hhg_lexer_t lexer;
     hhg_lexer_init(&lexer, msg_ctx, build->entry);
 
     hhg_build_check_exit_result_t lexer_result = hhg_build_check_exit(
-        build,
-        msg_ctx,
-        &(hhg_build_stage_desc_t) {
+        build, msg_ctx,
+        &(hhg_build_stage_desc_t){
             .stage = HHG_CMD_ARGS_STAGE_LEXER,
             .emit_func = hhg_build_emit_lexer,
             .emit_arg = &lexer,
         },
         // compound literals set the fields to 0/NULL if unspecified
-        &(hhg_build_data_t) {
+        &(hhg_build_data_t){
             .lexer = &lexer,
-        }
-    );
-    if (lexer_result == HHG_BUILD_CHECK_EXIT_ERROR) return false;
-    else if (lexer_result == HHG_BUILD_CHECK_EXIT_SAFE_EXIT) return true;
+        });
+    if (lexer_result == HHG_BUILD_CHECK_EXIT_ERROR)
+        return false;
+    else if (lexer_result == HHG_BUILD_CHECK_EXIT_SAFE_EXIT)
+        return true;
 
     hhg_type_ctx_t type_ctx;
     hhg_type_ctx_init(&type_ctx, arena);
@@ -86,22 +81,22 @@ bool hhg_build(
 
     hhg_node_t *prog = hhg_parser_parse(&parser);
 
-    hhg_build_check_exit_result_t parser_result = hhg_build_check_exit(
-        build,
-        msg_ctx,
-        &(hhg_build_stage_desc_t) {
-            .stage = HHG_CMD_ARGS_STAGE_PARSER,
-            .emit_func = hhg_build_emit_parser,
-            .emit_arg = prog,
-        },
-        &(hhg_build_data_t) {
-            .lexer = &lexer,
-            .parser = &parser,
-            .type_ctx = &type_ctx,
-        }
-    );
-    if (parser_result == HHG_BUILD_CHECK_EXIT_ERROR) return false;
-    else if (parser_result == HHG_BUILD_CHECK_EXIT_SAFE_EXIT) return true;
+    hhg_build_check_exit_result_t parser_result =
+        hhg_build_check_exit(build, msg_ctx,
+                             &(hhg_build_stage_desc_t){
+                                 .stage = HHG_CMD_ARGS_STAGE_PARSER,
+                                 .emit_func = hhg_build_emit_parser,
+                                 .emit_arg = prog,
+                             },
+                             &(hhg_build_data_t){
+                                 .lexer = &lexer,
+                                 .parser = &parser,
+                                 .type_ctx = &type_ctx,
+                             });
+    if (parser_result == HHG_BUILD_CHECK_EXIT_ERROR)
+        return false;
+    else if (parser_result == HHG_BUILD_CHECK_EXIT_SAFE_EXIT)
+        return true;
 
 #if 0
     // 2nd stage: semantic analysis
@@ -229,12 +224,10 @@ bool hhg_build(
     return true;
 }
 
-static hhg_build_check_exit_result_t hhg_build_check_exit(
-    hhg_cmd_args_build_t *build,
-    hhg_msg_ctx_t *msg_ctx,
-    hhg_build_stage_desc_t *stage_desc,
-    hhg_build_data_t *build_data
-)
+static hhg_build_check_exit_result_t
+hhg_build_check_exit(hhg_cmd_args_build_t *build, hhg_msg_ctx_t *msg_ctx,
+                     hhg_build_stage_desc_t *stage_desc,
+                     hhg_build_data_t *build_data)
 {
     if (msg_ctx->error_count > 0) {
         hhg_build_cleanup(build_data);
@@ -257,8 +250,10 @@ void hhg_build_cleanup(hhg_build_data_t *build_data)
     if (build_data->type_ctx) hhg_type_ctx_del(build_data->type_ctx);
     if (build_data->sym_tab)  hhg_sym_tab_del(build_data->sym_tab);
 #endif
-    if (build_data->parser)   hhg_parser_del(build_data->parser);
-    if (build_data->lexer)    hhg_lexer_del(build_data->lexer);
+    if (build_data->parser)
+        hhg_parser_del(build_data->parser);
+    if (build_data->lexer)
+        hhg_lexer_del(build_data->lexer);
 }
 
 static void hhg_build_emit_lexer(hhg_lexer_t *lexer)

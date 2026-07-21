@@ -7,14 +7,11 @@
 #include "token.h"
 #include "type.h"
 
-#define hhg_mir_new_instr(arena, instr_type) \
-    hhg_arena_malloc(                        \
-        arena,                               \
-        sizeof(instr_type)                   \
-    )
+#define hhg_mir_new_instr(arena, instr_type)                                   \
+    hhg_arena_malloc(arena, sizeof(instr_type))
 
-#define HHG_PRIreg   PRId32
-#define HHG_PRIlbl   PRId32
+#define HHG_PRIreg PRId32
+#define HHG_PRIlbl PRId32
 #define HHG_PRIfield PRId32
 
 typedef int32_t hhg_mir_reg_t;

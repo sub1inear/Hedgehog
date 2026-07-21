@@ -1,19 +1,16 @@
 #if 0 // lexer-only: disabled while token set is in flux
 #include <stb_ds.h>
 
-#include "mir_gen.h"
-#include "mir.h"
 #include "mem.h"
+#include "mir.h"
+#include "mir_gen.h"
 #include "msg.h"
 #include "sym.h"
 #include "type.h"
 #include "utils.h"
 
-#define hhg_mir_gen_new_instr(gen, instr_type) \
-    hhg_arena_malloc(                          \
-        gen->arena,                            \
-        sizeof(instr_type)                     \
-    )
+#define hhg_mir_gen_new_instr(gen, instr_type)                                 \
+    hhg_arena_malloc(gen->arena, sizeof(instr_type))
 
 static hhg_mir_opnd_t hhg_mir_gen_run_core(
     hhg_mir_gen_t *gen,
