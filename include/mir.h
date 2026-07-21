@@ -100,12 +100,11 @@ typedef struct hhg_mir_cnst {
     hhg_mir_cnst_type_t type;
 } hhg_mir_cnst_t;
 
-enum hhg_mir_opnd_type {
+typedef enum hhg_mir_opnd_type {
     HHG_MIR_OPND_NONE,
     HHG_MIR_OPND_REG,
     HHG_MIR_OPND_CNST
-};
-typedef int hhg_mir_opnd_type_t; // for printing
+} hhg_mir_opnd_type_t;
 
 typedef union hhg_mir_opnd_value {
     hhg_mir_reg_t reg;

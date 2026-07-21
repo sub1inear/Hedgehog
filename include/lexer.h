@@ -31,6 +31,8 @@ void hhg_lexer_init(
 
 void hhg_lexer_next(hhg_lexer_t *lexer);
 
+void hhg_lexer_resync(hhg_lexer_t *lexer);
+
 void hhg_lexer_match(hhg_lexer_t *lexer, hhg_token_type_t type);
 
 void hhg_lexer_del(hhg_lexer_t *lexer);

@@ -1,17 +1,20 @@
 #ifndef HHG_TYPE_H
 #define HHG_TYPE_H
 
+#include <stdio.h>
 #include <stdbool.h>
 
 #include "token.h"
 
 typedef struct hhg_sym hhg_sym_t;
-typedef struct hhg_type_ctx hhg_type_ctx_t;
+typedef struct hhg_node hhg_node_t;
 typedef struct arena hhg_arena_t;
-typedef struct hhg_str hhg_str_t;
 
-// must have <= 32 types to fit in 5 bits in hhg_type_t
-enum hhg_base_type {
+#define HHG_BUILTIN_TYPE_START HHG_TYPE_I8
+#define HHG_BUILTIN_TYPE_END HHG_TYPE_VOID + 1
+#define HHG_BUILTIN_TYPE_COUNT (HHG_BUILTIN_TYPE_END - HHG_BUILTIN_TYPE_START)
+
+typedef enum hhg_base_type {
     HHG_TYPE_NONE,
     HHG_TYPE_I8,
     HHG_TYPE_U8,
@@ -25,89 +28,72 @@ enum hhg_base_type {
     HHG_TYPE_I64,
     HHG_TYPE_U64,
 
-    HHG_TYPE_INT,
-
     HHG_TYPE_F32,
     HHG_TYPE_F64,
 
-    HHG_TYPE_FLOAT,
-
     HHG_TYPE_BOOL,
-
     HHG_TYPE_CHAR,
 
     HHG_TYPE_ISIZE,
     HHG_TYPE_USIZE,
 
+    HHG_TYPE_VOID,
+
     HHG_TYPE_REF,
     HHG_TYPE_ARR,
 
-    HHG_TYPE_FUNC,
-    HHG_TYPE_CLASS,
-    HHG_TYPE_ENUM,
+    HHG_TYPE_FN,
+} hhg_base_type_t;
 
-    // used for placeholder types in the parser
-    HHG_TYPE_ID,
-};
-
-#define HHG_BUILTIN_TYPE_START HHG_TYPE_I8
-#define HHG_BUILTIN_TYPE_END (HHG_TYPE_ID + 1)
-#define HHG_BUILTIN_TYPE_COUNT (HHG_BUILTIN_TYPE_END - HHG_BUILTIN_TYPE_START)
-
-// guarantee being unsigned to not overflow bit-field
-typedef unsigned int hhg_base_type_t;
+typedef enum hhg_ref_qual {
+    HHG_REF_QUAL_NONE,
+    HHG_REF_QUAL_IMMUT,
+    HHG_REF_QUAL_MUT,
+} hhg_ref_qual_t;
 
 typedef struct hhg_type hhg_type_t;
 
-typedef struct hhg_type_ref_info {
+typedef struct hhg_type_ref {
     hhg_type_t *base;
-} hhg_type_ref_info_t;
+    hhg_ref_qual_t qual;
+} hhg_type_ref_t;
 
-typedef struct hhg_type_arr_info {
+typedef struct hhg_type_arr {
     hhg_type_t *elem;
-    size_t size; // 0 for dynamic arrays
-} hhg_type_arr_info_t;
+    hhg_node_t *size;
+} hhg_type_arr_t;
 
-typedef struct hhg_type_func_info {
+typedef struct hhg_type_fn {
     hhg_sym_t *sym;
     hhg_type_t *ret;
     hhg_type_t **params;
-} hhg_type_func_info_t;
+} hhg_type_fn_t;
 
-typedef struct hhg_type_class_field {
-    char *key;
-    hhg_type_t *value;
-} hhg_type_class_field_t;
-
-typedef struct hhg_type_class_info {
-    hhg_sym_t *sym;
-    hhg_type_class_field_t *fields; // string hash map
-} hhg_type_class_info_t;
-
-typedef union hhg_type_info {
-    hhg_type_ref_info_t ref; // HHG_TYPE_REF
-    hhg_type_arr_info_t arr; // HHG_TYPE_ARR
-    hhg_type_func_info_t func; // HHG_TYPE_FUNC
-    hhg_type_class_info_t class; // HHG_TYPE_CLASS
-    char *id; // HHG_TYPE_ID
-} hhg_type_info_t;
+typedef union hhg_type_value {
+    hhg_type_ref_t ref;
+    hhg_type_arr_t arr;
+    hhg_type_fn_t fn;
+} hhg_type_value_t;
 
 struct hhg_type {
-    hhg_base_type_t type : 5;
-    unsigned int is_const : 1;
-    unsigned int is_volatile : 1;
-    hhg_type_info_t info;
+    hhg_base_type_t type;
+    hhg_type_value_t value;
 };
 
+void hhg_base_type_print(hhg_base_type_t base);
+void hhg_base_type_fprint(hhg_base_type_t base, FILE *stream);
+const char *hhg_base_type_to_str(hhg_base_type_t base);
+
+hhg_base_type_t hhg_token_type_to_base_type(hhg_token_type_t token_type);
+bool hhg_base_type_is_arith(hhg_token_type_t token_type);
+
+void hhg_ref_qual_print(hhg_ref_qual_t qual);
+void hhg_ref_qual_fprint(hhg_ref_qual_t qual, FILE *stream);
+const char *hhg_ref_qual_to_str(hhg_ref_qual_t qual);
 
 void hhg_type_init(hhg_type_t *type, hhg_base_type_t base);
 hhg_type_t *hhg_type_new(hhg_base_type_t base, hhg_arena_t *arena);
 
-hhg_base_type_t hhg_token_type_to_base_type(hhg_token_type_t token_type);
-
-bool hhg_base_type_is_arith(hhg_token_type_t token_type);
-
-// checks type equality (regardless of const/volatile qualifiers)
 bool hhg_type_eq(hhg_type_t *l, hhg_type_t *r);
 
 void hhg_type_print(hhg_type_t *type);

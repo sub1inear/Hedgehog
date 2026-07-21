@@ -1,16 +1,15 @@
 #include <stdint.h>
 #include <stdio.h>
-#include <stdbool.h>
 
 #include <stb_ds.h>
 
 #include "node.h"
 #include "token.h"
+#include "sym.h"
 #include "mem.h"
 #include "msg.h"
-#include "utils.h"
 
-#define HHG_NODE_INDENT_INC 4
+#define HHG_NODE_PRINT_INDENT 4
 
 const char *const node_type_to_str[] = {
     [HHG_NODE_ID] = "id",
@@ -24,9 +23,9 @@ const char *const node_type_to_str[] = {
     [HHG_NODE_FOR] = "for",
     [HHG_NODE_INT_LIT] = "int lit",
     [HHG_NODE_FLOAT_LIT] = "float lit",
+    [HHG_NODE_CHAR_LIT] = "char lit",
     [HHG_NODE_STR_LIT] = "str lit",
     [HHG_NODE_BOOL_LIT] = "bool lit",
-    [HHG_NODE_CHAR_LIT] = "char lit",
     [HHG_NODE_ARR_LIT] = "arr lit",
     [HHG_NODE_ADD] = "+",
     [HHG_NODE_SUB] = "-",
@@ -38,6 +37,7 @@ const char *const node_type_to_str[] = {
     [HHG_NODE_BIT_XOR] = "^",
     [HHG_NODE_LSHIFT] = "<<",
     [HHG_NODE_RSHIFT] = ">>",
+    [HHG_NODE_EQ] = "=",
     [HHG_NODE_ADD_EQ] = "+=",
     [HHG_NODE_SUB_EQ] = "-=",
     [HHG_NODE_MUL_EQ] = "*=",
@@ -57,30 +57,82 @@ const char *const node_type_to_str[] = {
     [HHG_NODE_AND] = "and",
     [HHG_NODE_OR] = "or",
     [HHG_NODE_NOT] = "not",
+    [HHG_NODE_RANGE_EXCL] = "..",
+    [HHG_NODE_RANGE_INCL] = "..=",
     [HHG_NODE_NEG] = "-",
     [HHG_NODE_BIT_NOT] = "~",
-    [HHG_NODE_REF] = "ref",
-    [HHG_NODE_DEREF] = "deref",
+    [HHG_NODE_DEREF] = "*",
+    [HHG_NODE_REF] = "&",
     [HHG_NODE_ARR_IDX] = "arr idx",
     [HHG_NODE_FN_CALL] = "fn call",
-    [HHG_NODE_ASSIGN] = "=",
-    [HHG_NODE_RANGE] = "range",
 };
 
 static void hhg_node_fprint_core(
     hhg_node_t *node,
     int32_t indent,
-    hhg_node_print_mode_t mode,
     FILE *stream
 );
 static void hhg_node_fprint_indent(int32_t indent, FILE *stream);
 static void hhg_node_fprint_str(const char *str, int32_t indent, FILE *stream);
-static void hhg_node_fprint_id(
-    hhg_node_id_t id,
-    int32_t indent,
-    hhg_node_print_mode_t mode,
-    FILE *stream
-);
+static void hhg_node_fprint_id(hhg_node_id_t id, int32_t indent, FILE *stream);
+
+hhg_node_type_t hhg_token_type_to_node_type(
+    hhg_token_type_t token_type
+)
+{
+    switch (token_type) {
+    case HHG_TOKEN_PLUS:
+        return HHG_NODE_ADD;
+    case HHG_TOKEN_MINUS:
+        return HHG_NODE_SUB;
+    case HHG_TOKEN_STAR:
+        return HHG_NODE_MUL;
+    case HHG_TOKEN_SLASH:
+        return HHG_NODE_DIV;
+    case HHG_TOKEN_PERCENT:
+        return HHG_NODE_MOD;
+    case HHG_TOKEN_AMPERSAND:
+        return HHG_NODE_BIT_AND;
+    case HHG_TOKEN_PIPE:
+        return HHG_NODE_BIT_OR;
+    case HHG_TOKEN_CARET:
+        return HHG_NODE_BIT_XOR;
+    case HHG_TOKEN_TILDE:
+        return HHG_NODE_BIT_NOT;
+    case HHG_TOKEN_LSHIFT:
+        return HHG_NODE_LSHIFT;
+    case HHG_TOKEN_RSHIFT:
+        return HHG_NODE_RSHIFT;
+    case HHG_TOKEN_EQ_EQ:
+        return HHG_NODE_EQ_EQ;
+    case HHG_TOKEN_NOT_EQ:
+        return HHG_NODE_NOT_EQ;
+    case HHG_TOKEN_LT:
+        return HHG_NODE_LT;
+    case HHG_TOKEN_LT_EQ:
+        return HHG_NODE_LT_EQ;
+    case HHG_TOKEN_GT:
+        return HHG_NODE_GT;
+    case HHG_TOKEN_GT_EQ:
+        return HHG_NODE_GT_EQ;
+    case HHG_TOKEN_AND:
+        return HHG_NODE_AND;
+    case HHG_TOKEN_OR:
+        return HHG_NODE_OR;
+    case HHG_TOKEN_NOT:
+        return HHG_NODE_NOT;
+    case HHG_TOKEN_DOT_DOT:
+        return HHG_NODE_RANGE_EXCL;
+    case HHG_TOKEN_DOT_DOT_EQ:
+        return HHG_NODE_RANGE_INCL;
+    default:
+        hhg_compiler_error(
+            "unexpected token type `%d` in `hhg_token_type_to_node_type`",
+            token_type
+        );
+        return HHG_NODE_NONE;
+    }
+}
 
 void hhg_node_type_print(hhg_node_type_t type)
 {
@@ -111,18 +163,14 @@ hhg_node_t *hhg_node_new(
     return node;
 }
 
-void hhg_node_print(hhg_node_t *node, hhg_node_print_mode_t mode)
+void hhg_node_print(hhg_node_t *node)
 {
-    hhg_node_fprint(node, mode, stdout);
+    hhg_node_fprint(node, stdout);
 }
 
-void hhg_node_fprint(
-    hhg_node_t *node,
-    hhg_node_print_mode_t mode,
-    FILE *stream
-)
+void hhg_node_fprint(hhg_node_t *node, FILE *stream)
 {
-    hhg_node_fprint_core(node, 0, mode, stream);
+    hhg_node_fprint_core(node, 0, stream);
 }
 
 void hhg_node_free(hhg_node_t *node)
@@ -130,16 +178,12 @@ void hhg_node_free(hhg_node_t *node)
     hhg_type_del(node->value_type);
 }
 
-static void hhg_node_fprint_core(
+void hhg_node_fprint_core(
     hhg_node_t *node,
     int32_t indent,
-    hhg_node_print_mode_t mode,
     FILE *stream
 )
-{   
-    if (node == NULL)
-        return;
-
+{
     hhg_node_fprint_indent(indent, stream);
     hhg_node_type_fprint(node->type, stream);
     
@@ -148,72 +192,69 @@ static void hhg_node_fprint_core(
         hhg_type_fprint(node->value_type, stream);
     }
 
-    fputc('\n', stream);
+    if (node->type != HHG_NODE_FN_DECL && node->type != HHG_NODE_PARAM)
+        fputc('\n', stream);
 
-    int32_t next_indent = indent + HHG_NODE_INDENT_INC;
+    int32_t next_indent = indent + HHG_NODE_PRINT_INDENT;
 
     switch (node->type) {
     case HHG_NODE_ID:
-        hhg_node_fprint_id(node->value.id, next_indent, mode, stream);
+        hhg_node_fprint_id(node->value.id, next_indent, stream);
         fputc('\n', stream);
         break;
     case HHG_NODE_BLOCK: {
-        size_t len = arrlenu(node->value.program.body);
+        size_t len = arrlenu(node->value.block.body);
         for (size_t i = 0; i < len; i++)
-            hhg_node_fprint_core(node->value.program.body[i], next_indent, mode, stream);
+            hhg_node_fprint_core(node->value.block.body[i], next_indent, stream);
         break;
     }
-    case HHG_NODE_FN_DECL:
-        hhg_node_fprint_indent(next_indent, stream);
-        fputs("fn ", stream);
-        hhg_node_fprint_id(node->value.fn_decl.id, 0, mode, stream);
-        
+    case HHG_NODE_FN_DECL: {
+        fputc(' ', stream);
+        hhg_node_fprint_id(node->value.fn_decl.id, 0, stream);        
         fputc('(', stream);
 
         size_t len = arrlenu(node->value.fn_decl.params);
         for (size_t i = 0; i < len; i++) {
-            hhg_node_fprint_core(node->value.fn_decl.params[i], 0, mode, stream);
+            hhg_node_fprint_core(node->value.fn_decl.params[i], 0, stream);
             if (i < len - 1)
                 fputs(", ", stream);
         }
         
         fputs(") -> ", stream);
-        hhg_type_fprint(node->value.fn_decl.return_type, stream);
+        hhg_type_fprint(node->value.fn_decl.ret, stream);
         
         fputc('\n', stream);
 
-        hhg_node_fprint_core(node->value.fn_decl.body, next_indent, mode, stream);
+        hhg_node_fprint_core(node->value.fn_decl.body, next_indent, stream);
         break;
+    }
     case HHG_NODE_PARAM:
-        hhg_node_fprint_id(node->value.param.id, next_indent, mode, stream);
-        fputc('\n', stream);
+        fputc(' ', stream);
+        hhg_node_fprint_id(node->value.param.id, 0, stream);
         break;
     case HHG_NODE_VAR_DECL:
-        hhg_node_fprint_id(node->value.var_decl.id, next_indent, mode, stream);
+        hhg_node_fprint_id(node->value.var_decl.id, next_indent, stream);
         fputc('\n', stream);
-        hhg_node_fprint_core(node->value.var_decl.value, next_indent, mode, stream);
-        break;
-    case HHG_NODE_BLOCK:
-        size_t len = arrlenu(node->value.block.body);
-        for (size_t i = 0; i < len; i++)
-            hhg_node_fprint_core(node->value.block.body[i], next_indent, mode, stream);
+        hhg_node_fprint_core(node->value.var_decl.value, next_indent, stream);
         break;
     case HHG_NODE_IF:
-        hhg_node_fprint_core(node->value.if_stmt.cond, next_indent, mode, stream);
-        hhg_node_fprint_core(node->value.if_stmt.if_body, next_indent, mode, stream);
-        hhg_node_fprint_core(node->value.if_stmt.else_body, next_indent, mode, stream);
+        hhg_node_fprint_core(node->value.if_stmt.cond, next_indent, stream);
+        hhg_node_fprint_core(node->value.if_stmt.if_body, next_indent, stream);
+        hhg_node_fprint_core(node->value.if_stmt.else_body, next_indent, stream);
         break;
     case HHG_NODE_WHILE:
-        hhg_node_fprint_core(node->value.while_stmt.cond, next_indent, mode, stream);
-        hhg_node_fprint_core(node->value.while_stmt.body, next_indent, mode, stream);
+        hhg_node_fprint_core(node->value.while_stmt.cond, next_indent, stream);
+        hhg_node_fprint_core(node->value.while_stmt.body, next_indent, stream);
         break;
     case HHG_NODE_RETURN:
-        hhg_node_fprint_core(node->value.return_stmt.value, next_indent, mode, stream);
+        hhg_node_fprint_core(node->value.return_stmt.value, next_indent, stream);
         break;
     case HHG_NODE_FOR:
-        hhg_node_fprint_id(node->value.for_stmt.id, next_indent, mode, stream);
+        hhg_node_fprint_id(node->value.for_stmt.id, next_indent, stream);
         fputc('\n', stream);
-        hhg_node_fprint_core(node->value.for_stmt.iter, next_indent, mode, stream);
+        hhg_node_fprint_core(node->value.for_stmt.iter, next_indent, stream);
+        fputc('\n', stream);
+        hhg_node_fprint_core(node->value.for_stmt.body, next_indent, stream);
         break;
     case HHG_NODE_INT_LIT:
         hhg_node_fprint_str(node->value.int_lit.str, next_indent, stream);
@@ -224,6 +265,9 @@ static void hhg_node_fprint_core(
     case HHG_NODE_STR_LIT:
         hhg_node_fprint_str(node->value.str_lit.str, next_indent, stream);
         break;
+    case HHG_NODE_CHAR_LIT:
+        hhg_node_fprint_str(node->value.char_lit.str, next_indent, stream);
+        break;
     case HHG_NODE_BOOL_LIT:
         hhg_node_fprint_str(
             node->value.bool_lit.value ? "true" : "false",
@@ -231,19 +275,16 @@ static void hhg_node_fprint_core(
             stream
         );
         break;
-    case HHG_NODE_CHAR_LIT:
-        hhg_node_fprint_str(node->value.char_lit.str, next_indent, stream);
-        break;
-    case HHG_NODE_ARR_LIT:
+    case HHG_NODE_ARR_LIT: {
         size_t len = arrlenu(node->value.arr_lit.elems);
         for (size_t i = 0; i < len; i++)
             hhg_node_fprint_core(
                 node->value.arr_lit.elems[i],
                 next_indent,
-                mode,
                 stream
             );
         break;
+    }
     case HHG_NODE_ADD:
     case HHG_NODE_SUB:
     case HHG_NODE_MUL:
@@ -252,9 +293,23 @@ static void hhg_node_fprint_core(
     case HHG_NODE_BIT_AND:
     case HHG_NODE_BIT_OR:
     case HHG_NODE_BIT_XOR:
-    case HHG_NODE_BIT_NOT:
     case HHG_NODE_LSHIFT:
     case HHG_NODE_RSHIFT:
+    case HHG_NODE_EQ_EQ:
+    case HHG_NODE_NOT_EQ:
+    case HHG_NODE_LT:
+    case HHG_NODE_LT_EQ:
+    case HHG_NODE_GT:
+    case HHG_NODE_GT_EQ:
+    case HHG_NODE_AND:
+    case HHG_NODE_OR:
+    case HHG_NODE_NOT:
+    case HHG_NODE_RANGE_EXCL:
+    case HHG_NODE_RANGE_INCL:
+        hhg_node_fprint_core(node->value.expr.left, next_indent, stream);
+        hhg_node_fprint_core(node->value.expr.right, next_indent, stream);
+        break;
+    case HHG_NODE_EQ:
     case HHG_NODE_ADD_EQ:
     case HHG_NODE_SUB_EQ:
     case HHG_NODE_MUL_EQ:
@@ -265,48 +320,32 @@ static void hhg_node_fprint_core(
     case HHG_NODE_BIT_XOR_EQ:
     case HHG_NODE_LSHIFT_EQ:
     case HHG_NODE_RSHIFT_EQ:
-    case HHG_NODE_EQ_EQ:
-    case HHG_NODE_NOT_EQ:
-    case HHG_NODE_LT:
-    case HHG_NODE_LT_EQ:
-    case HHG_NODE_GT:
-    case HHG_NODE_GT_EQ:
-    case HHG_NODE_AND:
-    case HHG_NODE_OR:
-    case HHG_NODE_NOT:
-        hhg_node_fprint_core(node->value.expr.left, next_indent, mode, stream);
-        hhg_node_fprint_core(node->value.expr.right, next_indent, mode, stream);
+        hhg_node_fprint_core(node->value.eq.left, next_indent, stream);
+        hhg_node_fprint_core(node->value.eq.right, next_indent, stream);
         break;
     case HHG_NODE_NEG:
     case HHG_NODE_BIT_NOT:
-    case HHG_NODE_REF:
     case HHG_NODE_DEREF:
-        hhg_node_fprint_core(node->value.unary.opnd, next_indent, mode, stream);
+        hhg_node_fprint_core(node->value.unary.opnd, next_indent, stream);
+        break;
+    case HHG_NODE_REF:
+        if (node->value.ref.qual == HHG_REF_QUAL_MUT)
+            fputs("mut", stream);
+        fputc(' ', stream);
+        hhg_node_fprint_core(node->value.ref.opnd, next_indent, stream);
         break;
     case HHG_NODE_ARR_IDX:
-        hhg_node_fprint_core(node->value.arr_idx.arr, next_indent, mode, stream);
-        hhg_node_fprint_core(node->value.arr_idx.idx, next_indent, mode, stream);
+        hhg_node_fprint_core(node->value.arr_idx.arr, next_indent, stream);
+        hhg_node_fprint_core(node->value.arr_idx.idx, next_indent, stream);
         break;
     case HHG_NODE_FN_CALL:
-        hhg_node_fprint_core(node->value.fn_call.fn, next_indent, mode, stream);
+        hhg_node_fprint_core(node->value.fn_call.fn, next_indent, stream);
         for (size_t i = 0; i < arrlenu(node->value.fn_call.args); i++)
-            hhg_node_fprint_core(node->value.fn_call.args[i], next_indent, mode, stream);
-        break;
-    case HHG_NODE_ASSIGN:
-        hhg_node_fprint_core(node->value.assign.left, next_indent, mode, stream);
-        hhg_node_fprint_core(node->value.assign.right, next_indent, mode, stream);
-        break;
-    case HHG_NODE_RANGE:
-        if (node->value.range.inclusive)
-            hhg_node_fprint_str("..", next_indent, stream);
-        else
-            hhg_node_fprint_str("..=", next_indent, stream);
-        hhg_node_fprint_core(node->value.range.start, next_indent, mode, stream);
-        hhg_node_fprint_core(node->value.range.end, next_indent, mode, stream);
+            hhg_node_fprint_core(node->value.fn_call.args[i], next_indent, stream);
         break;
     default:
         hhg_fatal_error(
-            "unhandled node type %t in hhg_node_fprint_core",
+            "unhandled node type `%t` in `hhg_node_fprint_core`",
             node->type
         );
         break;
@@ -328,17 +367,12 @@ static void hhg_node_fprint_str(const char *str, int32_t indent, FILE *stream)
     }
 }
 
-static void hhg_node_fprint_id(
-    hhg_node_id_t id,
-    int32_t indent,
-    hhg_node_print_mode_t mode,
-    FILE *stream
-)
+static void hhg_node_fprint_id(hhg_node_id_t id, int32_t indent, FILE *stream)
 {
     hhg_node_fprint_indent(indent, stream);
-    if (mode == HHG_NODE_PRINT_MODE_SYM) {
+    if (id.sym) {
         fputs(id.sym->key, stream);
-        fputc(': ', stream);
+        fputc(':', stream);
         hhg_type_fprint(id.sym->value.type, stream);
     } else
         fputs(id.str, stream);

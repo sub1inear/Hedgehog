@@ -259,7 +259,7 @@ static hhg_mir_opnd_t hhg_mir_gen_run_core(
         return (hhg_mir_opnd_t){ .type = HHG_MIR_OPND_NONE };
     default:
         hhg_compiler_error(
-            "unhandled node type `%n` in hhg_mir_gen_run_core",
+            "unhandled node type `%n` in `hhg_mir_gen_run_core`",
             node->type
         );
         return (hhg_mir_opnd_t){ .type = HHG_MIR_OPND_NONE };

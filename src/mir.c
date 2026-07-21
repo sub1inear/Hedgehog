@@ -1,3 +1,4 @@
+#if 0
 #include <inttypes.h>
 #include <stdio.h>
 
@@ -210,3 +211,4 @@ void hhg_mir_func_free(hhg_mir_func_t *func)
     for (size_t i = 0; i < len; i++)
         hhg_mir_instr_free(&func->instrs[i]);
 }
+#endif

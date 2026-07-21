@@ -16,12 +16,13 @@
 #include "utils.h"
 
 typedef struct hhg_build_data {
-    hhg_lexer_t *lexer;        // can be NULL
-    hhg_sym_tab_t *sym_tab;    // can be NULL
-    hhg_type_ctx_t *type_ctx;  // can be NULL
-    hhg_mir_gen_t *mir_gen;    // can be NULL
-    hhg_code_gen_t *code_gen;  // can be NULL
-    hhg_arena_t *arena;        // can be NULL
+    hhg_lexer_t *lexer;
+    hhg_parser_t *parser;
+    hhg_sym_tab_t *sym_tab;
+    hhg_type_ctx_t *type_ctx;
+    hhg_mir_gen_t *mir_gen;
+    hhg_code_gen_t *code_gen;
+    hhg_arena_t *arena;
 } hhg_build_data_t;
 
 typedef struct hhg_build_stage_desc {
@@ -35,7 +36,7 @@ typedef enum hhg_build_check_exit_result_t {
     HHG_BUILD_CHECK_EXIT_SAFE_EXIT,
     HHG_BUILD_CHECK_EXIT_ERROR,
 } hhg_build_check_exit_result_t;
-// cleans up build data, handles NULL pointers
+
 static void hhg_build_cleanup(hhg_build_data_t *build_data);
 static hhg_build_check_exit_result_t hhg_build_check_exit(
     hhg_cmd_args_build_t *build,
@@ -76,15 +77,12 @@ bool hhg_build(
     if (lexer_result == HHG_BUILD_CHECK_EXIT_ERROR) return false;
     else if (lexer_result == HHG_BUILD_CHECK_EXIT_SAFE_EXIT) return true;
 
-    hhg_sym_tab_t sym_tab;
-    hhg_sym_tab_init(&sym_tab, arena);
-
     hhg_type_ctx_t type_ctx;
     hhg_type_ctx_init(&type_ctx, arena);
 
     // 1st stage: lexing, parsing
     hhg_parser_t parser;
-    hhg_parser_init(&parser, &lexer, &sym_tab, &type_ctx, msg_ctx, arena);
+    hhg_parser_init(&parser, &lexer, &type_ctx, msg_ctx, arena);
 
     hhg_node_t *prog = hhg_parser_parse(&parser);
 
@@ -98,13 +96,18 @@ bool hhg_build(
         },
         &(hhg_build_data_t) {
             .lexer = &lexer,
-            .sym_tab = &sym_tab,
+            .parser = &parser,
+            .type_ctx = &type_ctx,
         }
     );
     if (parser_result == HHG_BUILD_CHECK_EXIT_ERROR) return false;
     else if (parser_result == HHG_BUILD_CHECK_EXIT_SAFE_EXIT) return true;
 
+#if 0
     // 2nd stage: semantic analysis
+    hhg_sym_tab_t sym_tab;
+    hhg_sym_tab_init(&sym_tab, arena);
+
     hhg_sem_an_t sem_an;
     hhg_sem_an_init(&sem_an, &sym_tab, &type_ctx, msg_ctx, arena);
 
@@ -120,6 +123,7 @@ bool hhg_build(
         },
         &(hhg_build_data_t) {
             .lexer = &lexer,
+            .parser = &parser,
             .sym_tab = &sym_tab,
             .type_ctx = &type_ctx,
         }
@@ -142,6 +146,7 @@ bool hhg_build(
         },
         &(hhg_build_data_t) {
             .lexer = &lexer,
+            .parser = &parser,
             .sym_tab = &sym_tab,
             .type_ctx = &type_ctx,
             .mir_gen = &mir_gen,
@@ -167,6 +172,7 @@ bool hhg_build(
         },
         &(hhg_build_data_t) {
             .lexer = &lexer,
+            .parser = &parser,
             .sym_tab = &sym_tab,
             .type_ctx = &type_ctx,
             .mir_gen = &mir_gen,
@@ -200,6 +206,7 @@ bool hhg_build(
             },
             &(hhg_build_data_t) {
                 .lexer = &lexer,
+                .parser = &parser,
                 .sym_tab = &sym_tab,
                 .type_ctx = &type_ctx,
                 .mir_gen = &mir_gen,
@@ -209,17 +216,16 @@ bool hhg_build(
     if (ext_build_result == HHG_BUILD_CHECK_EXIT_ERROR) return false;
     else if (ext_build_result == HHG_BUILD_CHECK_EXIT_SAFE_EXIT) return true;
 
-
     // 6th stage: cleanup
     hhg_build_cleanup(&(hhg_build_data_t) {
         .lexer = &lexer,
+        .parser = &parser,
         .sym_tab = &sym_tab,
         .type_ctx = &type_ctx,
         .mir_gen = &mir_gen,
         .code_gen = &code_gen,
     });
-
-    hhg_lexer_del(&lexer);
+#endif
     return true;
 }
 
@@ -245,11 +251,14 @@ static hhg_build_check_exit_result_t hhg_build_check_exit(
 
 void hhg_build_cleanup(hhg_build_data_t *build_data)
 {
+#if 0
+    if (build_data->code_gen) hhg_code_gen_del(build_data->code_gen);
     if (build_data->mir_gen)  hhg_mir_gen_del(build_data->mir_gen);
     if (build_data->type_ctx) hhg_type_ctx_del(build_data->type_ctx);
     if (build_data->sym_tab)  hhg_sym_tab_del(build_data->sym_tab);
+#endif
+    if (build_data->parser)   hhg_parser_del(build_data->parser);
     if (build_data->lexer)    hhg_lexer_del(build_data->lexer);
-    if (build_data->code_gen) hhg_code_gen_del(build_data->code_gen);
 }
 
 static void hhg_build_emit_lexer(hhg_lexer_t *lexer)
@@ -262,12 +271,12 @@ static void hhg_build_emit_lexer(hhg_lexer_t *lexer)
 }
 static void hhg_build_emit_parser(hhg_node_t *prog)
 {
-    hhg_node_print(prog, HHG_NODE_PRINT_MODE_NO_SYM);
+    hhg_node_print(prog);
 }
 
 static void hhg_build_emit_sem_an(hhg_node_t *prog)
 {
-    hhg_node_print(prog, HHG_NODE_PRINT_MODE_SYM);
+    hhg_node_print(prog);
 }
 
 static void hhg_build_emit_mir_gen(hhg_mir_gen_t *mir_gen)

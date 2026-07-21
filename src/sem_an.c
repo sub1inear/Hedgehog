@@ -194,7 +194,7 @@ void hhg_sem_an_run(hhg_sem_an_t *sem_an, hhg_node_t *node)
         break;
     default:
         hhg_compiler_error(
-            "unhandled node type `%n` in hhg_sem_an_run",
+            "unhandled node type `%n` in `hhg_sem_an_run`",
             node->type
         );
         break;

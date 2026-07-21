@@ -8,6 +8,10 @@
 
 #define HHG_PREC_NONE (-1)
 
+#define HHG_TOKEN_TYPE_START HHG_TOKEN_NONE
+#define HHG_TOKEN_TYPE_END HHG_TOKEN_VOID + 1
+#define HHG_TOKEN_TYPE_COUNT (HHG_TOKEN_TYPE_END - HHG_TOKEN_TYPE_START)
+
 typedef struct hhg_str hhg_str_t;
 
 typedef enum hhg_token_type {
@@ -142,22 +146,21 @@ typedef enum hhg_token_type {
 
     HHG_TOKEN_ISIZE,
     HHG_TOKEN_USIZE,
+
+    HHG_TOKEN_VOID,
 } hhg_token_type_t;
+
+typedef struct hhg_token {
+    hhg_token_type_t type;
+    hhg_str_t str;
+    hhg_file_range_t range;
+} hhg_token_t;
 
 void hhg_token_type_print(hhg_token_type_t type);
 void hhg_token_type_fprint(hhg_token_type_t type, FILE *stream);
 const char *hhg_token_type_to_str(hhg_token_type_t type);
 
-typedef struct hhg_token {
-    hhg_token_type_t type;
-    hhg_str_t str;
-    int32_t prec;
-    hhg_file_range_t range;
-} hhg_token_t;
-
 void hhg_token_init(hhg_token_t *token);
-
-void hhg_token_reset_aux(hhg_token_t *token);
 
 void hhg_token_print(hhg_token_t *token);
 void hhg_token_fprint(hhg_token_t *token, FILE *stream);

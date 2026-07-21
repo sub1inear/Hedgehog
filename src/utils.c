@@ -166,6 +166,7 @@ const char *hhg_file_to_exec(hhg_arena_t *arena, const char *name)
 }
 #endif
 
+
 int64_t hhg_str_to_int64(const char *str)
 {
     const char *ptr = str;
@@ -198,7 +199,7 @@ void hhg_assert_core(const char *expr_str, const char *file, int line)
 
 void hhg_todo_core(const char *msg, const char *file, int line)
 {
-    hhg_compiler_error(
+    hhg_fatal_error(
         "TODO: %s, at %s:%i",
         msg,
         file,

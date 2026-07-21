@@ -68,6 +68,9 @@ int hhg_spawn_cmdline(const char *cmdline, hhg_str_t *stdouterr);
 // turns a Hedgehog source filename into its corresponding executable filename
 const char *hhg_file_to_exec(hhg_arena_t *arena, const char *name);
 
+void hhg_print_indent(int32_t indent);
+void hhg_fprint_indent(int32_t indent, FILE * stream);
+
 // internal function for hhg_assert, not meant to be called directly
 void hhg_assert_core(const char *expr_str, const char *file, int line);
 
