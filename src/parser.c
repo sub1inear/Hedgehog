@@ -78,6 +78,9 @@ static hhg_node_t *hhg_parser_parse_char_lit(hhg_parser_t *parser);
 static hhg_node_t *hhg_parser_parse_str_lit(hhg_parser_t *parser);
 static hhg_node_t *hhg_parser_parse_bool_lit(hhg_parser_t *parser);
 static hhg_node_t *hhg_parser_parse_arr_lit(hhg_parser_t *parser);
+static hhg_node_t *hhg_parser_parse_arr_idx(hhg_parser_t *parser);
+static hhg_node_t *hhg_parser_parse_fn_call(hhg_parser_t *parser);
+static hhg_node_t *hhg_parser_parse_eq(hhg_parser_t *parser);
 
 static const hhg_bind_data_t bind_data[HHG_TOKEN_TYPE_COUNT] = {
     [HHG_TOKEN_STAR] =
@@ -363,7 +366,7 @@ static hhg_node_t *hhg_parser_parse_unary_core(hhg_parser_t *parser)
     default:
         hhg_parser_error(parser, "expected expression, got `%t`", "here",
                          parser->lexer->token.type);
-        return NULL;
+        return hhg_parser_node_new(parser, HHG_NODE_NONE);
     }
 }
 
@@ -488,12 +491,12 @@ static hhg_type_t *hhg_parser_parse_type(hhg_parser_t *parser)
             hhg_todo("class types are currently unsupported");
         hhg_parser_error(parser, "expected type, got `%t`", "here",
                          parser->lexer->token.type);
-        return NULL;
+        return hhg_type_ctx_get_builtin(parser->type_ctx, HHG_TYPE_NONE);
     }
     default:
         hhg_fatal_error("unexpected base type `%d` in `hhg_parser_parse_type`",
                         base_type);
-        return NULL;
+        return hhg_type_ctx_get_builtin(parser->type_ctx, HHG_TYPE_NONE);
     }
 }
 
@@ -612,7 +615,9 @@ static hhg_node_t *hhg_parser_parse_var_decl(hhg_parser_t *parser)
     if (parser->lexer->token.type == HHG_TOKEN_COLON) {
         hhg_lexer_next(parser->lexer);
         var_decl->value_type = hhg_parser_parse_type(parser);
-    }
+    } else
+        var_decl->value_type =
+            hhg_type_ctx_get_builtin(parser->type_ctx, HHG_TYPE_NONE);
 
     hhg_lexer_match(parser->lexer, HHG_TOKEN_EQ);
 
@@ -781,4 +786,48 @@ static hhg_node_t *hhg_parser_parse_arr_lit(hhg_parser_t *parser)
     }
     hhg_lexer_match(parser->lexer, HHG_TOKEN_RBRACKET);
     return arr_lit;
+}
+
+static hhg_node_t *hhg_parser_parse_arr_idx(hhg_parser_t *parser)
+{
+    hhg_node_t *arr_idx = hhg_parser_node_new(parser, HHG_NODE_ARR_IDX);
+
+    arr_idx->value.arr_idx.arr = hhg_parser_parse_expr(parser);
+    hhg_lexer_match(parser->lexer, HHG_TOKEN_LBRACKET);
+    arr_idx->value.arr_idx.idx = hhg_parser_parse_expr(parser);
+    hhg_lexer_match(parser->lexer, HHG_TOKEN_RBRACKET);
+
+    return arr_idx;
+}
+
+static hhg_node_t *hhg_parser_parse_fn_call(hhg_parser_t *parser)
+{
+    hhg_node_t *fn_call = hhg_parser_node_new(parser, HHG_NODE_FN_CALL);
+
+    fn_call->value.fn_call.fn = hhg_parser_parse_expr(parser);
+    if (fn_call->value.fn_call.fn->type != HHG_NODE_ID)
+        hhg_todo("function calls on non-identifier expressions are not "
+                 "supported yet");
+    hhg_lexer_match(parser->lexer, HHG_TOKEN_LPAREN);
+
+    while (parser->lexer->token.type != HHG_TOKEN_RPAREN &&
+           parser->lexer->token.type != HHG_TOKEN_EOF) {
+        arrput(fn_call->value.fn_call.args, hhg_parser_parse_expr(parser));
+        if (parser->lexer->token.type != HHG_TOKEN_RPAREN &&
+            parser->lexer->token.type != HHG_TOKEN_EOF)
+            hhg_lexer_match(parser->lexer, HHG_TOKEN_COMMA);
+    }
+
+    hhg_lexer_match(parser->lexer, HHG_TOKEN_RPAREN);
+
+    return fn_call;
+}
+
+static hhg_node_t *hhg_parser_parse_eq(hhg_parser_t *parser)
+{
+    hhg_node_t *eq = hhg_parser_node_new(parser, HHG_NODE_EQ);
+    eq->value.eq.left = hhg_parser_parse_expr(parser);
+    hhg_lexer_match(parser->lexer, HHG_TOKEN_EQ);
+    eq->value.eq.right = hhg_parser_parse_expr(parser);
+    return eq;
 }

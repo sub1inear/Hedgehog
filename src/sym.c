@@ -22,8 +22,8 @@ void hhg_sym_print(hhg_sym_t *sym)
 
 void hhg_sym_fprint(hhg_sym_t *sym, FILE *stream)
 {
+    fprintf(stream, "%s: ", sym->key);
     hhg_type_fprint(sym->value.type, stream);
-    fprintf(stream, " %s\n", sym->key);
 }
 
 void hhg_sym_del(hhg_sym_t *sym)

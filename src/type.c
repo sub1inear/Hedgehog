@@ -7,29 +7,20 @@
 #include "node.h"
 #include "token.h"
 #include "type.h"
-#include "utils.h"
+
+static bool hhg_type_in_range(hhg_base_type_t type, hhg_base_type_t end,
+                              hhg_base_type_t start);
 
 static const char *const base_type_to_str[] = {
-    [HHG_TYPE_NONE] = "none",
-
-    [HHG_TYPE_I8] = "i8",       [HHG_TYPE_U8] = "u8",
-
-    [HHG_TYPE_I16] = "i16",     [HHG_TYPE_U16] = "u16",
-
-    [HHG_TYPE_I32] = "i32",     [HHG_TYPE_U32] = "u32",
-
-    [HHG_TYPE_I64] = "i64",     [HHG_TYPE_U64] = "u64",
-
-    [HHG_TYPE_F32] = "f32",     [HHG_TYPE_F64] = "f64",
-
-    [HHG_TYPE_BOOL] = "bool",   [HHG_TYPE_CHAR] = "char",
-
-    [HHG_TYPE_ISIZE] = "isize", [HHG_TYPE_USIZE] = "usize",
-
-    [HHG_TYPE_VOID] = "void",
-
+    [HHG_TYPE_NONE] = "none",   [HHG_TYPE_I8] = "i8",
+    [HHG_TYPE_U8] = "u8",       [HHG_TYPE_I16] = "i16",
+    [HHG_TYPE_U16] = "u16",     [HHG_TYPE_I32] = "i32",
+    [HHG_TYPE_U32] = "u32",     [HHG_TYPE_I64] = "i64",
+    [HHG_TYPE_U64] = "u64",     [HHG_TYPE_F32] = "f32",
+    [HHG_TYPE_F64] = "f64",     [HHG_TYPE_BOOL] = "bool",
+    [HHG_TYPE_CHAR] = "char",   [HHG_TYPE_ISIZE] = "isize",
+    [HHG_TYPE_USIZE] = "usize", [HHG_TYPE_VOID] = "void",
     [HHG_TYPE_REF] = "ref",     [HHG_TYPE_ARR] = "arr",
-
     [HHG_TYPE_FN] = "fn",
 };
 
@@ -215,7 +206,30 @@ hhg_type_t *hhg_type_new(hhg_base_type_t base, hhg_arena_t *arena)
 
 bool hhg_type_eq(hhg_type_t *l, hhg_type_t *r)
 {
+    // none type (error in type checking) is equal to any type
+    // to avoid cascading errors
+    if (l->type == HHG_TYPE_NONE || r->type == HHG_TYPE_NONE)
+        return true;
+
+    // types are cached so pointer equality is sufficient
     return l == r;
+}
+
+bool hhg_type_impl_eq(hhg_type_t *from, hhg_type_t *to)
+{
+    // type promotion: only implicit widening is allowed
+    if (hhg_type_in_range(from->type, HHG_INT_TYPE_START, HHG_INT_TYPE_END)) {
+        if (hhg_type_in_range(to->type, HHG_INT_TYPE_START, HHG_INT_TYPE_END))
+            return false;
+        return to->type >= from->type;
+    } else if (hhg_type_in_range(from->type, HHG_INT_TYPE_START,
+                                 HHG_INT_TYPE_END)) {
+        if (hhg_type_in_range(to->type, HHG_INT_TYPE_START, HHG_INT_TYPE_END))
+            return false;
+        return from->type >= to->type;
+    }
+
+    return hhg_type_eq(from, to);
 }
 
 void hhg_type_print(hhg_type_t *type)
@@ -261,4 +275,10 @@ void hhg_type_del(hhg_type_t *type)
             hhg_type_del(type->value.fn.params[i]);
         arrfree(type->value.fn.params);
     }
+}
+
+static bool hhg_type_in_range(hhg_base_type_t type, hhg_base_type_t end,
+                              hhg_base_type_t start)
+{
+    return type >= start && type <= end;
 }

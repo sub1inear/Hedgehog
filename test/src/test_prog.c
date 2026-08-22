@@ -1,25 +1,21 @@
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #define OPTPARSE_IMPLEMENTATION
 #define OPTPARSE_API static
 #include <optparse.h>
 
-#include "unit.h"
 #include "build.h"
 #include "cmd_args.h"
-#include "msg.h"
 #include "mem.h"
+#include "msg.h"
+#include "unit.h"
 
 static const struct optparse_long longopts[] = {
-    { "help",    'h',  OPTPARSE_NONE },
-    { "lexer",   'l',  OPTPARSE_NONE },
-    { "parser",  'p',  OPTPARSE_NONE },
-    { "sem_an",  's',  OPTPARSE_NONE },
-    { "mir",     'm',  OPTPARSE_NONE },
-    { "codegen", 'c',  OPTPARSE_NONE },
-    { "fail",    'f',  OPTPARSE_NONE },
-    { NULL,      '\0', OPTPARSE_NONE },
+    {"help", 'h', OPTPARSE_NONE},   {"lexer", 'l', OPTPARSE_NONE},
+    {"parser", 'p', OPTPARSE_NONE}, {"sem_an", 's', OPTPARSE_NONE},
+    {"mir", 'm', OPTPARSE_NONE},    {"codegen", 'c', OPTPARSE_NONE},
+    {"fail", 'f', OPTPARSE_NONE},   {NULL, '\0', OPTPARSE_NONE},
 };
 
 int main(int argc, char **argv)
@@ -34,17 +30,15 @@ int main(int argc, char **argv)
     while ((option = optparse_long(&options, longopts, NULL)) != -1) {
         switch (option) {
         case 'h':
-            printf(
-                "usage: %s [-hlpsmcf] <input_file>\n"
-                "-h --help    : print this help message\n"
-                "-l --lexer   : run up to lexer stage (default)\n"
-                "-p --parser  : run up to parser stage\n"
-                "-s --sem_an  : run up to semantic analysis stage\n"
-                "-m --mir     : run up to MIR generation stage\n"
-                "-c --codegen : run up to code generation stage\n"
-                "-f --fail    : expect the input file to fail\n",
-                argv[0]
-            );
+            printf("usage: %s [-hlpsmcf] <input_file>\n"
+                   "-h --help    : print this help message\n"
+                   "-l --lexer   : run up to lexer stage (default)\n"
+                   "-p --parser  : run up to parser stage\n"
+                   "-s --sem_an  : run up to semantic analysis stage\n"
+                   "-m --mir     : run up to MIR generation stage\n"
+                   "-c --codegen : run up to code generation stage\n"
+                   "-f --fail    : expect the input file to fail\n",
+                   argv[0]);
             return EXIT_SUCCESS;
         case 'l':
             stop = HHG_CMD_ARGS_STAGE_LEXER;
@@ -53,7 +47,7 @@ int main(int argc, char **argv)
             stop = HHG_CMD_ARGS_STAGE_PARSER;
             break;
         case 's':
-            stop = HHG_CMD_ARGS_STAGE_SEM_AN;
+            stop = HHG_CMD_ARGS_STAGE_SEMA;
             break;
         case 'm':
             stop = HHG_CMD_ARGS_STAGE_MIR_GEN;
@@ -78,15 +72,17 @@ int main(int argc, char **argv)
 
     hhg_cmd_args_t cmd_args = {
         .type = HHG_CMD_ARGS_BUILD,
-        .subcmd.build = {
-            .entry = filename,
-            .stop = stop,
-            // emit=true so each stage actually runs (e.g. lexer stage drives
-            // hhg_lexer_next so lex errors are caught, not just initialization)
-            .emit = true,
-            .warnings = false,
-            .error_warnings = false,
-        },
+        .subcmd.build =
+            {
+                .entry = filename,
+                .stop = stop,
+                // emit=true so each stage actually runs (e.g. lexer stage
+                // drives hhg_lexer_next so lex errors are caught, not just
+                // initialization)
+                .emit = true,
+                .warnings = false,
+                .error_warnings = false,
+            },
     };
 
     hhg_msg_ctx_t msg_ctx;
@@ -101,6 +97,8 @@ int main(int argc, char **argv)
     hhg_arena_free(arena);
     hhg_msg_ctx_del(&msg_ctx);
 
-    if (failed) return expect_fail ? EXIT_SUCCESS : EXIT_FAILURE;
-    else        return expect_fail ? EXIT_FAILURE : EXIT_SUCCESS;
+    if (failed)
+        return expect_fail ? EXIT_SUCCESS : EXIT_FAILURE;
+    else
+        return expect_fail ? EXIT_FAILURE : EXIT_SUCCESS;
 }

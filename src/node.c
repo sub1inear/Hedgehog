@@ -329,8 +329,8 @@ void hhg_node_fprint_core(hhg_node_t *node, int32_t indent, FILE *stream)
                                  stream);
         break;
     default:
-        hhg_fatal_error("unhandled node type `%t` in `hhg_node_fprint_core`",
-                        node->type);
+        hhg_fatal_error("unhandled node type `%t` in `%s`", node->type,
+                        __func__);
         break;
     }
 }

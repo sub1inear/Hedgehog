@@ -138,9 +138,9 @@ void hhg_mir_gen_run(hhg_mir_gen_t *gen, hhg_node_t *prog)
         ),
         .instrs = NULL,
     };
-    
+
     arrput(gen->funcs, main_func);
-    
+
     hhg_mir_gen_push_ctx(
         gen,
         (hhg_mir_gen_ctx_t) {
@@ -150,7 +150,7 @@ void hhg_mir_gen_run(hhg_mir_gen_t *gen, hhg_node_t *prog)
     );
 
     hhg_mir_gen_run_block(gen, prog);
-    
+
     hhg_mir_gen_pop_ctx(gen);
 }
 
@@ -185,9 +185,9 @@ static hhg_mir_opnd_t hhg_mir_gen_run_core(
         hhg_mir_gen_push_ctx(gen, new_ctx);
 
         hhg_mir_opnd_t opnd = hhg_mir_gen_run_block(gen, node);
-        
+
         hhg_mir_gen_pop_ctx(gen);
-        
+
         return opnd;
     }
     case HHG_TOKEN_ID:
@@ -256,8 +256,9 @@ static hhg_mir_opnd_t hhg_mir_gen_run_core(
         return (hhg_mir_opnd_t){ .type = HHG_MIR_OPND_NONE };
     default:
         hhg_compiler_error(
-            "unhandled node type `%n` in `hhg_mir_gen_run_core`",
-            node->type
+            "unhandled node type `%n` in `%s`",
+            node->type,
+            __func__
         );
         return (hhg_mir_opnd_t){ .type = HHG_MIR_OPND_NONE };
     }
@@ -275,7 +276,7 @@ static void hhg_mir_gen_add_instr(
         .value = value,
         .node = node,
     };
-    
+
     arrput(hhg_mir_gen_get_cur_ctx(gen)->func->instrs, instr);
 }
 
@@ -530,12 +531,12 @@ static hhg_mir_opnd_t hhg_mir_gen_run_int_lit(
 )
 {
     HHG_UNUSED(gen, node);
-   
+
     return (hhg_mir_opnd_t) {
         .type = HHG_MIR_OPND_CNST,
         .value.cnst = (hhg_mir_cnst_t) {
             .type = HHG_MIR_CNST_SI,
-            .value.si = 
+            .value.si =
             hhg_str_to_int64(node->value.lit.str),
         },
     };

@@ -236,7 +236,7 @@ static void hhg_cmd_args_print_build_usage(char *prog_name)
            "    --warnings             -W    enable warnings\n"
            "    --error-warnings       -E    treat warnings as errors\n"
            "stage:\n"
-           "    lexer | parser | sem-an | mir-gen | mem-an | code-gen | "
+           "    lexer | parser | sema | mir-gen | borrow-ck | code-gen | "
            "ext-build\n",
            prog_name);
 }
@@ -260,16 +260,16 @@ static hhg_cmd_args_stage_t hhg_cmd_args_parse_stage(const char *str)
             "parser",
         },
         {
-            HHG_CMD_ARGS_STAGE_SEM_AN,
-            "sem-an",
+            HHG_CMD_ARGS_STAGE_SEMA,
+            "sema",
         },
         {
             HHG_CMD_ARGS_STAGE_MIR_GEN,
             "mir-gen",
         },
         {
-            HHG_CMD_ARGS_STAGE_MEM_AN,
-            "mem-an",
+            HHG_CMD_ARGS_STAGE_BORROW_CK,
+            "borrow-ck",
         },
         {
             HHG_CMD_ARGS_STAGE_CODE_GEN,
@@ -305,7 +305,7 @@ static void hhg_cmd_args_print_run_usage(char *prog_name)
            "    --warnings             -W    enable warnings\n"
            "    --error-warnings       -E    treat warnings as errors\n"
            "stage:\n"
-           "    lexer | parser | sem-an | mir-gen | mem-an | code-gen | "
+           "    lexer | parser | sema | mir-gen | borrow-ck | code-gen | "
            "ext-build\n",
            prog_name);
 }

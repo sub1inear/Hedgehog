@@ -9,7 +9,7 @@
 #include "msg.h"
 #include "node.h"
 #include "parser.h"
-#include "sem_an.h"
+#include "sema.h"
 #include "sym_tab.h"
 #include "token.h"
 #include "type_ctx.h"
@@ -44,7 +44,7 @@ hhg_build_check_exit(hhg_cmd_args_build_t *build, hhg_msg_ctx_t *msg_ctx,
                      hhg_build_data_t *build_data);
 static void hhg_build_emit_lexer(hhg_lexer_t *lexer);
 static void hhg_build_emit_parser(hhg_node_t *prog);
-static void hhg_build_emit_sem_an(hhg_node_t *prog);
+static void hhg_build_emit_sema(hhg_node_t *prog);
 static void hhg_build_emit_mir_gen(hhg_mir_gen_t *mir_gen);
 static void hhg_build_emit_code_gen(hhg_code_gen_t *code_gen);
 static void hhg_build_emit_ext_build(void *arg);
@@ -98,35 +98,34 @@ bool hhg_build(hhg_cmd_args_build_t *build, hhg_msg_ctx_t *msg_ctx,
     else if (parser_result == HHG_BUILD_CHECK_EXIT_SAFE_EXIT)
         return true;
 
-#if 0
     // 2nd stage: semantic analysis
     hhg_sym_tab_t sym_tab;
     hhg_sym_tab_init(&sym_tab, arena);
 
-    hhg_sem_an_t sem_an;
-    hhg_sem_an_init(&sem_an, &sym_tab, &type_ctx, msg_ctx, arena);
+    hhg_sema_t sema;
+    hhg_sema_init(&sema, &sym_tab, &type_ctx, msg_ctx, arena);
 
-    hhg_sem_an_run(&sem_an, prog);
+    hhg_sema_run(&sema, prog);
 
-    hhg_build_check_exit_result_t sem_an_result = hhg_build_check_exit(
-        build,
-        msg_ctx,
-        &(hhg_build_stage_desc_t) {
-            .stage = HHG_CMD_ARGS_STAGE_SEM_AN,
-            .emit_func = hhg_build_emit_sem_an,
-            .emit_arg = prog,
-        },
-        &(hhg_build_data_t) {
-            .lexer = &lexer,
-            .parser = &parser,
-            .sym_tab = &sym_tab,
-            .type_ctx = &type_ctx,
-        }
-    );
-    if (sem_an_result == HHG_BUILD_CHECK_EXIT_ERROR) return false;
-    else if (sem_an_result == HHG_BUILD_CHECK_EXIT_SAFE_EXIT) return true;
+    hhg_build_check_exit_result_t sema_result =
+        hhg_build_check_exit(build, msg_ctx,
+                             &(hhg_build_stage_desc_t){
+                                 .stage = HHG_CMD_ARGS_STAGE_SEMA,
+                                 .emit_func = hhg_build_emit_sema,
+                                 .emit_arg = prog,
+                             },
+                             &(hhg_build_data_t){
+                                 .lexer = &lexer,
+                                 .parser = &parser,
+                                 .sym_tab = &sym_tab,
+                                 .type_ctx = &type_ctx,
+                             });
+    if (sema_result == HHG_BUILD_CHECK_EXIT_ERROR)
+        return false;
+    else if (sema_result == HHG_BUILD_CHECK_EXIT_SAFE_EXIT)
+        return true;
 
-    // 3rd stage: MIR generation
+#if 0
     hhg_mir_gen_t mir_gen;
     hhg_mir_gen_init(&mir_gen, arena);
     hhg_mir_gen_run(&mir_gen, prog);
@@ -210,17 +209,19 @@ bool hhg_build(hhg_cmd_args_build_t *build, hhg_msg_ctx_t *msg_ctx,
         );
     if (ext_build_result == HHG_BUILD_CHECK_EXIT_ERROR) return false;
     else if (ext_build_result == HHG_BUILD_CHECK_EXIT_SAFE_EXIT) return true;
+#endif
 
     // 6th stage: cleanup
-    hhg_build_cleanup(&(hhg_build_data_t) {
+    hhg_build_cleanup(&(hhg_build_data_t){
         .lexer = &lexer,
         .parser = &parser,
         .sym_tab = &sym_tab,
         .type_ctx = &type_ctx,
+#if 0
         .mir_gen = &mir_gen,
         .code_gen = &code_gen,
-    });
 #endif
+    });
     return true;
 }
 
@@ -269,7 +270,7 @@ static void hhg_build_emit_parser(hhg_node_t *prog)
     hhg_node_print(prog);
 }
 
-static void hhg_build_emit_sem_an(hhg_node_t *prog)
+static void hhg_build_emit_sema(hhg_node_t *prog)
 {
     hhg_node_print(prog);
 }

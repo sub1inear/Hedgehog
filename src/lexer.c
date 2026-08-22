@@ -350,37 +350,43 @@ static void hhg_lexer_lex_num(hhg_lexer_t *lexer, int c)
         switch (c) {
         case 'x':
         case 'b':
+        case 'o':
             hhg_str_append_fmt(&lexer->token.str, "0%c", c);
             break;
-        default:
+        default: {
+            hhg_file_range_t range = {
+                .start =
+                    (hhg_file_pos_t){
+                        .col = lexer->pos.col - 1,
+                        .line = lexer->pos.line,
+                    },
+                .end =
+                    (hhg_file_pos_t){
+                        .col = lexer->pos.col,
+                        .line = lexer->pos.line,
+                    },
+            };
+
             if (isalpha(c)) {
-                hhg_msg(lexer->msg_ctx, HHG_MSG_ERROR, &lexer->src,
-                        &(hhg_file_range_t){
-                            .start =
-                                (hhg_file_pos_t){
-                                    .col = lexer->pos.col - 1,
-                                    .line = lexer->pos.line,
-                                },
-                            .end =
-                                (hhg_file_pos_t){
-                                    .col = lexer->pos.col,
-                                    .line = lexer->pos.line,
-                                },
-                        },
+                hhg_msg(lexer->msg_ctx, HHG_MSG_ERROR, &lexer->src, &range,
                         "unknown base prefix `%c`", NULL, c);
                 do
                     c = hhg_lexer_next_char(lexer);
                 while (isdigit(c));
-                hhg_lexer_back_char(lexer);
-                return;
+            } else if (isdigit(c)) {
+                hhg_msg(
+                    lexer->msg_ctx, HHG_MSG_ERROR, &lexer->src, &range,
+                    "leading zeros (C-style octal literals) are not supported",
+                    NULL);
+                do
+                    c = hhg_lexer_next_char(lexer);
+                while (isdigit(c));
+            } else {
+                hhg_str_append_char(&lexer->token.str, '0');
             }
-            hhg_str_append_char(&lexer->token.str, '0');
-            if (isdigit(c))
-                break; // octal literal, continue
-            else {
-                hhg_lexer_back_char(lexer);
-                return; // single zero literal, done
-            }
+            hhg_lexer_back_char(lexer);
+            return;
+        }
         }
     }
 

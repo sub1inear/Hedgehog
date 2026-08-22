@@ -71,7 +71,7 @@ Standard operators and precedence.
 let x = 5 + 3 * 2
 let y = (x - 4) / 2
 let z = false
-let bits = 0b1010
+let mut bits = 0b1010
 bits |= 0b0101
 let a = x > 0 and y < 10 or not z
 ```
@@ -155,9 +155,9 @@ print(l.len()) // 4
 
 ## Strings
 Static strings/string literals are declared with double quotes.
-Type annotation: `&static str`.
+Type annotation: `&str`.
 ```
-let s: &static str = "Hello, World!"
+let s: & str = "Hello, World!"
 ```
 
 Dynamic strings are UTF-8 and can grow or shrink in size.
@@ -226,8 +226,6 @@ let rx = &x
 let ry = &mut y
 ```
 
-`&static` references are references to static data that will live for the entire program.
-
 ## Casting
 Casting is done with `type(expr)`.
 ```hhg
@@ -291,8 +289,8 @@ Several methods are standardized:
 
 | Method | Meaning |
 |--------|---------|
-| `fn ClassName(...)` | Constructor, automatically generated but can be overridden |
-| `fn ~ClassName(&mut self)` | Destructor, automatically generated but can be overridden |
+| `fn init(...)` | Constructor, automatically generated but can be overridden |
+| `fn deinit(&mut self)` | Destructor, automatically generated but can be overridden |
 | `fn copy(&self) -> ClassName` | Copy method |
 | `fn hash(&self) -> usize` | Hash method |
 | `fn print(&self, f: &File)` | Print method |

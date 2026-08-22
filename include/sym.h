@@ -5,15 +5,8 @@
 
 typedef enum hhg_sym_type {
     HHG_SYM_VAR,
-
-    HHG_SYM_FUNC,
-    HHG_SYM_CLASS,
-    HHG_SYM_ENUM,
-
-    HHG_SYM_ENUM_CONST,
-
+    HHG_SYM_FN,
     HHG_SYM_PARAM,
-    HHG_SYM_FIELD,
 } hhg_sym_type_t;
 
 typedef struct hhg_sym_value_t {

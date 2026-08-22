@@ -139,10 +139,17 @@ typedef struct hhg_node_for {
 
 typedef struct hhg_node_int_lit {
     const char *str;
+    uint64_t data;
 } hhg_node_int_lit_t;
+
+typedef union hhg_node_float_lit_data {
+    float f32;
+    double f64;
+} hhg_node_float_lit_data_t;
 
 typedef struct hhg_node_float_lit {
     const char *str;
+    hhg_node_float_lit_data_t data;
 } hhg_node_float_lit_t;
 
 typedef struct hhg_node_str_lit {
@@ -215,11 +222,11 @@ typedef union hhg_node_value {
 } hhg_node_value_t;
 
 struct hhg_node {
-    hhg_type_t *value_type;
-    hhg_file_src_t *src;
     hhg_node_value_t value;
     hhg_file_range_t range;
     hhg_node_type_t type;
+    hhg_type_t *value_type;
+    hhg_file_src_t *src;
 };
 
 hhg_node_type_t hhg_token_type_to_node_type(hhg_token_type_t token_type);

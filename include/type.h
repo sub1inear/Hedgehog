@@ -10,12 +10,21 @@ typedef struct hhg_sym hhg_sym_t;
 typedef struct hhg_node hhg_node_t;
 typedef struct arena hhg_arena_t;
 
-#define HHG_BUILTIN_TYPE_START HHG_TYPE_I8
+#define HHG_BUILTIN_TYPE_START HHG_TYPE_NONE
 #define HHG_BUILTIN_TYPE_END HHG_TYPE_VOID + 1
 #define HHG_BUILTIN_TYPE_COUNT (HHG_BUILTIN_TYPE_END - HHG_BUILTIN_TYPE_START)
 
+#define HHG_INT_TYPE_START HHG_TYPE_I8
+#define HHG_INT_TYPE_END HHG_TYPE_U64 + 1
+#define HHG_INT_TYPE_COUNT (HHG_INT_TYPE_END - HHG_INT_TYPE_START)
+
+#define HHG_FLOAT_TYPE_START HHG_TYPE_F32
+#define HHG_FLOAT_TYPE_END HHG_TYPE_F64 + 1
+#define HHG_FLOAT_TYPE_COUNT (HHG_FLOAT_TYPE_END - HHG_FLOAT_TYPE_START)
+
 typedef enum hhg_base_type {
     HHG_TYPE_NONE,
+
     HHG_TYPE_I8,
     HHG_TYPE_U8,
 
@@ -41,6 +50,7 @@ typedef enum hhg_base_type {
 
     HHG_TYPE_REF,
     HHG_TYPE_ARR,
+    HHG_TYPE_RANGE,
 
     HHG_TYPE_FN,
 } hhg_base_type_t;
@@ -64,15 +74,20 @@ typedef struct hhg_type_arr {
 } hhg_type_arr_t;
 
 typedef struct hhg_type_fn {
-    hhg_sym_t *sym;
+    const hhg_sym_t *sym;
     hhg_type_t *ret;
     hhg_type_t **params;
 } hhg_type_fn_t;
+
+typedef struct hhg_type_range {
+    hhg_type_t *type;
+} hhg_type_range_t;
 
 typedef union hhg_type_value {
     hhg_type_ref_t ref;
     hhg_type_arr_t arr;
     hhg_type_fn_t fn;
+    hhg_type_range_t range;
 } hhg_type_value_t;
 
 struct hhg_type {
@@ -95,6 +110,7 @@ void hhg_type_init(hhg_type_t *type, hhg_base_type_t base);
 hhg_type_t *hhg_type_new(hhg_base_type_t base, hhg_arena_t *arena);
 
 bool hhg_type_eq(hhg_type_t *l, hhg_type_t *r);
+bool hhg_type_impl_eq(hhg_type_t *from, hhg_type_t *to);
 
 void hhg_type_print(hhg_type_t *type);
 void hhg_type_fprint(hhg_type_t *type, FILE *stream);
