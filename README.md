@@ -9,6 +9,8 @@ To accomplish its goals, Hedgehog has a small, learnable specification, and incl
 
 It is implemented entirely in C99 for portability and emits C++ with effortless C/C++ interop.
 
+The Hedgehog compiler is in an alpha stage and is currently being implemented.
+
 ## Example
 ```hhg
 fn main() {
