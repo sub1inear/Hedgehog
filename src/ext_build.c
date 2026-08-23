@@ -128,7 +128,7 @@ void hhg_ext_build_run(hhg_ext_build_t *ext_build, hhg_code_gen_t *code_gen,
         hhg_compiler_error(
             "external build failed: `%s` exited with code `%i`\noutput:\n%s",
             cxx, exit_code, stdouterr.str);
-    hhg_str_del(&stdouterr);
+    hhg_str_deinit(&stdouterr);
 }
 
 static const char **hhg_ext_build_cl_setup(hhg_ext_build_t *ext_build,
@@ -195,7 +195,7 @@ static const char **hhg_ext_build_cl_setup(hhg_ext_build_t *ext_build,
         // re-strlen to save memory; popping causes too-large capacity
         hhg_str_init_str(&vsvars_path, vswhere_stdouterr.str);
 
-        hhg_str_del(&vswhere_stdouterr);
+        hhg_str_deinit(&vswhere_stdouterr);
 
         hhg_str_append_str(&vsvars_path,
                            "\\VC\\Auxiliary\\Build\\vcvars64.bat");
@@ -203,7 +203,7 @@ static const char **hhg_ext_build_cl_setup(hhg_ext_build_t *ext_build,
         hhg_str_t cmdline;
         hhg_str_init_fmt(&cmdline, "cmd.exe /c \"%s\" && set", vsvars_path.str);
 
-        hhg_str_del(&vsvars_path);
+        hhg_str_deinit(&vsvars_path);
 
         int vcvars_exit_code = hhg_spawn_cmdline(cmdline.str, &cl_env);
         if (vcvars_exit_code != EXIT_SUCCESS)

@@ -23,6 +23,6 @@ hhg_type_t *hhg_type_ctx_get_builtin(hhg_type_ctx_t *type_ctx,
 
 hhg_type_t *hhg_type_ctx_new_type(hhg_type_ctx_t *type_ctx, hhg_type_t type);
 
-void hhg_type_ctx_del(hhg_type_ctx_t *ctx);
+void hhg_type_ctx_deinit(hhg_type_ctx_t *ctx);
 
 #endif

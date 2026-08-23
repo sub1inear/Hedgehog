@@ -161,7 +161,7 @@ void hhg_mir_gen_print(hhg_mir_gen_t *gen)
         hhg_mir_func_print(&gen->funcs[i]);
 }
 
-void hhg_mir_gen_del(hhg_mir_gen_t *gen)
+void hhg_mir_gen_deinit(hhg_mir_gen_t *gen)
 {
     size_t len = arrlenu(gen->funcs);
     for (size_t i = 0; i < len; i++)

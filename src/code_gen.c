@@ -44,7 +44,7 @@ void hhg_code_gen_print(hhg_code_gen_t *gen)
     HHG_UNUSED(gen);
 }
 
-void hhg_code_gen_del(hhg_code_gen_t *gen)
+void hhg_code_gen_deinit(hhg_code_gen_t *gen)
 {
     HHG_UNUSED(gen);
 }
@@ -71,7 +71,7 @@ hhg_code_gen_file_replace_dir_ext(hhg_code_gen_t *gen,
 
     hhg_join_path(out, FS_MAX_PATH, dir, str.str);
 
-    hhg_str_del(&str);
+    hhg_str_deinit(&str);
 
     return out; // .hhg/file.cpp
 }

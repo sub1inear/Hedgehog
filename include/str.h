@@ -36,7 +36,7 @@ char hhg_str_pop(hhg_str_t *str);
 
 void hhg_str_set_cap(hhg_str_t *str, size_t cap);
 
-void hhg_str_del(hhg_str_t *str);
+void hhg_str_deinit(hhg_str_t *str);
 void hhg_str_free(hhg_str_t *str);
 
 #endif

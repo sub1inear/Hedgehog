@@ -75,7 +75,7 @@ int hhg_spawn(const char **argv, hhg_str_t *stdouterr)
     }
 
     int exit_code = hhg_spawn_core(cmd.str, argv[0], stdouterr);
-    hhg_str_del(&cmd);
+    hhg_str_deinit(&cmd);
     return exit_code;
 }
 

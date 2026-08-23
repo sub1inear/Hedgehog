@@ -31,6 +31,6 @@ void hhg_mir_gen_run(hhg_mir_gen_t *gen, hhg_node_t *prog);
 
 void hhg_mir_gen_print(hhg_mir_gen_t *gen);
 
-void hhg_mir_gen_del(hhg_mir_gen_t *gen);
+void hhg_mir_gen_deinit(hhg_mir_gen_t *gen);
 
 #endif

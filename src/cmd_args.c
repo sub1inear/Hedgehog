@@ -149,7 +149,7 @@ void hhg_cmd_args_init(hhg_cmd_args_t *cmd_args, int argc, char **argv)
     }
 }
 
-void hhg_cmd_args_del(hhg_cmd_args_t *cmd_args)
+void hhg_cmd_args_deinit(hhg_cmd_args_t *cmd_args)
 {
     switch (cmd_args->type) {
     case HHG_CMD_ARGS_INIT:

@@ -26,10 +26,10 @@ void hhg_sym_fprint(hhg_sym_t *sym, FILE *stream)
     hhg_type_fprint(sym->value.type, stream);
 }
 
-void hhg_sym_del(hhg_sym_t *sym)
+void hhg_sym_deinit(hhg_sym_t *sym)
 {
     // string is in arena/static memory, so no need to free
     // sym is in arena (allocated by sym tab), so no need to free
     if (sym->value.type)
-        hhg_type_del(sym->value.type);
+        hhg_type_deinit(sym->value.type);
 }

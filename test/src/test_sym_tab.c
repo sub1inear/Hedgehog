@@ -44,7 +44,7 @@ int main(void)
     sym = hhg_sym_tab_lookup(&sym_tab, "test");
     hhg_unit_assert_msg(sym == NULL, "exit scope");
 
-    hhg_sym_tab_del(&sym_tab);
+    hhg_sym_tab_deinit(&sym_tab);
     hhg_arena_free(arena);
 
     return EXIT_SUCCESS;

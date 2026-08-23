@@ -165,6 +165,6 @@ void hhg_token_init(hhg_token_t *token);
 void hhg_token_print(hhg_token_t *token);
 void hhg_token_fprint(hhg_token_t *token, FILE *stream);
 
-void hhg_token_del(hhg_token_t *token);
+void hhg_token_deinit(hhg_token_t *token);
 
 #endif

@@ -10,6 +10,6 @@ typedef struct hhg_file_src {
 } hhg_file_src_t;
 
 void hhg_file_src_init(hhg_file_src_t *src, const char *filename);
-void hhg_file_src_del(hhg_file_src_t *src);
+void hhg_file_src_deinit(hhg_file_src_t *src);
 
 #endif

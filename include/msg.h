@@ -20,7 +20,7 @@ typedef enum hhg_msg_type {
 
 void hhg_msg_ctx_init(hhg_msg_ctx_t *msg_ctx, hhg_cmd_args_t *cmd_args);
 
-void hhg_msg_ctx_del(hhg_msg_ctx_t *msg_ctx);
+void hhg_msg_ctx_deinit(hhg_msg_ctx_t *msg_ctx);
 
 // note: in the future, hhg_msg and hhg_basic_msg may be buffered
 

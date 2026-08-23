@@ -51,7 +51,7 @@ void hhg_sym_tab_exit_scope(hhg_sym_tab_t *sym_tab)
     HHG_UNUSED(arrpop(sym_tab->tab));
 }
 
-void hhg_sym_tab_del(hhg_sym_tab_t *sym_tab)
+void hhg_sym_tab_deinit(hhg_sym_tab_t *sym_tab)
 {
     hhg_assert(arrlenu(sym_tab->tab) == 0);
     arrfree(sym_tab->tab);

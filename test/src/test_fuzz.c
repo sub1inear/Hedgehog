@@ -51,7 +51,7 @@ int main(void)
     bool failed = (msg_ctx.error_count > 0);
 
     hhg_arena_free(arena);
-    hhg_msg_ctx_del(&msg_ctx);
+    hhg_msg_ctx_deinit(&msg_ctx);
 
     return failed ? EXIT_SUCCESS : EXIT_FAILURE;
 }

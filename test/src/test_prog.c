@@ -95,7 +95,7 @@ int main(int argc, char **argv)
     bool failed = (msg_ctx.error_count > 0);
 
     hhg_arena_free(arena);
-    hhg_msg_ctx_del(&msg_ctx);
+    hhg_msg_ctx_deinit(&msg_ctx);
 
     if (failed)
         return expect_fail ? EXIT_SUCCESS : EXIT_FAILURE;

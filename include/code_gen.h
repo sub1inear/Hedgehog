@@ -15,6 +15,6 @@ bool hhg_code_gen_run(hhg_code_gen_t *code_gen, hhg_mir_gen_t *mir_gen,
 
 void hhg_code_gen_print(hhg_code_gen_t *gen);
 
-void hhg_code_gen_del(hhg_code_gen_t *gen);
+void hhg_code_gen_deinit(hhg_code_gen_t *gen);
 
 #endif

@@ -19,8 +19,8 @@ int hhg_main(int argc, char **argv)
 
     bool result = hhg_cmd_exec_run(&cmd_args, &msg_ctx, arena);
 
-    hhg_msg_ctx_del(&msg_ctx);
-    hhg_cmd_args_del(&cmd_args);
+    hhg_msg_ctx_deinit(&msg_ctx);
+    hhg_cmd_args_deinit(&cmd_args);
     hhg_arena_free(arena);
 
     return result ? EXIT_SUCCESS : EXIT_FAILURE;

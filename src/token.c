@@ -157,7 +157,7 @@ void hhg_token_fprint(hhg_token_t *token, FILE *stream)
     fputs(" }", stream);
 }
 
-void hhg_token_del(hhg_token_t *token)
+void hhg_token_deinit(hhg_token_t *token)
 {
-    hhg_str_del(&token->str);
+    hhg_str_deinit(&token->str);
 }

@@ -26,6 +26,6 @@ hhg_sym_t *hhg_sym_new(hhg_arena_t *arena, const char *key,
 void hhg_sym_print(hhg_sym_t *sym);
 void hhg_sym_fprint(hhg_sym_t *sym, FILE *stream);
 
-void hhg_sym_del(hhg_sym_t *sym);
+void hhg_sym_deinit(hhg_sym_t *sym);
 
 #endif

@@ -166,7 +166,7 @@ void hhg_node_fprint(hhg_node_t *node, FILE *stream)
 
 void hhg_node_free(hhg_node_t *node)
 {
-    hhg_type_del(node->value_type);
+    hhg_type_deinit(node->value_type);
 }
 
 void hhg_node_fprint_core(hhg_node_t *node, int32_t indent, FILE *stream)

@@ -50,7 +50,7 @@ void hhg_file_src_init(hhg_file_src_t *src, const char *filename)
     arrput(src->line_starts, 0);
 }
 
-void hhg_file_src_del(hhg_file_src_t *src)
+void hhg_file_src_deinit(hhg_file_src_t *src)
 {
     hhg_free(src->txt);
 }

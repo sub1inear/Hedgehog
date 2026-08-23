@@ -246,15 +246,15 @@ hhg_build_check_exit(hhg_cmd_args_build_t *build, hhg_msg_ctx_t *msg_ctx,
 void hhg_build_cleanup(hhg_build_data_t *build_data)
 {
 #if 0
-    if (build_data->code_gen) hhg_code_gen_del(build_data->code_gen);
-    if (build_data->mir_gen)  hhg_mir_gen_del(build_data->mir_gen);
-    if (build_data->type_ctx) hhg_type_ctx_del(build_data->type_ctx);
-    if (build_data->sym_tab)  hhg_sym_tab_del(build_data->sym_tab);
+    if (build_data->code_gen) hhg_code_gen_deinit(build_data->code_gen);
+    if (build_data->mir_gen)  hhg_mir_gen_deinit(build_data->mir_gen);
+    if (build_data->type_ctx) hhg_type_ctx_deinit(build_data->type_ctx);
+    if (build_data->sym_tab)  hhg_sym_tab_deinit(build_data->sym_tab);
 #endif
     if (build_data->parser)
-        hhg_parser_del(build_data->parser);
+        hhg_parser_deinit(build_data->parser);
     if (build_data->lexer)
-        hhg_lexer_del(build_data->lexer);
+        hhg_lexer_deinit(build_data->lexer);
 }
 
 static void hhg_build_emit_lexer(hhg_lexer_t *lexer)

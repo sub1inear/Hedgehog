@@ -50,7 +50,7 @@ static const hhg_op_data_t op_data[] = {
     { { '<', '<',  '=',  },  HHG_TOKEN_LSHIFT_EQ,    },
     { { '>', '>',  '=',  },  HHG_TOKEN_RSHIFT_EQ,    },
     { { '.', '.',  '=',  },  HHG_TOKEN_DOT_DOT_EQ,   },
-                                                     
+
     { { '<', '<',  '\0', },  HHG_TOKEN_LSHIFT,       },
     { { '>', '>',  '\0', },  HHG_TOKEN_RSHIFT,       },
     { { '+', '=',  '\0', },  HHG_TOKEN_PLUS_EQ,      },
@@ -68,7 +68,7 @@ static const hhg_op_data_t op_data[] = {
     { { '-', '>',  '\0', },  HHG_TOKEN_ARROW,        },
     { { '=', '>',  '\0', },  HHG_TOKEN_FAT_ARROW,    },
     { { '.', '.',  '\0', },  HHG_TOKEN_DOT_DOT,      },
-                                                     
+
     { { '+', '\0', '\0', },  HHG_TOKEN_PLUS,         },
     { { '-', '\0', '\0', },  HHG_TOKEN_MINUS,        },
     { { '*', '\0', '\0', },  HHG_TOKEN_STAR,         },
@@ -93,22 +93,22 @@ static const hhg_op_data_t op_data[] = {
     { { '[', '\0', '\0', },  HHG_TOKEN_LBRACKET,     },
     { { ']', '\0', '\0', },  HHG_TOKEN_RBRACKET,     },
     { { ',', '\0', '\0', },  HHG_TOKEN_COMMA,        },
-};                                                   
-                                                     
-static const hhg_keyword_data_t keyword_data[] = {   
+};
+
+static const hhg_keyword_data_t keyword_data[] = {
     { "let",                 HHG_TOKEN_LET,          },
     { "mut",                 HHG_TOKEN_MUT,          },
     { "const",               HHG_TOKEN_CONST,        },
-                                                     
+
     { "fn",                  HHG_TOKEN_FN,           },
     { "class",               HHG_TOKEN_CLASS,        },
     { "enum",                HHG_TOKEN_ENUM,         },
-    { "interface",           HHG_TOKEN_INTERFACE,    },                                                       
+    { "interface",           HHG_TOKEN_INTERFACE,    },
     { "type",                HHG_TOKEN_TYPE,         },
     { "import",              HHG_TOKEN_IMPORT,       },
     { "from",                HHG_TOKEN_FROM,         },
     { "as",                  HHG_TOKEN_AS,           },
-                                                     
+
     { "if",                  HHG_TOKEN_IF,           },
     { "else",                HHG_TOKEN_ELSE,         },
     { "while",               HHG_TOKEN_WHILE,        },
@@ -117,41 +117,41 @@ static const hhg_keyword_data_t keyword_data[] = {
     { "match",               HHG_TOKEN_MATCH,        },
     { "break",               HHG_TOKEN_BREAK,        },
     { "return",              HHG_TOKEN_RETURN,       },
-                                                     
+
     { "and",                 HHG_TOKEN_AND,          },
     { "or",                  HHG_TOKEN_OR,           },
     { "not",                 HHG_TOKEN_NOT,          },
-                                                     
+
     { "true",                HHG_TOKEN_TRUE,         },
     { "false",               HHG_TOKEN_FALSE,        },
     { "null",                HHG_TOKEN_NULL,         },
     { "self",                HHG_TOKEN_SELF,         },
-                                              
+
     { "static",              HHG_TOKEN_STATIC,       },
     { "unsafe",              HHG_TOKEN_UNSAFE,       },
     { "pub",                 HHG_TOKEN_PUB,          },
-                                                     
+
     { "i8",                  HHG_TOKEN_I8,           },
     { "u8",                  HHG_TOKEN_U8,           },
-                                                     
+
     { "i16",                 HHG_TOKEN_I16,          },
     { "u16",                 HHG_TOKEN_U16,          },
-                                                     
+
     { "i32",                 HHG_TOKEN_I32,          },
     { "u32",                 HHG_TOKEN_U32,          },
-                                                     
+
     { "i64",                 HHG_TOKEN_I64,          },
     { "u64",                 HHG_TOKEN_U64,          },
-                                                     
+
     { "f32",                 HHG_TOKEN_F32,          },
     { "f64",                 HHG_TOKEN_F64,          },
-                                                     
+
     { "bool",                HHG_TOKEN_BOOL,         },
     { "char",                HHG_TOKEN_CHAR,         },
-                                                     
+
     { "isize",               HHG_TOKEN_ISIZE,        },
     { "usize",               HHG_TOKEN_USIZE,        },
-                                                     
+
     { "void",                HHG_TOKEN_VOID,         },
 };
 // clang-format on
@@ -235,10 +235,10 @@ void hhg_lexer_match(hhg_lexer_t *lexer, hhg_token_type_t type)
         hhg_lexer_next(lexer);
 }
 
-void hhg_lexer_del(hhg_lexer_t *lexer)
+void hhg_lexer_deinit(hhg_lexer_t *lexer)
 {
-    hhg_token_del(&lexer->token);
-    hhg_file_src_del(&lexer->src);
+    hhg_token_deinit(&lexer->token);
+    hhg_file_src_deinit(&lexer->src);
 }
 
 static int hhg_lexer_next_char(hhg_lexer_t *lexer)

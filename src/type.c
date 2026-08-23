@@ -315,12 +315,12 @@ void hhg_type_fprint(hhg_type_t *type, FILE *stream)
     }
 }
 
-void hhg_type_del(hhg_type_t *type)
+void hhg_type_deinit(hhg_type_t *type)
 {
     if (type->type == HHG_TYPE_FN) {
         size_t len = arrlenu(type->value.fn.params);
         for (size_t i = 0; i < len; i++)
-            hhg_type_del(type->value.fn.params[i]);
+            hhg_type_deinit(type->value.fn.params[i]);
         arrfree(type->value.fn.params);
     }
 }

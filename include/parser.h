@@ -23,6 +23,6 @@ void hhg_parser_init(hhg_parser_t *parser, hhg_lexer_t *lexer,
 
 hhg_node_t *hhg_parser_parse(hhg_parser_t *parser);
 
-void hhg_parser_del(hhg_parser_t *parser);
+void hhg_parser_deinit(hhg_parser_t *parser);
 
 #endif

@@ -20,6 +20,6 @@ void hhg_sema_init(hhg_sema_t *sema, hhg_sym_tab_t *sym_tab,
 
 void hhg_sema_run(hhg_sema_t *sema, hhg_node_t *node);
 
-void hhg_sema_del(hhg_sema_t *sema);
+void hhg_sema_deinit(hhg_sema_t *sema);
 
 #endif

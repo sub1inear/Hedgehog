@@ -36,7 +36,7 @@ hhg_type_t *hhg_type_ctx_new_type(hhg_type_ctx_t *type_ctx, hhg_type_t type)
     return new_type;
 }
 
-void hhg_type_ctx_del(hhg_type_ctx_t *type_ctx)
+void hhg_type_ctx_deinit(hhg_type_ctx_t *type_ctx)
 {
     hmfree(type_ctx->tab);
 }

@@ -192,13 +192,13 @@ void hhg_str_set_cap(hhg_str_t *str, size_t cap)
     str->str = hhg_realloc(str->str, str->cap * sizeof(*str->str));
 }
 
-void hhg_str_del(hhg_str_t *str)
+void hhg_str_deinit(hhg_str_t *str)
 {
     hhg_free_s(str->str);
 }
 
 void hhg_str_free(hhg_str_t *str)
 {
-    hhg_str_del(str);
+    hhg_str_deinit(str);
     hhg_free(str);
 }

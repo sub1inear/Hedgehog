@@ -222,7 +222,7 @@ hhg_node_t *hhg_parser_parse(hhg_parser_t *parser)
     return prog;
 }
 
-void hhg_parser_del(hhg_parser_t *parser)
+void hhg_parser_deinit(hhg_parser_t *parser)
 {
     HHG_UNUSED(parser);
     // nothing to do for now...

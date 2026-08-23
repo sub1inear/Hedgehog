@@ -18,6 +18,6 @@ hhg_sym_t *hhg_sym_tab_lookup(hhg_sym_tab_t *sym_tab, const char *key);
 
 void hhg_sym_tab_exit_scope(hhg_sym_tab_t *sym_tab);
 
-void hhg_sym_tab_del(hhg_sym_tab_t *sym_tab);
+void hhg_sym_tab_deinit(hhg_sym_tab_t *sym_tab);
 
 #endif

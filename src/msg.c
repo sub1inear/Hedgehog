@@ -45,7 +45,7 @@ void hhg_msg_ctx_init(hhg_msg_ctx_t *msg_ctx, hhg_cmd_args_t *cmd_args)
     msg_ctx->cmd_args = cmd_args;
 }
 
-void hhg_msg_ctx_del(hhg_msg_ctx_t *msg_ctx)
+void hhg_msg_ctx_deinit(hhg_msg_ctx_t *msg_ctx)
 {
     HHG_UNUSED(msg_ctx);
     // nothing to free for now
