@@ -1,3 +1,4 @@
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdio.h>
 
@@ -7,9 +8,7 @@
 #include "node.h"
 #include "token.h"
 #include "type.h"
-
-static bool hhg_type_in_range(hhg_base_type_t type, hhg_base_type_t end,
-                              hhg_base_type_t start);
+#include "utils.h"
 
 static const char *const base_type_to_str[] = {
     [HHG_TYPE_NONE] = "none",   [HHG_TYPE_I8] = "i8",
@@ -20,7 +19,7 @@ static const char *const base_type_to_str[] = {
     [HHG_TYPE_F64] = "f64",     [HHG_TYPE_BOOL] = "bool",
     [HHG_TYPE_CHAR] = "char",   [HHG_TYPE_ISIZE] = "isize",
     [HHG_TYPE_USIZE] = "usize", [HHG_TYPE_VOID] = "void",
-    [HHG_TYPE_REF] = "ref",     [HHG_TYPE_ARR] = "arr",
+    [HHG_TYPE_REF] = "&",       [HHG_TYPE_ARR] = "",
     [HHG_TYPE_FN] = "fn",
 };
 
@@ -165,6 +164,36 @@ static const bool base_type_is_arith[] = {
     [HHG_TYPE_FN] = false,
 };
 
+static const bool base_type_is_signed[] = {
+    [HHG_TYPE_NONE] = false, [HHG_TYPE_I8] = true,    [HHG_TYPE_U8] = false,
+    [HHG_TYPE_I16] = true,   [HHG_TYPE_U16] = false,  [HHG_TYPE_I32] = true,
+    [HHG_TYPE_U32] = false,  [HHG_TYPE_I64] = true,   [HHG_TYPE_U64] = false,
+    [HHG_TYPE_F32] = true,   [HHG_TYPE_F64] = true,   [HHG_TYPE_BOOL] = false,
+    [HHG_TYPE_CHAR] = false, [HHG_TYPE_ISIZE] = true, [HHG_TYPE_USIZE] = false,
+    [HHG_TYPE_VOID] = false, [HHG_TYPE_REF] = false,  [HHG_TYPE_ARR] = false,
+    [HHG_TYPE_FN] = false,
+};
+
+static const bool base_type_is_int[] = {
+    [HHG_TYPE_NONE] = false, [HHG_TYPE_I8] = true,    [HHG_TYPE_U8] = true,
+    [HHG_TYPE_I16] = true,   [HHG_TYPE_U16] = true,   [HHG_TYPE_I32] = true,
+    [HHG_TYPE_U32] = true,   [HHG_TYPE_I64] = true,   [HHG_TYPE_U64] = true,
+    [HHG_TYPE_F32] = false,  [HHG_TYPE_F64] = false,  [HHG_TYPE_BOOL] = false,
+    [HHG_TYPE_CHAR] = false, [HHG_TYPE_ISIZE] = true, [HHG_TYPE_USIZE] = true,
+    [HHG_TYPE_VOID] = false, [HHG_TYPE_REF] = false,  [HHG_TYPE_ARR] = false,
+    [HHG_TYPE_FN] = false,
+};
+
+static const bool base_type_is_float[] = {
+    [HHG_TYPE_NONE] = false, [HHG_TYPE_I8] = false,    [HHG_TYPE_U8] = false,
+    [HHG_TYPE_I16] = false,  [HHG_TYPE_U16] = false,   [HHG_TYPE_I32] = false,
+    [HHG_TYPE_U32] = false,  [HHG_TYPE_I64] = false,   [HHG_TYPE_U64] = false,
+    [HHG_TYPE_F32] = true,   [HHG_TYPE_F64] = true,    [HHG_TYPE_BOOL] = false,
+    [HHG_TYPE_CHAR] = false, [HHG_TYPE_ISIZE] = false, [HHG_TYPE_USIZE] = false,
+    [HHG_TYPE_VOID] = false, [HHG_TYPE_REF] = false,   [HHG_TYPE_ARR] = false,
+    [HHG_TYPE_FN] = false,
+};
+
 void hhg_base_type_print(hhg_base_type_t base)
 {
     hhg_base_type_fprint(base, stdout);
@@ -185,9 +214,29 @@ hhg_base_type_t hhg_token_type_to_base_type(hhg_token_type_t token_type)
     return token_type_to_base_type[token_type];
 }
 
-bool hhg_base_type_is_arith(hhg_token_type_t token_type)
+bool hhg_base_type_is_arith(hhg_base_type_t base)
 {
-    return base_type_is_arith[token_type];
+    return base_type_is_arith[base];
+}
+
+bool hhg_base_type_is_signed(hhg_base_type_t base)
+{
+    return base_type_is_signed[base];
+}
+
+bool hhg_base_type_is_int(hhg_base_type_t base)
+{
+    return base_type_is_int[base];
+}
+
+bool hhg_base_type_is_float(hhg_base_type_t base)
+{
+    return base_type_is_float[base];
+}
+
+hhg_base_type_t hhg_base_type_promote(hhg_base_type_t a, hhg_base_type_t b)
+{
+    return a > b ? a : b;
 }
 
 void hhg_type_init(hhg_type_t *type, hhg_base_type_t base)
@@ -217,18 +266,18 @@ bool hhg_type_eq(hhg_type_t *l, hhg_type_t *r)
 
 bool hhg_type_impl_eq(hhg_type_t *from, hhg_type_t *to)
 {
-    // type promotion: only implicit widening is allowed
-    if (hhg_type_in_range(from->type, HHG_INT_TYPE_START, HHG_INT_TYPE_END)) {
-        if (hhg_type_in_range(to->type, HHG_INT_TYPE_START, HHG_INT_TYPE_END))
+    // type promotion: i* -> greater i*, u* -> greater u*, f* -> greater f*
+    if (hhg_base_type_is_int(from->type) && hhg_base_type_is_int(to->type)) {
+        if (hhg_base_type_is_signed(from->type) !=
+            hhg_base_type_is_signed(to->type)) {
             return false;
+        }
         return to->type >= from->type;
-    } else if (hhg_type_in_range(from->type, HHG_INT_TYPE_START,
-                                 HHG_INT_TYPE_END)) {
-        if (hhg_type_in_range(to->type, HHG_INT_TYPE_START, HHG_INT_TYPE_END))
-            return false;
-        return from->type >= to->type;
     }
-
+    if (hhg_base_type_is_float(from->type) &&
+        hhg_base_type_is_float(to->type)) {
+        return to->type >= from->type;
+    }
     return hhg_type_eq(from, to);
 }
 
@@ -247,16 +296,15 @@ void hhg_type_fprint(hhg_type_t *type, FILE *stream)
         hhg_type_fprint(type->value.ref.base, stream);
         break;
     case HHG_TYPE_ARR:
-        assert(type->value.arr.size->type == HHG_NODE_INT_LIT);
-        fprintf(stream, " [%s] of ", type->value.arr.size->value.int_lit.str);
         hhg_type_fprint(type->value.arr.elem, stream);
+        fprintf(stream, "[%zu]", type->value.arr.size);
         break;
     case HHG_TYPE_FN:
         fputs(" (", stream);
         size_t len = arrlenu(type->value.fn.params);
         for (size_t i = 0; i < len; i++) {
             hhg_type_fprint(type->value.fn.params[i], stream);
-            if (i > 0)
+            if (i < len - 1)
                 fputs(", ", stream);
         }
         fputs(") -> ", stream);
@@ -275,10 +323,4 @@ void hhg_type_del(hhg_type_t *type)
             hhg_type_del(type->value.fn.params[i]);
         arrfree(type->value.fn.params);
     }
-}
-
-static bool hhg_type_in_range(hhg_base_type_t type, hhg_base_type_t end,
-                              hhg_base_type_t start)
-{
-    return type >= start && type <= end;
 }

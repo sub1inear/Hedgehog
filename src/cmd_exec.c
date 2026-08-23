@@ -18,7 +18,8 @@ bool hhg_cmd_exec_run(hhg_cmd_args_t *cmd_args, hhg_msg_ctx_t *msg_ctx,
     case HHG_CMD_ARGS_RUN:
         return hhg_run(&cmd_args->subcmd.run, msg_ctx, arena);
     default:
-        hhg_compiler_error("unknown subcommand: %i", cmd_args->type);
+        hhg_compiler_error("unhandled subcommand `%i` in `%s`", cmd_args->type,
+                           __func__);
         return true;
     }
 }

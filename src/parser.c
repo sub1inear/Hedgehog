@@ -370,12 +370,10 @@ static hhg_node_t *hhg_parser_parse_unary_core(hhg_parser_t *parser)
     }
 }
 
-/*
-Pratt Parser implementation
-hard to understand from code,
-see https://martin.janiczek.cz/2023/07/03/demystifying-pratt-parsers.html
-to step through the algorithm
-*/
+// Pratt Parser implementation
+// hard to understand from code,
+// see https://martin.janiczek.cz/2023/07/03/demystifying-pratt-parsers.html
+// to step through the algorithm
 static hhg_node_t *hhg_parser_parse_expr_core(hhg_parser_t *parser,
                                               int32_t min_prec)
 {
@@ -451,9 +449,13 @@ static hhg_type_t *hhg_parser_parse_type(hhg_parser_t *parser)
         while (parser->lexer->token.type == HHG_TOKEN_LBRACKET) {
             hhg_lexer_next(parser->lexer);
 
-            hhg_node_t *size = hhg_parser_parse_expr(parser);
-            if (size->type != HHG_NODE_INT_LIT)
+            hhg_node_t *size_node = hhg_parser_parse_expr(parser);
+            if (size_node->type != HHG_NODE_INT_LIT)
                 hhg_todo("array size must be an integer literal");
+
+            uint64_t size =
+                hhg_str_to_uint64(size_node->value.int_lit.str, parser->msg_ctx,
+                                  &parser->lexer->src, &size_node->range);
 
             type = hhg_type_ctx_new_type(parser->type_ctx,
                                          (hhg_type_t){
@@ -616,8 +618,7 @@ static hhg_node_t *hhg_parser_parse_var_decl(hhg_parser_t *parser)
         hhg_lexer_next(parser->lexer);
         var_decl->value_type = hhg_parser_parse_type(parser);
     } else
-        var_decl->value_type =
-            hhg_type_ctx_get_builtin(parser->type_ctx, HHG_TYPE_NONE);
+        var_decl->value_type = NULL;
 
     hhg_lexer_match(parser->lexer, HHG_TOKEN_EQ);
 
@@ -806,8 +807,7 @@ static hhg_node_t *hhg_parser_parse_fn_call(hhg_parser_t *parser)
 
     fn_call->value.fn_call.fn = hhg_parser_parse_expr(parser);
     if (fn_call->value.fn_call.fn->type != HHG_NODE_ID)
-        hhg_todo("function calls on non-identifier expressions are not "
-                 "supported yet");
+        hhg_todo("must call an identifier for now");
     hhg_lexer_match(parser->lexer, HHG_TOKEN_LPAREN);
 
     while (parser->lexer->token.type != HHG_TOKEN_RPAREN &&

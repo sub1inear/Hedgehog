@@ -126,8 +126,8 @@ void hhg_ext_build_run(hhg_ext_build_t *ext_build, hhg_code_gen_t *code_gen,
 
     if (exit_code != EXIT_SUCCESS)
         hhg_compiler_error(
-            "external build failed: `%s` exited with code %i\noutput:\n%s", cxx,
-            exit_code, stdouterr.str);
+            "external build failed: `%s` exited with code `%i`\noutput:\n%s",
+            cxx, exit_code, stdouterr.str);
     hhg_str_del(&stdouterr);
 }
 

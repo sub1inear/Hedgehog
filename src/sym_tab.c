@@ -23,18 +23,18 @@ hhg_sym_t *hhg_sym_tab_insert(hhg_sym_tab_t *sym_tab, hhg_sym_t sym)
     hhg_sym_t *new_sym = hhg_arena_malloc(sym_tab->arena, sizeof(hhg_sym_t));
     *new_sym = sym;
 
-    hhg_sym_t **scope = arrlast(sym_tab->tab);
+    hhg_sym_t ***scope = &sym_tab->tab[arrlen(sym_tab->tab) - 1];
 
-    pshput(scope, new_sym);
+    pshput(*scope, new_sym);
 
     return new_sym;
 }
 
 hhg_sym_t *hhg_sym_tab_lookup(hhg_sym_tab_t *sym_tab, const char *key)
 {
-    size_t len = arrlenu(sym_tab->tab);
-    for (size_t i = len; i > 0; i--) {
-        hhg_sym_t **scope = sym_tab->tab[i - 1];
+    ptrdiff_t len = arrlen(sym_tab->tab);
+    for (ptrdiff_t i = len - 1; i >= 0; i--) {
+        hhg_sym_t **scope = sym_tab->tab[i];
         hhg_sym_t *sym = pshget_null(scope, key);
         if (sym != NULL)
             return sym;

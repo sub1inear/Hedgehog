@@ -30,11 +30,11 @@ typedef struct hhg_int_lit_max_data {
     hhg_base_type_t type;
 } hhg_int_lit_max_data_t;
 
-hhg_int_lit_max_data_t hhg_int_lit_max_data[] = {
-    {INT8_MAX, HHG_TYPE_I8},   {UINT8_MAX, HHG_TYPE_U8},
-    {INT16_MAX, HHG_TYPE_I16}, {UINT16_MAX, HHG_TYPE_U16},
-    {INT32_MAX, HHG_TYPE_I32}, {UINT32_MAX, HHG_TYPE_U32},
-    {INT64_MAX, HHG_TYPE_I64}, {UINT64_MAX, HHG_TYPE_U64},
+hhg_int_lit_max_data_t int_lit_max_data[] = {
+    {INT32_MAX, HHG_TYPE_I32},
+    {UINT32_MAX, HHG_TYPE_U32},
+    {INT64_MAX, HHG_TYPE_I64},
+    {UINT64_MAX, HHG_TYPE_U64},
 };
 
 static void hhg_sema_run_children(hhg_sema_t *sema, hhg_node_t **children);
@@ -61,7 +61,10 @@ static void hhg_sema_run_deref(hhg_sema_t *sema, hhg_node_t *node);
 static void hhg_sema_run_ref(hhg_sema_t *sema, hhg_node_t *node);
 static void hhg_sema_run_arr_idx(hhg_sema_t *sema, hhg_node_t *node);
 static void hhg_sema_run_fn_call(hhg_sema_t *sema, hhg_node_t *node);
-static int32_t hhg_sema_char_to_int(char c, int32_t base);
+static bool hhg_sema_check_is_bool(hhg_sema_t *sema, hhg_node_type_t type,
+                                   hhg_node_t *left, hhg_node_t *right);
+static bool hhg_sema_check_is_arith(hhg_sema_t *sema, hhg_node_type_t type,
+                                    hhg_node_t *left, hhg_node_t *right);
 
 void hhg_sema_init(hhg_sema_t *sema, hhg_sym_tab_t *sym_tab,
                    hhg_type_ctx_t *type_ctx, hhg_msg_ctx_t *msg_ctx,
@@ -211,7 +214,7 @@ static void hhg_sema_run_var_decl(hhg_sema_t *sema, hhg_node_t *node)
     hhg_type_t *value_type = node->value.var_decl.value->value_type;
 
     // type inference
-    if (node->value_type->type == HHG_TYPE_NONE)
+    if (node->value_type == NULL)
         node->value_type = node->value.var_decl.value->value_type;
     else if (!hhg_type_impl_eq(value_type, node->value_type))
         hhg_sema_error(
@@ -288,6 +291,8 @@ static void hhg_sema_run_if(hhg_sema_t *sema, hhg_node_t *node)
 {
     hhg_sema_run(sema, node->value.if_stmt.cond);
     hhg_sema_run(sema, node->value.if_stmt.if_body);
+    if (node->value.if_stmt.else_body != NULL)
+        hhg_sema_run(sema, node->value.if_stmt.else_body);
 }
 
 static void hhg_sema_run_while(hhg_sema_t *sema, hhg_node_t *node)
@@ -329,61 +334,13 @@ static void hhg_sema_run_for(hhg_sema_t *sema, hhg_node_t *node)
 
 static void hhg_sema_run_int_lit(hhg_sema_t *sema, hhg_node_t *node)
 {
-    uint64_t v = 0;
-    const char *p = node->value.int_lit.str;
+    uint64_t v = hhg_str_to_uint64(node->value.int_lit.str, sema->msg_ctx,
+                                   node->src, &node->range);
 
-    int32_t base = 10;
-
-    if (*p == '0') {
-        switch (*p++) {
-        case 'x':
-            base = 16;
-            p++;
-            break;
-        case 'b':
-            base = 2;
-            p++;
-            break;
-        case 'o':
-            base = 8;
-            p++;
-            break;
-        case '\0':
-            node->value_type =
-                hhg_type_ctx_get_builtin(sema->type_ctx, HHG_TYPE_U8);
-            return;
-        default:
-            // lexer should have caught this, but just in case
-            hhg_compiler_error("unknown base prefix `%c`", *p);
-            break;
-        }
-    }
-
-    while (true) {
-        char c = *p;
-        if (c == '\0')
-            break;
-
-        int32_t digit = hhg_sema_char_to_int(c, base);
-
-        if (v > (UINT64_MAX - digit) / base) {
-            hhg_sema_error(
-                sema, node,
-                // manually format UINT64_MAX to ensure it is in decimal
-                "int literal `%s` is too large, max is "
-                "`18446744073709551615`",
-                "here", node->value.int_lit.str);
-            return;
-        }
-        v *= base;
-        v += digit;
-        p++;
-    }
-
-    for (size_t i = 0; i < HHG_ARR_LEN(hhg_int_lit_max_data); i++) {
-        if (v <= hhg_int_lit_max_data[i].value) {
+    for (size_t i = 0; i < HHG_ARR_LEN(int_lit_max_data); i++) {
+        if (v <= int_lit_max_data[i].value) {
             node->value_type = hhg_type_ctx_get_builtin(
-                sema->type_ctx, hhg_int_lit_max_data[i].type);
+                sema->type_ctx, int_lit_max_data[i].type);
             return;
         }
     }
@@ -418,12 +375,15 @@ static void hhg_sema_run_float_lit(hhg_sema_t *sema, hhg_node_t *node)
 
 static void hhg_sema_run_str_lit(hhg_sema_t *sema, hhg_node_t *node)
 {
+    uint64_t len =
+        (strlen(node->value.str_lit.str) - 2 /*'"' '"'*/ + 1 /*'\0'*/) *
+        sizeof(char);
     node->value_type = hhg_type_ctx_new_type(
         sema->type_ctx, (hhg_type_t){.type = HHG_TYPE_ARR,
                                      .value.arr = (hhg_type_arr_t){
                                          .elem = hhg_type_ctx_get_builtin(
                                              sema->type_ctx, HHG_TYPE_CHAR),
-                                         .size = NULL,
+                                         .size = len,
                                      }});
 }
 
@@ -440,35 +400,78 @@ static void hhg_sema_run_bool_lit(hhg_sema_t *sema, hhg_node_t *node)
 static void hhg_sema_run_arr_lit(hhg_sema_t *sema, hhg_node_t *node)
 {
     hhg_sema_run_children(sema, node->value.arr_lit.elems);
-    hhg_type_t *elem_type = node->value_type;
+
+    bool infer_type = node->value_type == NULL;
+
+    hhg_type_t *elem_type =
+        infer_type ? NULL : node->value_type->value.arr.elem;
 
     size_t len = arrlenu(node->value.arr_lit.elems);
     for (size_t i = 0; i < len; i++) {
         hhg_node_t *elem = node->value.arr_lit.elems[i];
+        hhg_sema_run(sema, elem);
         if (elem_type == NULL)
             elem_type = elem->value_type;
-        else if (!hhg_type_impl_eq(elem_type, elem->value_type))
+
+        if (!hhg_type_impl_eq(elem_type, elem->value_type))
             hhg_sema_error(sema, elem,
-                           "unexpected type in array literal: expected"
-                           "`%T` but got `%T`",
+                           "unexpected type in array literal: "
+                           "expected `%T` but got `%T`",
                            "here", elem_type, elem->value_type);
     }
-    if (node->value_type == NULL)
+    if (infer_type) {
         node->value_type =
             hhg_type_ctx_new_type(sema->type_ctx, (hhg_type_t){
                                                       .type = HHG_TYPE_ARR,
                                                       .value.arr =
                                                           {
                                                               .elem = elem_type,
-                                                              .size = NULL,
+                                                              .size = len,
                                                           },
                                                   });
+    }
 }
 
 static void hhg_sema_run_expr(hhg_sema_t *sema, hhg_node_t *node)
 {
-    hhg_sema_run(sema, node->value.expr.left);
-    hhg_sema_run(sema, node->value.expr.right);
+    hhg_node_t *left = node->value.expr.left;
+    hhg_node_t *right = node->value.expr.right;
+
+    hhg_sema_run(sema, left);
+    hhg_sema_run(sema, right);
+
+    switch (node->type) {
+    case HHG_NODE_EQ_EQ:
+    case HHG_NODE_NOT_EQ:
+    case HHG_NODE_LT:
+    case HHG_NODE_LT_EQ:
+    case HHG_NODE_GT:
+    case HHG_NODE_GT_EQ:
+        if (!hhg_sema_check_is_arith(sema, node->type, left, right))
+            return;
+        node->value_type =
+            hhg_type_ctx_get_builtin(sema->type_ctx, HHG_TYPE_BOOL);
+        break;
+    case HHG_NODE_AND:
+    case HHG_NODE_OR:
+        if (!hhg_sema_check_is_bool(sema, node->type, left, right))
+            return;
+        node->value_type =
+            hhg_type_ctx_get_builtin(sema->type_ctx, HHG_TYPE_BOOL);
+        break;
+    default:
+        if (!hhg_sema_check_is_arith(sema, node->type, left, right))
+            return;
+        if (!hhg_type_impl_eq(left->value_type, right->value_type) &&
+            !hhg_type_impl_eq(right->value_type, left->value_type))
+            hhg_sema_error(sema, node, "type mismatch between `%T` and `%T`",
+                           "here", left->value_type, right->value_type);
+        else
+            node->value_type = hhg_type_ctx_get_builtin(
+                sema->type_ctx, hhg_base_type_promote(left->value_type->type,
+                                                      right->value_type->type));
+        break;
+    }
 }
 
 static void hhg_sema_run_eq(hhg_sema_t *sema, hhg_node_t *node)
@@ -559,12 +562,11 @@ static void hhg_sema_run_arr_idx(hhg_sema_t *sema, hhg_node_t *node)
                        "array index operator `[]` requires an array type: "
                        "got `%T`",
                        "here", arr_type);
-    if (!hhg_type_impl_eq(
-            idx_type, hhg_type_ctx_get_builtin(sema->type_ctx, HHG_TYPE_USIZE)))
-        hhg_sema_error(sema, node,
-                       "array index operator `[]` requires an unsigned "
-                       "integer type: got `%T`",
-                       "here", idx_type);
+    if (!hhg_base_type_is_int(idx_type->type))
+        hhg_sema_error(
+            sema, node,
+            "array index operator `[]` requires an integer type: got `%T`",
+            "here", idx_type);
     else
         node->value_type = arr_type->value.arr.elem;
 }
@@ -573,10 +575,12 @@ static void hhg_sema_run_fn_call(hhg_sema_t *sema, hhg_node_t *node)
 {
     const char *name = node->value.fn_call.fn->value.id.str;
     hhg_sym_t *sym = hhg_sym_tab_lookup(sema->sym_tab, name);
-    if (sym == NULL)
-        hhg_sema_error(sema, node, "undefined function `%s`",
-                       "`%s` called here", name);
-    else if (sym->value.sym_type != HHG_SYM_FN)
+    if (sym == NULL) {
+        // dirty hack for print/println right now, please remove this later
+        if (strcmp(name, "print") != 0 && strcmp(name, "println") != 0)
+            hhg_sema_error(sema, node, "undefined function `%s`",
+                           "`%s` called here", name);
+    } else if (sym->value.sym_type != HHG_SYM_FN)
         hhg_sema_error(sema, node, "`%s` is not a function", "`%s` called here",
                        name);
     else
@@ -584,32 +588,55 @@ static void hhg_sema_run_fn_call(hhg_sema_t *sema, hhg_node_t *node)
 
     node->value.fn_call.fn->value.id.sym = sym;
 
-    hhg_sema_run_children(sema, node->value.fn_call.args);
+    for (size_t i = 0; i < arrlenu(node->value.fn_call.args); i++) {
+        hhg_node_t *arg = node->value.fn_call.args[i];
+        hhg_sema_run(sema, arg);
+        // sym shouldn't be NULL except for print/println hack, please remove
+        // this later
+        if (sym != NULL &&
+            !hhg_type_impl_eq(arg->value_type,
+                              sym->value.type->value.fn.params[i]))
+            hhg_sema_error(sema, arg,
+                           "function `%s` expects argument %zu to be of type "
+                           "`%T` but got `%T`",
+                           "here", name, i + 1,
+                           sym->value.type->value.fn.params[i],
+                           arg->value_type);
+    }
 }
 
-static int32_t hhg_sema_char_to_int(char c, int32_t base)
+static bool hhg_sema_check_is_bool(hhg_sema_t *sema, hhg_node_type_t type,
+                                   hhg_node_t *left, hhg_node_t *right)
 {
-    if (base == 'd') {
-        if (c >= '0' && c <= '9')
-            return c - '0';
-    } else if (base == 'x') {
-        if (c >= '0' && c <= '9')
-            return c - '0';
-        else if (c >= 'a' && c <= 'f')
-            return c - 'a' + 10;
-        else if (c >= 'A' && c <= 'F')
-            return c - 'A' + 10;
-    } else if (base == 'b') {
-        if (c == '0' || c == '1')
-            return c - '0';
-    } else if (base == 'o') {
-        if (c >= '0' && c <= '7')
-            return c - '0';
+    if (left->value_type->type != HHG_TYPE_BOOL) {
+        hhg_sema_error(sema, left,
+                       "left operand of `%n` must be a boolean type", "here",
+                       type);
+        return false;
     }
-    if (base == 'd')
-        hhg_compiler_error("invalid character `%c` in int literal", c);
-    else
-        hhg_compiler_error("invalid character `%c` for base `%c` int literal",
-                           c, base);
-    return 0;
+    if (right->value_type->type != HHG_TYPE_BOOL) {
+        hhg_sema_error(sema, right,
+                       "right operand of `%n` must be a boolean type", "here",
+                       type);
+        return false;
+    }
+    return true;
+}
+
+static bool hhg_sema_check_is_arith(hhg_sema_t *sema, hhg_node_type_t type,
+                                    hhg_node_t *left, hhg_node_t *right)
+{
+    if (!hhg_base_type_is_arith(left->value_type->type)) {
+        hhg_sema_error(sema, left,
+                       "left operand of `%n` must be an arithmetic type",
+                       "here", type);
+        return false;
+    }
+    if (!hhg_base_type_is_arith(right->value_type->type)) {
+        hhg_sema_error(sema, right,
+                       "right operand of `%n` must be an arithmetic type",
+                       "here", type);
+        return false;
+    }
+    return true;
 }

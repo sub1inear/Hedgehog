@@ -174,7 +174,7 @@ void hhg_node_fprint_core(hhg_node_t *node, int32_t indent, FILE *stream)
     hhg_node_fprint_indent(indent, stream);
     hhg_node_type_fprint(node->type, stream);
 
-    if (node->value_type != NULL) {
+    if (node->value_type != NULL && node->value_type->type != HHG_TYPE_FN) {
         fputs(": ", stream);
         hhg_type_fprint(node->value_type, stream);
     }
@@ -243,7 +243,6 @@ void hhg_node_fprint_core(hhg_node_t *node, int32_t indent, FILE *stream)
         hhg_node_fprint_id(node->value.for_stmt.id, next_indent, stream);
         fputc('\n', stream);
         hhg_node_fprint_core(node->value.for_stmt.iter, next_indent, stream);
-        fputc('\n', stream);
         hhg_node_fprint_core(node->value.for_stmt.body, next_indent, stream);
         break;
     case HHG_NODE_INT_LIT:
@@ -353,10 +352,8 @@ static void hhg_node_fprint_str(const char *str, int32_t indent, FILE *stream)
 static void hhg_node_fprint_id(hhg_node_id_t id, int32_t indent, FILE *stream)
 {
     hhg_node_fprint_indent(indent, stream);
-    if (id.sym) {
+    if (id.sym)
         fputs(id.sym->key, stream);
-        fputc(':', stream);
-        hhg_type_fprint(id.sym->value.type, stream);
-    } else
+    else
         fputs(id.str, stream);
 }

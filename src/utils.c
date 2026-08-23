@@ -26,6 +26,8 @@
 
 #define HHG_SPAWN_PIPE_FD_BUFFER_SIZE 4096
 
+static int32_t hhg_char_to_int(char c, int32_t base);
+
 // easier to write HANDLE/fd-specific functions
 // instead of converting into FILE * and then unifying them
 #ifdef HHG_WINDOWS
@@ -150,24 +152,57 @@ const char *hhg_file_to_exec(hhg_arena_t *arena, const char *name)
 }
 #endif
 
-int64_t hhg_str_to_int64(const char *str)
+uint64_t hhg_str_to_uint64(const char *str, hhg_msg_ctx_t *msg_ctx,
+                           hhg_file_src_t *src, hhg_file_range_t *range)
 {
-    const char *ptr = str;
-    bool negative = false;
-    if (*ptr == '-') {
-        negative = true;
-        ptr++;
+    const char *p = str;
+    int32_t base = 10;
+
+    if (*p == '0') {
+        p++;
+        switch (*p) {
+        case 'x':
+            base = 16;
+            p++;
+            break;
+        case 'b':
+            base = 2;
+            p++;
+            break;
+        case 'o':
+            base = 8;
+            p++;
+            break;
+        case '\0':
+            return 0;
+        default:
+            hhg_compiler_error("unhandled base prefix `%c` in `%s`", *p,
+                               __func__);
+            break;
+        }
     }
-    int64_t result = 0;
-    while (*ptr) {
-        if (*ptr < '0' || *ptr > '9')
-            hhg_fatal_error("invalid integer: %s", str);
-        if (result > (INT64_MAX - (*ptr - '0')) / 10)
-            hhg_fatal_error("integer overflow: %s", str);
-        result = result * 10 + (*ptr - '0');
-        ptr++;
+
+    uint64_t v = 0;
+    while (true) {
+        char c = *p;
+        if (c == '\0')
+            break;
+
+        int32_t digit = hhg_char_to_int(c, base);
+
+        if (v > (UINT64_MAX - digit) / base) {
+            hhg_msg(msg_ctx, HHG_MSG_ERROR, src, range,
+                    // manually format UINT64_MAX to ensure it is in decimal
+                    "int literal `%s` is too large, max is "
+                    "`18446744073709551615`",
+                    "here", str);
+            return 0;
+        }
+        v *= base;
+        v += digit;
+        p++;
     }
-    return negative ? -result : result;
+    return v;
 }
 
 void hhg_assert_core(const char *expr_str, const char *file, int line)
@@ -178,6 +213,33 @@ void hhg_assert_core(const char *expr_str, const char *file, int line)
 void hhg_todo_core(const char *msg, const char *file, int line)
 {
     hhg_fatal_error("TODO: %s, at %s:%i", msg, file, line);
+}
+
+static int32_t hhg_char_to_int(char c, int32_t base)
+{
+    if (base == 10) {
+        if (c >= '0' && c <= '9')
+            return c - '0';
+    } else if (base == 16) {
+        if (c >= '0' && c <= '9')
+            return c - '0';
+        else if (c >= 'a' && c <= 'f')
+            return c - 'a' + 10;
+        else if (c >= 'A' && c <= 'F')
+            return c - 'A' + 10;
+    } else if (base == 2) {
+        if (c == '0' || c == '1')
+            return c - '0';
+    } else if (base == 8) {
+        if (c >= '0' && c <= '7')
+            return c - '0';
+    }
+    if (base == 10)
+        hhg_compiler_error("invalid character `%c` in int literal", c);
+    else
+        hhg_compiler_error("invalid character `%c` for base `%i` int literal",
+                           c, base);
+    return 0;
 }
 
 #ifdef HHG_WINDOWS

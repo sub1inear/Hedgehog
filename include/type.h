@@ -2,6 +2,7 @@
 #define HHG_TYPE_H
 
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 
 #include "token.h"
@@ -13,14 +14,6 @@ typedef struct arena hhg_arena_t;
 #define HHG_BUILTIN_TYPE_START HHG_TYPE_NONE
 #define HHG_BUILTIN_TYPE_END HHG_TYPE_VOID + 1
 #define HHG_BUILTIN_TYPE_COUNT (HHG_BUILTIN_TYPE_END - HHG_BUILTIN_TYPE_START)
-
-#define HHG_INT_TYPE_START HHG_TYPE_I8
-#define HHG_INT_TYPE_END HHG_TYPE_U64 + 1
-#define HHG_INT_TYPE_COUNT (HHG_INT_TYPE_END - HHG_INT_TYPE_START)
-
-#define HHG_FLOAT_TYPE_START HHG_TYPE_F32
-#define HHG_FLOAT_TYPE_END HHG_TYPE_F64 + 1
-#define HHG_FLOAT_TYPE_COUNT (HHG_FLOAT_TYPE_END - HHG_FLOAT_TYPE_START)
 
 typedef enum hhg_base_type {
     HHG_TYPE_NONE,
@@ -70,7 +63,7 @@ typedef struct hhg_type_ref {
 
 typedef struct hhg_type_arr {
     hhg_type_t *elem;
-    hhg_node_t *size;
+    uint64_t size;
 } hhg_type_arr_t;
 
 typedef struct hhg_type_fn {
@@ -100,7 +93,11 @@ void hhg_base_type_fprint(hhg_base_type_t base, FILE *stream);
 const char *hhg_base_type_to_str(hhg_base_type_t base);
 
 hhg_base_type_t hhg_token_type_to_base_type(hhg_token_type_t token_type);
-bool hhg_base_type_is_arith(hhg_token_type_t token_type);
+bool hhg_base_type_is_arith(hhg_base_type_t base);
+bool hhg_base_type_is_signed(hhg_base_type_t base);
+bool hhg_base_type_is_int(hhg_base_type_t base);
+bool hhg_base_type_is_float(hhg_base_type_t base);
+hhg_base_type_t hhg_base_type_promote(hhg_base_type_t a, hhg_base_type_t b);
 
 void hhg_ref_qual_print(hhg_ref_qual_t qual);
 void hhg_ref_qual_fprint(hhg_ref_qual_t qual, FILE *stream);

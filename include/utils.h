@@ -34,6 +34,9 @@
 
 typedef struct hhg_str hhg_str_t;
 typedef struct arena hhg_arena_t;
+typedef struct hhg_msg_ctx hhg_msg_ctx_t;
+typedef struct hhg_file_range hhg_file_range_t;
+typedef struct hhg_file_src hhg_file_src_t;
 
 // safe fopen of a file
 // crashes with hhg_fatal_error
@@ -46,7 +49,10 @@ FILE *hhg_fopen(const char *filename, const char *mode);
 // or format fails
 void hhg_join_path(char *buf, size_t size, const char *left, const char *right);
 
-int64_t hhg_str_to_int64(const char *str);
+// convert a string (with a base prefix) to uint64_t
+// errors on range with hhg_msg
+uint64_t hhg_str_to_uint64(const char *str, hhg_msg_ctx_t *msg_ctx,
+                           hhg_file_src_t *src, hhg_file_range_t *range);
 
 // spawns a new process with argv (NULL-terminated array of strings)
 // waits until completion and returns the exit code of process
