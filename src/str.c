@@ -44,12 +44,24 @@ void hhg_str_init_copy(hhg_str_t *dst, hhg_str_t *src)
 
 void hhg_str_init_fmt(hhg_str_t *str, const char *fmt, ...)
 {
-    va_list args;
-    va_start(args, fmt);
-    int len = vsnprintf(NULL, 0, fmt, args);
+    va_list va;
+    va_start(va, fmt);
+    hhg_str_init_vfmt(str, fmt, va);
+    va_end(va);
+}
+
+void hhg_str_init_vfmt(hhg_str_t *str, const char *fmt, va_list va)
+{
+    va_list va_fmt;
+    va_copy(va_fmt, va);
+
+    int len = vsnprintf(NULL, 0, fmt, va);
+    va_end(va);
+
     hhg_str_init_len(str, (size_t)len);
-    snprintf(str->str, str->cap, fmt, args);
-    va_end(args);
+
+    vsnprintf(str->str, str->cap, fmt, va_fmt);
+    va_end(va_fmt);
 }
 
 hhg_str_t *hhg_str_new(void)
@@ -83,12 +95,17 @@ hhg_str_t *hhg_str_new_copy(hhg_str_t *src)
 hhg_str_t *hhg_str_new_fmt(const char *fmt, ...)
 {
     hhg_str_t *str = hhg_malloc(sizeof(*str));
-    va_list args;
-    va_start(args, fmt);
-    int len = vsnprintf(NULL, 0, fmt, args);
-    hhg_str_init_len(str, (size_t)len);
-    snprintf(str->str, str->cap, fmt, args);
-    va_end(args);
+    va_list va;
+    va_start(va, fmt);
+    hhg_str_init_vfmt(str, fmt, va);
+    va_end(va);
+    return str;
+}
+
+hhg_str_t *hhg_str_new_vfmt(const char *fmt, va_list va)
+{
+    hhg_str_t *str = hhg_malloc(sizeof(*str));
+    hhg_str_init_vfmt(str, fmt, va);
     return str;
 }
 
@@ -177,7 +194,6 @@ void hhg_str_set_cap(hhg_str_t *str, size_t cap)
 
 void hhg_str_del(hhg_str_t *str)
 {
-    HHG_UNUSED(str);
     hhg_free_s(str->str);
 }
 
