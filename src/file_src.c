@@ -1,5 +1,6 @@
 #include <stdbool.h>
 #include <stdio.h>
+#include <string.h>
 
 #include <stb_ds.h>
 
@@ -10,7 +11,12 @@
 
 void hhg_file_src_init(hhg_file_src_t *src, const char *filename)
 {
-    FILE *file = hhg_fopen(filename, "r");
+    FILE *file;
+    if (strcmp(filename, "-") == 0) {
+        filename = "<stdin>";
+        file = stdin;
+    } else
+        file = hhg_fopen(filename, "r");
 
     // read file into src->txt
     // use realloc instead of fseek + ftell to

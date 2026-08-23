@@ -226,7 +226,8 @@ static void hhg_cmd_args_print_build_usage(char *prog_name)
 {
     printf("usage: %s build entry [options]\n"
            "args:\n"
-           "    entry                        entry file to build\n"
+           "    entry                        entry file to build, or `-` for "
+           "stdin\n"
            "options:\n"
            "    --help                 -h    show help\n"
            "    --out <path>           -o    set output path\n"
@@ -293,7 +294,8 @@ static void hhg_cmd_args_print_run_usage(char *prog_name)
 {
     printf("usage: %s run entry [options] [-- args]\n"
            "args:\n"
-           "    entry                        entry file to build\n"
+           "    entry                        entry file to build, or `-` for "
+           "stdin\n"
            "    args                         arguments to pass to the built "
            "executable\n"
            "options:\n"
