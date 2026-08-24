@@ -588,7 +588,17 @@ static void hhg_sema_run_fn_call(hhg_sema_t *sema, hhg_node_t *node)
 
     node->value.fn_call.fn->value.id.sym = sym;
 
-    for (size_t i = 0; i < arrlenu(node->value.fn_call.args); i++) {
+    size_t args_len = arrlenu(node->value.fn_call.args);
+    // sym shouldn't be NULL except for print/println hack, please remove
+    // this later
+    if (sym != NULL) {
+        size_t expected_len = arrlenu(sym->value.type->value.fn.params);
+        if (args_len != expected_len)
+            hhg_sema_error(sema, node,
+                           "function `%s` expects %zu arguments but got %zu",
+                           "here", name, args_len, expected_len);
+    }
+    for (size_t i = 0; i < args_len; i++) {
         hhg_node_t *arg = node->value.fn_call.args[i];
         hhg_sema_run(sema, arg);
         // sym shouldn't be NULL except for print/println hack, please remove

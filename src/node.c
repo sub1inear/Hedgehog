@@ -228,8 +228,9 @@ void hhg_node_fprint_core(hhg_node_t *node, int32_t indent, FILE *stream)
     case HHG_NODE_IF:
         hhg_node_fprint_core(node->value.if_stmt.cond, next_indent, stream);
         hhg_node_fprint_core(node->value.if_stmt.if_body, next_indent, stream);
-        hhg_node_fprint_core(node->value.if_stmt.else_body, next_indent,
-                             stream);
+        if (node->value.if_stmt.else_body != NULL)
+            hhg_node_fprint_core(node->value.if_stmt.else_body, next_indent,
+                                 stream);
         break;
     case HHG_NODE_WHILE:
         hhg_node_fprint_core(node->value.while_stmt.cond, next_indent, stream);
