@@ -254,6 +254,14 @@ static void hhg_vfprintf(FILE *stream, const char *fmt, va_list va)
                     hhg_compiler_error("unknown format specifier: %%%c", c);
                 break;
             }
+            case 'z': {
+                c = *++fmt;
+                if (c == 'u')
+                    fprintf(stream, "%zu", va_arg(va, size_t));
+                else
+                    hhg_compiler_error("unknown format specifier: %%%c", c);
+                break;
+            }
             case 'c':
                 fputc((char)va_arg(va, int), stream);
                 break;
