@@ -247,7 +247,7 @@ static void hhg_vfprintf(FILE *stream, const char *fmt, va_list va)
                 fprintf(stream, "%i", va_arg(va, int));
                 break;
             case 'l': {
-                c = *++fmt;
+                c = *fmt++;
                 if (c == 'u')
                     fprintf(stream, "%lu", va_arg(va, unsigned long));
                 else
@@ -255,7 +255,7 @@ static void hhg_vfprintf(FILE *stream, const char *fmt, va_list va)
                 break;
             }
             case 'z': {
-                c = *++fmt;
+                c = *fmt++;
                 if (c == 'u')
                     fprintf(stream, "%zu", va_arg(va, size_t));
                 else
