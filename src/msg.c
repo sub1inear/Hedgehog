@@ -54,6 +54,15 @@ void hhg_msg_ctx_deinit(hhg_msg_ctx_t *msg_ctx)
 void hhg_msg(hhg_msg_ctx_t *msg_ctx, hhg_msg_type_t type, hhg_file_src_t *src,
              hhg_file_range_t *range, const char *msg, const char *note, ...)
 {
+    if (type == HHG_MSG_WARNING) {
+        if (msg_ctx->cmd_args->type == HHG_CMD_ARGS_BUILD &&
+            !msg_ctx->cmd_args->subcmd.build.warnings)
+            return;
+        if (msg_ctx->cmd_args->type == HHG_CMD_ARGS_BUILD &&
+            !msg_ctx->cmd_args->subcmd.run.build.warnings)
+            return;
+    }
+
     va_list va_msg;
     va_list va_note;
     va_start(va_msg, note);
@@ -217,9 +226,6 @@ static void hhg_msg_process_msg_type(hhg_msg_ctx_t *msg_ctx,
         hhg_msg_print_msg_type_str("error", HHG_ANSI_COLOR_RED);
         break;
     case HHG_MSG_WARNING:
-        if (msg_ctx->cmd_args->type == HHG_CMD_ARGS_BUILD &&
-            !msg_ctx->cmd_args->subcmd.build.warnings)
-            break;
         hhg_msg_print_msg_type_str("warning", HHG_ANSI_COLOR_YELLOW);
         break;
     case HHG_MSG_INFO:

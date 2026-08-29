@@ -348,6 +348,8 @@ static void hhg_lexer_lex_num(hhg_lexer_t *lexer, int c)
     lexer->token.type = HHG_TOKEN_INT_LIT;
 
     int32_t base = 10;
+    bool seen_decimal = false;
+
     if (c == '0') {
         c = hhg_lexer_next_char(lexer);
         switch (c) {
@@ -360,6 +362,9 @@ static void hhg_lexer_lex_num(hhg_lexer_t *lexer, int c)
         case 'o':
             base = 8;
             break;
+        case '.':
+            seen_decimal = true;
+            break;
         default: {
             hhg_file_range_t range = hhg_lexer_get_char_range(lexer);
             if (isalpha(c)) {
@@ -368,7 +373,7 @@ static void hhg_lexer_lex_num(hhg_lexer_t *lexer, int c)
                 do
                     c = hhg_lexer_next_char(lexer);
                 while (isalnum(c) || c == '_');
-            } else if (isalnum(c) || c == '_') {
+            } else if (isdigit(c) || c == '_') {
                 hhg_msg(
                     lexer->msg_ctx, HHG_MSG_ERROR, &lexer->src, &range,
                     "leading zeros (C-style octal literals) are not supported",
@@ -376,9 +381,8 @@ static void hhg_lexer_lex_num(hhg_lexer_t *lexer, int c)
                 do
                     c = hhg_lexer_next_char(lexer);
                 while (isalnum(c) || c == '_');
-            } else {
+            } else
                 hhg_str_append_char(&lexer->token.str, '0');
-            }
             hhg_lexer_back_char(lexer);
             return;
         }
@@ -387,35 +391,36 @@ static void hhg_lexer_lex_num(hhg_lexer_t *lexer, int c)
         c = hhg_lexer_next_char(lexer);
     }
 
-    bool seen_decimal = false;
-    while (isalnum(c) || c == '_') {
-        if (!hhg_lexer_is_valid_digit(c, base)) {
-            hhg_file_range_t range = hhg_lexer_get_char_range(lexer);
-            if (base == 10)
-                hhg_msg(lexer->msg_ctx, HHG_MSG_ERROR, &lexer->src, &range,
-                        "invalid character `%c` in integer literal", "here", c);
-            else
-                hhg_msg(lexer->msg_ctx, HHG_MSG_ERROR, &lexer->src, &range,
-                        "invalid character `%c` for base `%i` integer literal",
-                        "here", c, base);
-        }
-
-        int next_c = hhg_lexer_next_char(lexer);
-        if (next_c == '.') {
+    while (true) {
+        if (c == '.') {
             if (seen_decimal)
                 break;
 
-            int next_next_c = hhg_lexer_next_char(lexer);
+            int next_c = hhg_lexer_next_char(lexer);
             hhg_lexer_back_char(lexer);
 
-            if (isalnum(next_next_c) || next_next_c == '_')
+            if (isalnum(next_c) || next_c == '_')
                 seen_decimal = true;
             else
                 break;
-        }
-        if (c != '_')
             hhg_str_append_char(&lexer->token.str, c);
-        c = next_c;
+        } else if (c == '_')
+            ;
+        else if (isalnum(c)) {
+            hhg_str_append_char(&lexer->token.str, c);
+            if (!hhg_lexer_is_valid_digit(c, base)) {
+                hhg_file_range_t range = hhg_lexer_get_char_range(lexer);
+                if (base == 10)
+                    hhg_msg(lexer->msg_ctx, HHG_MSG_ERROR, &lexer->src, &range,
+                            "invalid character `%c` in number", "here", c);
+                else
+                    hhg_msg(lexer->msg_ctx, HHG_MSG_ERROR, &lexer->src, &range,
+                            "invalid character `%c` for base `%i` number",
+                            "here", c, base);
+            }
+        } else
+            break;
+        c = hhg_lexer_next_char(lexer);
     }
     hhg_lexer_back_char(lexer);
 
@@ -525,8 +530,6 @@ static bool hhg_lexer_lex_default(hhg_lexer_t *lexer, int c)
 
 static bool hhg_lexer_is_valid_digit(int c, int base)
 {
-    if (c == '_')
-        return true;
     if (base == 10)
         return isdigit(c);
     else if (base == 16)

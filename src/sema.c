@@ -368,7 +368,7 @@ static void hhg_sema_run_float_lit(hhg_sema_t *sema, hhg_node_t *node)
         if (digits > 15)
             hhg_sema_warning(sema, node,
                              "float literal `%s` has more than 15 digits; "
-                             "after the decimal point, precision may be lost",
+                             "precision may be lost",
                              "here", node->value.float_lit.str);
     }
 }
