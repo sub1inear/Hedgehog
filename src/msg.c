@@ -148,7 +148,8 @@ void hhg_fatal_error(const char *msg, ...)
     exit(EXIT_FAILURE);
 }
 
-// could be faster but simplicity is more important
+// fastest portable algorithm for small, non-random numbers
+// better than binary search because of branch predictor
 static int32_t hhg_msg_num_digits(int32_t num)
 {
     if (num <= 0)
