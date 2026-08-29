@@ -311,6 +311,7 @@ static hhg_node_t *hhg_parser_parse_unary(hhg_parser_t *parser)
         return node;
     }
 }
+
 static hhg_node_t *hhg_parser_parse_unary_core(hhg_parser_t *parser)
 {
     switch (parser->lexer->token.type) {

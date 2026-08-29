@@ -265,6 +265,7 @@ static void hhg_build_emit_lexer(hhg_lexer_t *lexer)
         putchar('\n');
     } while (lexer->token.type != HHG_TOKEN_EOF);
 }
+
 static void hhg_build_emit_parser(hhg_node_t *prog)
 {
     hhg_node_print(prog);

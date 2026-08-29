@@ -13,3 +13,6 @@ SpaceBeforeParens: ControlStatements
 AllowShortIfStatementsOnASingleLine: false
 AllowShortFunctionsOnASingleLine: None
 AllowShortLoopsOnASingleLine: false
+
+SeparateDefinitionBlocks: Always
+MaxEmptyLinesToKeep: 1
