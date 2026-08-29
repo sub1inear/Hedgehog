@@ -168,7 +168,7 @@ void hhg_str_append_fmt(hhg_str_t *str, const char *fmt, ...)
     if (str->len >= str->cap)
         hhg_str_set_cap(str, str->len * 2);
 
-    snprintf(str->str + prev_len, str->cap - prev_len, fmt, args);
+    vsnprintf(str->str + prev_len, str->cap - prev_len, fmt, args);
 
     va_end(args);
 }
