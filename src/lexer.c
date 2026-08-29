@@ -43,6 +43,8 @@ static void hhg_lexer_lex_num(hhg_lexer_t *lexer, int c);
 static void hhg_lexer_lex_str_lit(hhg_lexer_t *lexer, int c);
 static void hhg_lexer_lex_char_lit(hhg_lexer_t *lexer, int c);
 static bool hhg_lexer_lex_default(hhg_lexer_t *lexer, int c);
+static bool hhg_lexer_is_valid_digit(int c, int base);
+static hhg_file_range_t hhg_lexer_get_char_range(hhg_lexer_t *lexer);
 
 // clang-format off
 static const hhg_op_data_t op_data[] = {
@@ -345,42 +347,35 @@ static void hhg_lexer_lex_num(hhg_lexer_t *lexer, int c)
 {
     lexer->token.type = HHG_TOKEN_INT_LIT;
 
+    int32_t base = 10;
     if (c == '0') {
         c = hhg_lexer_next_char(lexer);
         switch (c) {
         case 'x':
+            base = 16;
+            break;
         case 'b':
+            base = 2;
+            break;
         case 'o':
-            hhg_str_append_fmt(&lexer->token.str, "0%c", c);
+            base = 8;
             break;
         default: {
-            hhg_file_range_t range = {
-                .start =
-                    (hhg_file_pos_t){
-                        .col = lexer->pos.col - 1,
-                        .line = lexer->pos.line,
-                    },
-                .end =
-                    (hhg_file_pos_t){
-                        .col = lexer->pos.col,
-                        .line = lexer->pos.line,
-                    },
-            };
-
+            hhg_file_range_t range = hhg_lexer_get_char_range(lexer);
             if (isalpha(c)) {
                 hhg_msg(lexer->msg_ctx, HHG_MSG_ERROR, &lexer->src, &range,
                         "unknown base prefix `%c`", NULL, c);
                 do
                     c = hhg_lexer_next_char(lexer);
-                while (isdigit(c));
-            } else if (isdigit(c)) {
+                while (isalnum(c) || c == '_');
+            } else if (isalnum(c) || c == '_') {
                 hhg_msg(
                     lexer->msg_ctx, HHG_MSG_ERROR, &lexer->src, &range,
                     "leading zeros (C-style octal literals) are not supported",
                     NULL);
                 do
                     c = hhg_lexer_next_char(lexer);
-                while (isdigit(c));
+                while (isalnum(c) || c == '_');
             } else {
                 hhg_str_append_char(&lexer->token.str, '0');
             }
@@ -388,10 +383,23 @@ static void hhg_lexer_lex_num(hhg_lexer_t *lexer, int c)
             return;
         }
         }
+        hhg_str_append_fmt(&lexer->token.str, "0%c", c);
+        c = hhg_lexer_next_char(lexer);
     }
 
     bool seen_decimal = false;
-    do {
+    while (isalnum(c) || c == '_') {
+        if (!hhg_lexer_is_valid_digit(c, base)) {
+            hhg_file_range_t range = hhg_lexer_get_char_range(lexer);
+            if (base == 10)
+                hhg_msg(lexer->msg_ctx, HHG_MSG_ERROR, &lexer->src, &range,
+                        "invalid character `%c` in integer literal", "here", c);
+            else
+                hhg_msg(lexer->msg_ctx, HHG_MSG_ERROR, &lexer->src, &range,
+                        "invalid character `%c` for base `%i` integer literal",
+                        "here", c, base);
+        }
+
         int next_c = hhg_lexer_next_char(lexer);
         if (next_c == '.') {
             if (seen_decimal)
@@ -400,16 +408,15 @@ static void hhg_lexer_lex_num(hhg_lexer_t *lexer, int c)
             int next_next_c = hhg_lexer_next_char(lexer);
             hhg_lexer_back_char(lexer);
 
-            if (isdigit(next_next_c))
+            if (isalnum(next_next_c) || next_next_c == '_')
                 seen_decimal = true;
             else
                 break;
         }
-
-        hhg_str_append_char(&lexer->token.str, c);
+        if (c != '_')
+            hhg_str_append_char(&lexer->token.str, c);
         c = next_c;
-    } while (isdigit(c) || c == '.');
-
+    }
     hhg_lexer_back_char(lexer);
 
     if (seen_decimal)
@@ -514,4 +521,35 @@ static bool hhg_lexer_lex_default(hhg_lexer_t *lexer, int c)
     hhg_lexer_back_char(lexer);
     hhg_lexer_error(lexer, "unexpected character `%i`", "here", c);
     return false;
+}
+
+static bool hhg_lexer_is_valid_digit(int c, int base)
+{
+    if (c == '_')
+        return true;
+    if (base == 10)
+        return isdigit(c);
+    else if (base == 16)
+        return isxdigit(c);
+    else if (base == 8)
+        return c >= '0' && c <= '7';
+    else if (base == 2)
+        return c == '0' || c == '1';
+    return false;
+}
+
+static hhg_file_range_t hhg_lexer_get_char_range(hhg_lexer_t *lexer)
+{
+    return (hhg_file_range_t){
+        .start =
+            (hhg_file_pos_t){
+                .col = lexer->pos.col - 1,
+                .line = lexer->pos.line,
+            },
+        .end =
+            (hhg_file_pos_t){
+                .col = lexer->pos.col,
+                .line = lexer->pos.line,
+            },
+    };
 }

@@ -235,10 +235,10 @@ static int32_t hhg_char_to_int(char c, int32_t base)
             return c - '0';
     }
     if (base == 10)
-        hhg_compiler_error("invalid character `%c` in int literal", c);
+        hhg_compiler_error("invalid character `%c` in integer literal", c);
     else
-        hhg_compiler_error("invalid character `%c` for base `%i` int literal",
-                           c, base);
+        hhg_compiler_error(
+            "invalid character `%c` for base `%i` integer literal", c, base);
     return 0;
 }
 
