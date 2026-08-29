@@ -447,26 +447,37 @@ static void hhg_sema_run_expr(hhg_sema_t *sema, hhg_node_t *node)
     case HHG_NODE_LT_EQ:
     case HHG_NODE_GT:
     case HHG_NODE_GT_EQ:
-        if (!hhg_sema_check_is_arith(sema, node->type, left, right))
+        if (!hhg_sema_check_is_arith(sema, node->type, left, right)) {
+            node->value_type =
+                hhg_type_ctx_get_builtin(sema->type_ctx, HHG_TYPE_NONE);
             return;
+        }
         node->value_type =
             hhg_type_ctx_get_builtin(sema->type_ctx, HHG_TYPE_BOOL);
         break;
     case HHG_NODE_AND:
     case HHG_NODE_OR:
-        if (!hhg_sema_check_is_bool(sema, node->type, left, right))
+        if (!hhg_sema_check_is_bool(sema, node->type, left, right)) {
+            node->value_type =
+                hhg_type_ctx_get_builtin(sema->type_ctx, HHG_TYPE_NONE);
             return;
+        }
         node->value_type =
             hhg_type_ctx_get_builtin(sema->type_ctx, HHG_TYPE_BOOL);
         break;
     default:
-        if (!hhg_sema_check_is_arith(sema, node->type, left, right))
+        if (!hhg_sema_check_is_arith(sema, node->type, left, right)) {
+            node->value_type =
+                hhg_type_ctx_get_builtin(sema->type_ctx, HHG_TYPE_NONE);
             return;
+        }
         if (!hhg_type_impl_eq(left->value_type, right->value_type) &&
-            !hhg_type_impl_eq(right->value_type, left->value_type))
+            !hhg_type_impl_eq(right->value_type, left->value_type)) {
             hhg_sema_error(sema, node, "type mismatch between `%T` and `%T`",
                            "here", left->value_type, right->value_type);
-        else
+            node->value_type =
+                hhg_type_ctx_get_builtin(sema->type_ctx, HHG_TYPE_NONE);
+        } else
             node->value_type = hhg_type_ctx_get_builtin(
                 sema->type_ctx, hhg_base_type_promote(left->value_type->type,
                                                       right->value_type->type));
@@ -485,13 +496,15 @@ static void hhg_sema_run_range(hhg_sema_t *sema, hhg_node_t *node)
     hhg_sema_run(sema, node->value.expr.left);
     hhg_sema_run(sema, node->value.expr.right);
     if (!hhg_type_impl_eq(node->value.expr.left->value_type,
-                          node->value.expr.right->value_type))
+                          node->value.expr.right->value_type)) {
         hhg_sema_error(sema, node,
                        "range start and end must have the same type: got "
                        "`%T` and `%T`",
                        "here", node->value.expr.left->value_type,
                        node->value.expr.right->value_type);
-    else
+        node->value_type =
+            hhg_type_ctx_get_builtin(sema->type_ctx, HHG_TYPE_NONE);
+    } else
         node->value_type = node->value.expr.left->value_type;
 }
 
@@ -499,12 +512,14 @@ static void hhg_sema_run_neg(hhg_sema_t *sema, hhg_node_t *node)
 {
     hhg_sema_run(sema, node->value.unary.opnd);
     hhg_type_t *opnd_type = node->value.unary.opnd->value_type;
-    if (!hhg_base_type_is_arith(opnd_type->type))
+    if (!hhg_base_type_is_arith(opnd_type->type)) {
         hhg_sema_error(sema, node,
                        "negation operator `-` requires an arithmetic type: "
                        "got `%T`",
                        "here", opnd_type);
-    else
+        node->value_type =
+            hhg_type_ctx_get_builtin(sema->type_ctx, HHG_TYPE_NONE);
+    } else
         node->value_type = opnd_type;
 }
 
@@ -512,12 +527,14 @@ static void hhg_sema_run_bit_not(hhg_sema_t *sema, hhg_node_t *node)
 {
     hhg_sema_run(sema, node->value.unary.opnd);
     hhg_type_t *opnd_type = node->value.unary.opnd->value_type;
-    if (!hhg_base_type_is_arith(opnd_type->type))
+    if (!hhg_base_type_is_arith(opnd_type->type)) {
         hhg_sema_error(sema, node,
                        "bitwise NOT operator `~` requires an arithmetic type: "
                        "got `%T`",
                        "here", opnd_type);
-    else
+        node->value_type =
+            hhg_type_ctx_get_builtin(sema->type_ctx, HHG_TYPE_NONE);
+    } else
         node->value_type = opnd_type;
 }
 
@@ -525,13 +542,16 @@ static void hhg_sema_run_deref(hhg_sema_t *sema, hhg_node_t *node)
 {
     hhg_sema_run(sema, node->value.unary.opnd);
     hhg_type_t *opnd_type = node->value.unary.opnd->value_type;
-    if (opnd_type->type != HHG_TYPE_REF)
+    if (opnd_type->type != HHG_TYPE_REF) {
         hhg_sema_error(sema, node,
                        "dereference operator `*` requires a reference type: "
                        "got `%T`",
                        "here", opnd_type);
-    else
-        node->value_type = opnd_type->value.ref.base;
+        node->value_type =
+            hhg_type_ctx_get_builtin(sema->type_ctx, HHG_TYPE_NONE);
+        return;
+    }
+    node->value_type = opnd_type->value.ref.base;
 }
 
 static void hhg_sema_run_ref(hhg_sema_t *sema, hhg_node_t *node)
@@ -557,54 +577,71 @@ static void hhg_sema_run_arr_idx(hhg_sema_t *sema, hhg_node_t *node)
     hhg_type_t *arr_type = node->value.arr_idx.arr->value_type;
     hhg_type_t *idx_type = node->value.arr_idx.idx->value_type;
 
-    if (arr_type->type != HHG_TYPE_ARR)
+    if (arr_type->type != HHG_TYPE_ARR) {
         hhg_sema_error(sema, node,
                        "array index operator `[]` requires an array type: "
                        "got `%T`",
                        "here", arr_type);
-    if (!hhg_base_type_is_int(idx_type->type))
+        node->value_type =
+            hhg_type_ctx_get_builtin(sema->type_ctx, HHG_TYPE_NONE);
+        return;
+    }
+    if (!hhg_base_type_is_int(idx_type->type)) {
         hhg_sema_error(
             sema, node,
             "array index operator `[]` requires an integer type: got `%T`",
             "here", idx_type);
-    else
-        node->value_type = arr_type->value.arr.elem;
+        node->value_type =
+            hhg_type_ctx_get_builtin(sema->type_ctx, HHG_TYPE_NONE);
+        return;
+    }
+    node->value_type = arr_type->value.arr.elem;
 }
 
 static void hhg_sema_run_fn_call(hhg_sema_t *sema, hhg_node_t *node)
 {
     const char *name = node->value.fn_call.fn->value.id.str;
+    if (strcmp(name, "print") == 0 || strcmp(name, "println") == 0) {
+        node->value_type =
+            hhg_type_ctx_get_builtin(sema->type_ctx, HHG_TYPE_NONE);
+        return;
+    }
+
     hhg_sym_t *sym = hhg_sym_tab_lookup(sema->sym_tab, name);
     if (sym == NULL) {
-        // dirty hack for print/println right now, please remove this later
-        if (strcmp(name, "print") != 0 && strcmp(name, "println") != 0)
-            hhg_sema_error(sema, node, "undefined function `%s`",
-                           "`%s` called here", name);
-    } else if (sym->value.sym_type != HHG_SYM_FN)
+        hhg_sema_error(sema, node, "undefined function `%s`",
+                       "`%s` called here", name);
+        node->value_type =
+            hhg_type_ctx_get_builtin(sema->type_ctx, HHG_TYPE_NONE);
+        return;
+    }
+
+    if (sym->value.sym_type != HHG_SYM_FN) {
         hhg_sema_error(sema, node, "`%s` is not a function", "`%s` called here",
                        name);
-    else
-        node->value_type = sym->value.type->value.fn.ret;
+        node->value_type =
+            hhg_type_ctx_get_builtin(sema->type_ctx, HHG_TYPE_NONE);
+        return;
+    }
+    node->value_type = sym->value.type->value.fn.ret;
 
     node->value.fn_call.fn->value.id.sym = sym;
 
     size_t args_len = arrlenu(node->value.fn_call.args);
-    // sym shouldn't be NULL except for print/println hack, please remove
-    // this later
-    if (sym != NULL) {
-        size_t expected_len = arrlenu(sym->value.type->value.fn.params);
-        if (args_len != expected_len)
-            hhg_sema_error(sema, node,
-                           "function `%s` expects %zu arguments but got %zu",
-                           "here", name, args_len, expected_len);
+    size_t expected_len = arrlenu(sym->value.type->value.fn.params);
+    if (args_len != expected_len) {
+        hhg_sema_error(sema, node,
+                       "function `%s` expects %zu arguments but got %zu",
+                       "`%s` called here", name, expected_len, args_len);
+        node->value_type =
+            hhg_type_ctx_get_builtin(sema->type_ctx, HHG_TYPE_NONE);
+        return;
     }
+
     for (size_t i = 0; i < args_len; i++) {
         hhg_node_t *arg = node->value.fn_call.args[i];
         hhg_sema_run(sema, arg);
-        // sym shouldn't be NULL except for print/println hack, please remove
-        // this later
-        if (sym != NULL &&
-            !hhg_type_impl_eq(arg->value_type,
+        if (!hhg_type_impl_eq(arg->value_type,
                               sym->value.type->value.fn.params[i]))
             hhg_sema_error(sema, arg,
                            "function `%s` expects argument %zu to be of type "

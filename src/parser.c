@@ -78,9 +78,13 @@ static hhg_node_t *hhg_parser_parse_char_lit(hhg_parser_t *parser);
 static hhg_node_t *hhg_parser_parse_str_lit(hhg_parser_t *parser);
 static hhg_node_t *hhg_parser_parse_bool_lit(hhg_parser_t *parser);
 static hhg_node_t *hhg_parser_parse_arr_lit(hhg_parser_t *parser);
-static hhg_node_t *hhg_parser_parse_arr_idx(hhg_parser_t *parser);
-static hhg_node_t *hhg_parser_parse_fn_call(hhg_parser_t *parser);
+static hhg_node_t *hhg_parser_parse_arr_idx(hhg_parser_t *parser,
+                                            hhg_node_t *arr);
+static hhg_node_t *hhg_parser_parse_fn_call(hhg_parser_t *parser,
+                                            hhg_node_t *fn);
 static hhg_node_t *hhg_parser_parse_eq(hhg_parser_t *parser);
+static hhg_node_t *hhg_parser_parse_assign(hhg_parser_t *parser,
+                                           const char *str);
 
 static const hhg_bind_data_t bind_data[HHG_TOKEN_TYPE_COUNT] = {
     [HHG_TOKEN_STAR] =
@@ -299,34 +303,10 @@ static hhg_node_t *hhg_parser_parse_unary(hhg_parser_t *parser)
         hhg_parser_parse_core(parser, hhg_parser_parse_unary_core);
 
     switch (parser->lexer->token.type) {
-    case HHG_TOKEN_LBRACKET: {
-        hhg_node_t *arr_idx = hhg_parser_node_new(parser, HHG_NODE_ARR_IDX);
-
-        arr_idx->value.expr.left = node;
-        hhg_lexer_next(parser->lexer);
-
-        arr_idx->value.expr.right = hhg_parser_parse_expr(parser);
-        hhg_lexer_match(parser->lexer, HHG_TOKEN_RBRACKET);
-
-        arr_idx->range = (hhg_file_range_t){.start = node->range.start,
-                                            .end = parser->lexer->last_pos};
-        return arr_idx;
-    }
-    case HHG_TOKEN_LPAREN: {
-        hhg_node_t *fn_call = hhg_parser_node_new(parser, HHG_NODE_FN_CALL);
-        fn_call->value.fn_call.fn = node;
-
-        hhg_lexer_next(parser->lexer);
-        while (parser->lexer->token.type != HHG_TOKEN_RPAREN &&
-               parser->lexer->token.type != HHG_TOKEN_EOF) {
-            arrput(fn_call->value.fn_call.args, hhg_parser_parse_expr(parser));
-            if (parser->lexer->token.type != HHG_TOKEN_RPAREN &&
-                parser->lexer->token.type != HHG_TOKEN_EOF)
-                hhg_lexer_match(parser->lexer, HHG_TOKEN_COMMA);
-        }
-        hhg_lexer_match(parser->lexer, HHG_TOKEN_RPAREN);
-        return fn_call;
-    }
+    case HHG_TOKEN_LBRACKET:
+        return hhg_parser_parse_arr_idx(parser, node);
+    case HHG_TOKEN_LPAREN:
+        return hhg_parser_parse_fn_call(parser, node);
     default:
         return node;
     }
@@ -518,19 +498,8 @@ static hhg_node_t *hhg_parser_parse_id(hhg_parser_t *parser)
     case HHG_TOKEN_PIPE_EQ:
     case HHG_TOKEN_CARET_EQ:
     case HHG_TOKEN_LSHIFT_EQ:
-    case HHG_TOKEN_RSHIFT_EQ: {
-        if (!parser->stmt)
-            hhg_parser_error(parser, "assignment is not an expression", "here");
-        hhg_node_t *assign = hhg_parser_node_new(parser, HHG_NODE_EQ);
-
-        assign->value.eq.left = hhg_parser_node_new(parser, HHG_NODE_ID);
-        assign->value.eq.left->value.id.str = str;
-
-        hhg_lexer_next(parser->lexer);
-        assign->value.eq.right = hhg_parser_parse_expr(parser);
-
-        return assign;
-    }
+    case HHG_TOKEN_RSHIFT_EQ:
+        return hhg_parser_parse_assign(parser, str);
     default: {
         hhg_node_t *id = hhg_parser_node_new(parser, HHG_NODE_ID);
         id->value.id.str = str;
@@ -789,11 +758,12 @@ static hhg_node_t *hhg_parser_parse_arr_lit(hhg_parser_t *parser)
     return arr_lit;
 }
 
-static hhg_node_t *hhg_parser_parse_arr_idx(hhg_parser_t *parser)
+static hhg_node_t *hhg_parser_parse_arr_idx(hhg_parser_t *parser,
+                                            hhg_node_t *arr)
 {
     hhg_node_t *arr_idx = hhg_parser_node_new(parser, HHG_NODE_ARR_IDX);
 
-    arr_idx->value.arr_idx.arr = hhg_parser_parse_expr(parser);
+    arr_idx->value.arr_idx.arr = arr;
     hhg_lexer_match(parser->lexer, HHG_TOKEN_LBRACKET);
     arr_idx->value.arr_idx.idx = hhg_parser_parse_expr(parser);
     hhg_lexer_match(parser->lexer, HHG_TOKEN_RBRACKET);
@@ -801,11 +771,12 @@ static hhg_node_t *hhg_parser_parse_arr_idx(hhg_parser_t *parser)
     return arr_idx;
 }
 
-static hhg_node_t *hhg_parser_parse_fn_call(hhg_parser_t *parser)
+static hhg_node_t *hhg_parser_parse_fn_call(hhg_parser_t *parser,
+                                            hhg_node_t *fn)
 {
     hhg_node_t *fn_call = hhg_parser_node_new(parser, HHG_NODE_FN_CALL);
 
-    fn_call->value.fn_call.fn = hhg_parser_parse_expr(parser);
+    fn_call->value.fn_call.fn = fn;
     if (fn_call->value.fn_call.fn->type != HHG_NODE_ID)
         hhg_todo("must call an identifier for now");
     hhg_lexer_match(parser->lexer, HHG_TOKEN_LPAREN);
@@ -830,4 +801,20 @@ static hhg_node_t *hhg_parser_parse_eq(hhg_parser_t *parser)
     hhg_lexer_match(parser->lexer, HHG_TOKEN_EQ);
     eq->value.eq.right = hhg_parser_parse_expr(parser);
     return eq;
+}
+
+static hhg_node_t *hhg_parser_parse_assign(hhg_parser_t *parser,
+                                           const char *str)
+{
+    if (!parser->stmt)
+        hhg_parser_error(parser, "assignment is not an expression", "here");
+    hhg_node_t *assign = hhg_parser_node_new(parser, HHG_NODE_EQ);
+
+    assign->value.eq.left = hhg_parser_node_new(parser, HHG_NODE_ID);
+    assign->value.eq.left->value.id.str = str;
+
+    hhg_lexer_next(parser->lexer);
+    assign->value.eq.right = hhg_parser_parse_expr(parser);
+
+    return assign;
 }
