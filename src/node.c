@@ -121,9 +121,8 @@ hhg_node_type_t hhg_token_type_to_node_type(hhg_token_type_t token_type)
     case HHG_TOKEN_DOT_DOT_EQ:
         return HHG_NODE_RANGE_INCL;
     default:
-        hhg_compiler_error(
-            "unexpected token type `%d` in `hhg_token_type_to_node_type`",
-            token_type);
+        hhg_compiler_error("unhandled token type `%d` in `%s`", token_type,
+                           __func__);
         return HHG_NODE_NONE;
     }
 }
