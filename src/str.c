@@ -56,7 +56,6 @@ void hhg_str_init_vfmt(hhg_str_t *str, const char *fmt, va_list va)
     va_copy(va_fmt, va);
 
     int len = vsnprintf(NULL, 0, fmt, va);
-    va_end(va);
 
     hhg_str_init_len(str, (size_t)len);
 
