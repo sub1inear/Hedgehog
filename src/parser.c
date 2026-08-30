@@ -55,9 +55,12 @@ static hhg_node_t *hhg_parser_parse_expr_core(hhg_parser_t *parser,
 static hhg_node_t *hhg_parser_parse_unary(hhg_parser_t *parser);
 static hhg_node_t *hhg_parser_parse_unary_core(hhg_parser_t *parser);
 
+static hhg_node_t *hhg_parser_parse_postfix(hhg_parser_t *parser,
+                                            hhg_node_t *node);
+
 static hhg_node_t *
 hhg_parser_parse_core(hhg_parser_t *parser,
-                      hhg_node_t *(*parse_fn)(hhg_parser_t *));
+                      hhg_node_t *(*parse_fn)(hhg_parser_t *parser));
 
 static hhg_type_t *hhg_parser_parse_type(hhg_parser_t *parser);
 static hhg_node_t *hhg_parser_parse_id(hhg_parser_t *parser);
@@ -299,27 +302,7 @@ static hhg_node_t *hhg_parser_parse_unary(hhg_parser_t *parser)
 {
     hhg_node_t *node =
         hhg_parser_parse_core(parser, hhg_parser_parse_unary_core);
-
-    switch (parser->lexer->token.type) {
-    case HHG_TOKEN_LBRACKET:
-        return hhg_parser_parse_arr_idx(parser, node);
-    case HHG_TOKEN_LPAREN:
-        return hhg_parser_parse_fn_call(parser, node);
-    case HHG_TOKEN_EQ:
-    case HHG_TOKEN_PLUS_EQ:
-    case HHG_TOKEN_MINUS_EQ:
-    case HHG_TOKEN_STAR_EQ:
-    case HHG_TOKEN_SLASH_EQ:
-    case HHG_TOKEN_PERCENT_EQ:
-    case HHG_TOKEN_AMPERSAND_EQ:
-    case HHG_TOKEN_PIPE_EQ:
-    case HHG_TOKEN_CARET_EQ:
-    case HHG_TOKEN_LSHIFT_EQ:
-    case HHG_TOKEN_RSHIFT_EQ:
-        return hhg_parser_parse_eq(parser, node);
-    default:
-        return node;
-    }
+    return hhg_parser_parse_postfix(parser, node);
 }
 
 static hhg_node_t *hhg_parser_parse_unary_core(hhg_parser_t *parser)
@@ -359,6 +342,43 @@ static hhg_node_t *hhg_parser_parse_unary_core(hhg_parser_t *parser)
                          parser->lexer->token.type);
         return hhg_parser_node_new(parser, HHG_NODE_NONE);
     }
+}
+
+static hhg_node_t *hhg_parser_parse_postfix(hhg_parser_t *parser,
+                                            hhg_node_t *node)
+{
+    bool run = true;
+    while (run) {
+        switch (parser->lexer->token.type) {
+        case HHG_TOKEN_LBRACKET:
+            node = hhg_parser_parse_arr_idx(parser, node);
+            break;
+        case HHG_TOKEN_LPAREN:
+            node = hhg_parser_parse_fn_call(parser, node);
+            break;
+        case HHG_TOKEN_EQ:
+        case HHG_TOKEN_PLUS_EQ:
+        case HHG_TOKEN_MINUS_EQ:
+        case HHG_TOKEN_STAR_EQ:
+        case HHG_TOKEN_SLASH_EQ:
+        case HHG_TOKEN_PERCENT_EQ:
+        case HHG_TOKEN_AMPERSAND_EQ:
+        case HHG_TOKEN_PIPE_EQ:
+        case HHG_TOKEN_CARET_EQ:
+        case HHG_TOKEN_LSHIFT_EQ:
+        case HHG_TOKEN_RSHIFT_EQ:
+            node = hhg_parser_parse_eq(parser, node);
+            run = false;
+            break;
+        default:
+            run = false;
+            break;
+        }
+        node->range = (hhg_file_range_t){.start = node->range.start,
+                                         .end = parser->lexer->last_pos};
+    }
+
+    return node;
 }
 
 // Pratt Parser implementation
