@@ -75,6 +75,7 @@ void hhg_sema_init(hhg_sema_t *sema, hhg_sym_tab_t *sym_tab,
         .type_ctx = type_ctx,
         .msg_ctx = msg_ctx,
         .arena = arena,
+        .annot = HHG_TYPE_NONE,
     };
 }
 
@@ -216,15 +217,17 @@ static void hhg_sema_run_block(hhg_sema_t *sema, hhg_node_t *node)
 
 static void hhg_sema_run_var_decl(hhg_sema_t *sema, hhg_node_t *node)
 {
+    sema->annot = node->value_type->type;
     // run sema on expr first to handle `let x = x` where x is not defined yet
     hhg_sema_run(sema, node->value.var_decl.value);
+    sema->annot = HHG_TYPE_NONE;
 
     const char *name = node->value.var_decl.id.str;
 
     hhg_type_t *value_type = node->value.var_decl.value->value_type;
 
     // type inference
-    if (node->value_type == NULL)
+    if (node->value_type->type == HHG_TYPE_NONE)
         node->value_type = node->value.var_decl.value->value_type;
     else if (!hhg_type_impl_eq(value_type, node->value_type))
         hhg_sema_error(
@@ -346,11 +349,15 @@ static void hhg_sema_run_int_lit(hhg_sema_t *sema, hhg_node_t *node)
 {
     uint64_t v = hhg_str_to_uint64(node->value.int_lit.str, sema->msg_ctx,
                                    node->src, &node->range);
-
+    if (sema->annot != HHG_TYPE_NONE) {
+        node->value_type =
+            hhg_type_ctx_get_builtin(sema->type_ctx, sema->annot);
+        return;
+    }
     for (size_t i = 0; i < HHG_ARR_LEN(int_lit_max_data); i++) {
         if (v <= int_lit_max_data[i].value) {
-            node->value_type = hhg_type_ctx_get_builtin(
-                sema->type_ctx, int_lit_max_data[i].type);
+            hhg_base_type_t type = int_lit_max_data[i].type;
+            node->value_type = hhg_type_ctx_get_builtin(sema->type_ctx, type);
             return;
         }
     }

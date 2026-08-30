@@ -602,7 +602,8 @@ static hhg_node_t *hhg_parser_parse_var_decl(hhg_parser_t *parser)
         hhg_lexer_next(parser->lexer);
         var_decl->value_type = hhg_parser_parse_type(parser);
     } else
-        var_decl->value_type = NULL;
+        var_decl->value_type =
+            hhg_type_ctx_get_builtin(parser->type_ctx, HHG_TYPE_NONE);
 
     hhg_lexer_match(parser->lexer, HHG_TOKEN_EQ);
 
