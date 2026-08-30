@@ -58,5 +58,6 @@ void hhg_file_src_init(hhg_file_src_t *src, const char *filename)
 
 void hhg_file_src_deinit(hhg_file_src_t *src)
 {
-    hhg_free(src->txt);
+    arrfree(src->line_starts);
+    hhg_free_s(src->txt);
 }
