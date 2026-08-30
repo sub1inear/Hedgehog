@@ -120,8 +120,30 @@ hhg_node_type_t hhg_token_type_to_node_type(hhg_token_type_t token_type)
         return HHG_NODE_RANGE_EXCL;
     case HHG_TOKEN_DOT_DOT_EQ:
         return HHG_NODE_RANGE_INCL;
+    case HHG_TOKEN_EQ:
+        return HHG_NODE_EQ;
+    case HHG_TOKEN_PLUS_EQ:
+        return HHG_NODE_ADD_EQ;
+    case HHG_TOKEN_MINUS_EQ:
+        return HHG_NODE_SUB_EQ;
+    case HHG_TOKEN_STAR_EQ:
+        return HHG_NODE_MUL_EQ;
+    case HHG_TOKEN_SLASH_EQ:
+        return HHG_NODE_DIV_EQ;
+    case HHG_TOKEN_PERCENT_EQ:
+        return HHG_NODE_MOD_EQ;
+    case HHG_TOKEN_AMPERSAND_EQ:
+        return HHG_NODE_BIT_AND_EQ;
+    case HHG_TOKEN_PIPE_EQ:
+        return HHG_NODE_BIT_OR_EQ;
+    case HHG_TOKEN_CARET_EQ:
+        return HHG_NODE_BIT_XOR_EQ;
+    case HHG_TOKEN_LSHIFT_EQ:
+        return HHG_NODE_LSHIFT_EQ;
+    case HHG_TOKEN_RSHIFT_EQ:
+        return HHG_NODE_RSHIFT_EQ;
     default:
-        hhg_compiler_error("unhandled token type `%d` in `%s`", token_type,
+        hhg_compiler_error("unhandled token type `%i` in `%s`", token_type,
                            __func__);
         return HHG_NODE_NONE;
     }

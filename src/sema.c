@@ -145,6 +145,16 @@ void hhg_sema_run(hhg_sema_t *sema, hhg_node_t *node)
         hhg_sema_run_expr(sema, node);
         break;
     case HHG_NODE_EQ:
+    case HHG_NODE_ADD_EQ:
+    case HHG_NODE_SUB_EQ:
+    case HHG_NODE_MUL_EQ:
+    case HHG_NODE_DIV_EQ:
+    case HHG_NODE_MOD_EQ:
+    case HHG_NODE_BIT_AND_EQ:
+    case HHG_NODE_BIT_OR_EQ:
+    case HHG_NODE_BIT_XOR_EQ:
+    case HHG_NODE_LSHIFT_EQ:
+    case HHG_NODE_RSHIFT_EQ:
         hhg_sema_run_eq(sema, node);
         break;
     case HHG_NODE_NEG:
@@ -488,6 +498,8 @@ static void hhg_sema_run_expr(hhg_sema_t *sema, hhg_node_t *node)
 static void hhg_sema_run_eq(hhg_sema_t *sema, hhg_node_t *node)
 {
     hhg_sema_run(sema, node->value.eq.left);
+    if (node->value.eq.left->type != HHG_NODE_ID)
+        hhg_todo("can only assign to an id for now");
     hhg_sema_run(sema, node->value.eq.right);
 }
 

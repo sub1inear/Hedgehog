@@ -82,9 +82,7 @@ static hhg_node_t *hhg_parser_parse_arr_idx(hhg_parser_t *parser,
                                             hhg_node_t *arr);
 static hhg_node_t *hhg_parser_parse_fn_call(hhg_parser_t *parser,
                                             hhg_node_t *fn);
-static hhg_node_t *hhg_parser_parse_eq(hhg_parser_t *parser);
-static hhg_node_t *hhg_parser_parse_assign(hhg_parser_t *parser,
-                                           const char *str);
+static hhg_node_t *hhg_parser_parse_eq(hhg_parser_t *parser, hhg_node_t *left);
 
 static const hhg_bind_data_t bind_data[HHG_TOKEN_TYPE_COUNT] = {
     [HHG_TOKEN_STAR] =
@@ -307,6 +305,18 @@ static hhg_node_t *hhg_parser_parse_unary(hhg_parser_t *parser)
         return hhg_parser_parse_arr_idx(parser, node);
     case HHG_TOKEN_LPAREN:
         return hhg_parser_parse_fn_call(parser, node);
+    case HHG_TOKEN_EQ:
+    case HHG_TOKEN_PLUS_EQ:
+    case HHG_TOKEN_MINUS_EQ:
+    case HHG_TOKEN_STAR_EQ:
+    case HHG_TOKEN_SLASH_EQ:
+    case HHG_TOKEN_PERCENT_EQ:
+    case HHG_TOKEN_AMPERSAND_EQ:
+    case HHG_TOKEN_PIPE_EQ:
+    case HHG_TOKEN_CARET_EQ:
+    case HHG_TOKEN_LSHIFT_EQ:
+    case HHG_TOKEN_RSHIFT_EQ:
+        return hhg_parser_parse_eq(parser, node);
     default:
         return node;
     }
@@ -477,7 +487,7 @@ static hhg_type_t *hhg_parser_parse_type(hhg_parser_t *parser)
         return hhg_type_ctx_get_builtin(parser->type_ctx, HHG_TYPE_NONE);
     }
     default:
-        hhg_fatal_error("unexpected base type `%d` in `hhg_parser_parse_type`",
+        hhg_fatal_error("unexpected base type `%i` in `hhg_parser_parse_type`",
                         base_type);
         return hhg_type_ctx_get_builtin(parser->type_ctx, HHG_TYPE_NONE);
     }
@@ -485,28 +495,11 @@ static hhg_type_t *hhg_parser_parse_type(hhg_parser_t *parser)
 
 static hhg_node_t *hhg_parser_parse_id(hhg_parser_t *parser)
 {
-    const char *str = hhg_parser_strdup(parser, parser->lexer->token.str.str);
-
+    hhg_node_t *id = hhg_parser_node_new(parser, HHG_NODE_ID);
+    id->value.id.str =
+        hhg_arena_strdup(parser->arena, parser->lexer->token.str.str);
     hhg_lexer_next(parser->lexer);
-    switch (parser->lexer->token.type) {
-    case HHG_TOKEN_EQ:
-    case HHG_TOKEN_PLUS_EQ:
-    case HHG_TOKEN_MINUS_EQ:
-    case HHG_TOKEN_STAR_EQ:
-    case HHG_TOKEN_SLASH_EQ:
-    case HHG_TOKEN_PERCENT_EQ:
-    case HHG_TOKEN_AMPERSAND_EQ:
-    case HHG_TOKEN_PIPE_EQ:
-    case HHG_TOKEN_CARET_EQ:
-    case HHG_TOKEN_LSHIFT_EQ:
-    case HHG_TOKEN_RSHIFT_EQ:
-        return hhg_parser_parse_assign(parser, str);
-    default: {
-        hhg_node_t *id = hhg_parser_node_new(parser, HHG_NODE_ID);
-        id->value.id.str = str;
-        return id;
-    }
-    }
+    return id;
 }
 
 static hhg_node_t *hhg_parser_parse_block(hhg_parser_t *parser)
@@ -795,27 +788,14 @@ static hhg_node_t *hhg_parser_parse_fn_call(hhg_parser_t *parser,
     return fn_call;
 }
 
-static hhg_node_t *hhg_parser_parse_eq(hhg_parser_t *parser)
-{
-    hhg_node_t *eq = hhg_parser_node_new(parser, HHG_NODE_EQ);
-    eq->value.eq.left = hhg_parser_parse_expr(parser);
-    hhg_lexer_match(parser->lexer, HHG_TOKEN_EQ);
-    eq->value.eq.right = hhg_parser_parse_expr(parser);
-    return eq;
-}
-
-static hhg_node_t *hhg_parser_parse_assign(hhg_parser_t *parser,
-                                           const char *str)
+static hhg_node_t *hhg_parser_parse_eq(hhg_parser_t *parser, hhg_node_t *left)
 {
     if (!parser->stmt)
         hhg_parser_error(parser, "assignment is not an expression", "here");
-    hhg_node_t *assign = hhg_parser_node_new(parser, HHG_NODE_EQ);
-
-    assign->value.eq.left = hhg_parser_node_new(parser, HHG_NODE_ID);
-    assign->value.eq.left->value.id.str = str;
-
+    hhg_node_t *eq = hhg_parser_node_new(
+        parser, hhg_token_type_to_node_type(parser->lexer->token.type));
+    eq->value.eq.left = left;
     hhg_lexer_next(parser->lexer);
-    assign->value.eq.right = hhg_parser_parse_expr(parser);
-
-    return assign;
+    eq->value.eq.right = hhg_parser_parse_expr(parser);
+    return eq;
 }
