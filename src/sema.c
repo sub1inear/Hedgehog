@@ -554,7 +554,7 @@ static void hhg_sema_run_deref(hhg_sema_t *sema, hhg_node_t *node)
 {
     hhg_sema_run(sema, node->value.unary.opnd);
     hhg_type_t *opnd_type = node->value.unary.opnd->value_type;
-    if (opnd_type->type != HHG_TYPE_REF) {
+    if (!hhg_base_type_eq(opnd_type->type, HHG_TYPE_REF)) {
         hhg_sema_error(sema, node,
                        "dereference operator `*` requires a reference type: "
                        "got `%T`",
@@ -589,7 +589,7 @@ static void hhg_sema_run_arr_idx(hhg_sema_t *sema, hhg_node_t *node)
     hhg_type_t *arr_type = node->value.arr_idx.arr->value_type;
     hhg_type_t *idx_type = node->value.arr_idx.idx->value_type;
 
-    if (arr_type->type != HHG_TYPE_ARR) {
+    if (!hhg_base_type_eq(arr_type->type, HHG_TYPE_ARR)) {
         hhg_sema_error(sema, node,
                        "array index operator `[]` requires an array type: "
                        "got `%T`",

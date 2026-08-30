@@ -155,7 +155,7 @@ static const hhg_base_type_t token_type_to_base_type[] = {
 };
 
 static const bool base_type_is_arith[] = {
-    [HHG_TYPE_NONE] = false, [HHG_TYPE_I8] = true,    [HHG_TYPE_U8] = true,
+    [HHG_TYPE_NONE] = true,  [HHG_TYPE_I8] = true,    [HHG_TYPE_U8] = true,
     [HHG_TYPE_I16] = true,   [HHG_TYPE_U16] = true,   [HHG_TYPE_I32] = true,
     [HHG_TYPE_U32] = true,   [HHG_TYPE_I64] = true,   [HHG_TYPE_U64] = true,
     [HHG_TYPE_F32] = true,   [HHG_TYPE_F64] = true,   [HHG_TYPE_BOOL] = false,
@@ -165,7 +165,7 @@ static const bool base_type_is_arith[] = {
 };
 
 static const bool base_type_is_signed[] = {
-    [HHG_TYPE_NONE] = false, [HHG_TYPE_I8] = true,    [HHG_TYPE_U8] = false,
+    [HHG_TYPE_NONE] = true,  [HHG_TYPE_I8] = true,    [HHG_TYPE_U8] = false,
     [HHG_TYPE_I16] = true,   [HHG_TYPE_U16] = false,  [HHG_TYPE_I32] = true,
     [HHG_TYPE_U32] = false,  [HHG_TYPE_I64] = true,   [HHG_TYPE_U64] = false,
     [HHG_TYPE_F32] = true,   [HHG_TYPE_F64] = true,   [HHG_TYPE_BOOL] = false,
@@ -175,7 +175,7 @@ static const bool base_type_is_signed[] = {
 };
 
 static const bool base_type_is_int[] = {
-    [HHG_TYPE_NONE] = false, [HHG_TYPE_I8] = true,    [HHG_TYPE_U8] = true,
+    [HHG_TYPE_NONE] = true,  [HHG_TYPE_I8] = true,    [HHG_TYPE_U8] = true,
     [HHG_TYPE_I16] = true,   [HHG_TYPE_U16] = true,   [HHG_TYPE_I32] = true,
     [HHG_TYPE_U32] = true,   [HHG_TYPE_I64] = true,   [HHG_TYPE_U64] = true,
     [HHG_TYPE_F32] = false,  [HHG_TYPE_F64] = false,  [HHG_TYPE_BOOL] = false,
@@ -185,7 +185,7 @@ static const bool base_type_is_int[] = {
 };
 
 static const bool base_type_is_float[] = {
-    [HHG_TYPE_NONE] = false, [HHG_TYPE_I8] = false,    [HHG_TYPE_U8] = false,
+    [HHG_TYPE_NONE] = true,  [HHG_TYPE_I8] = false,    [HHG_TYPE_U8] = false,
     [HHG_TYPE_I16] = false,  [HHG_TYPE_U16] = false,   [HHG_TYPE_I32] = false,
     [HHG_TYPE_U32] = false,  [HHG_TYPE_I64] = false,   [HHG_TYPE_U64] = false,
     [HHG_TYPE_F32] = true,   [HHG_TYPE_F64] = true,    [HHG_TYPE_BOOL] = false,
@@ -193,6 +193,13 @@ static const bool base_type_is_float[] = {
     [HHG_TYPE_VOID] = false, [HHG_TYPE_REF] = false,   [HHG_TYPE_ARR] = false,
     [HHG_TYPE_FN] = false,
 };
+
+bool hhg_base_type_eq(hhg_base_type_t l, hhg_base_type_t r)
+{
+    if (l == HHG_TYPE_NONE || r == HHG_TYPE_NONE)
+        return true;
+    return l == r;
+}
 
 void hhg_base_type_print(hhg_base_type_t base)
 {

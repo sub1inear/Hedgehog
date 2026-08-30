@@ -348,13 +348,14 @@ static hhg_node_t *hhg_parser_parse_postfix(hhg_parser_t *parser,
                                             hhg_node_t *node)
 {
     bool run = true;
+    hhg_node_t *postfix = node;
     while (run) {
         switch (parser->lexer->token.type) {
         case HHG_TOKEN_LBRACKET:
-            node = hhg_parser_parse_arr_idx(parser, node);
+            postfix = hhg_parser_parse_arr_idx(parser, postfix);
             break;
         case HHG_TOKEN_LPAREN:
-            node = hhg_parser_parse_fn_call(parser, node);
+            postfix = hhg_parser_parse_fn_call(parser, postfix);
             break;
         case HHG_TOKEN_EQ:
         case HHG_TOKEN_PLUS_EQ:
@@ -367,18 +368,18 @@ static hhg_node_t *hhg_parser_parse_postfix(hhg_parser_t *parser,
         case HHG_TOKEN_CARET_EQ:
         case HHG_TOKEN_LSHIFT_EQ:
         case HHG_TOKEN_RSHIFT_EQ:
-            node = hhg_parser_parse_eq(parser, node);
+            postfix = hhg_parser_parse_eq(parser, postfix);
             run = false;
             break;
         default:
             run = false;
             break;
         }
-        node->range = (hhg_file_range_t){.start = node->range.start,
-                                         .end = parser->lexer->last_pos};
+        postfix->range = (hhg_file_range_t){.start = node->range.start,
+                                            .end = parser->lexer->last_pos};
     }
 
-    return node;
+    return postfix;
 }
 
 // Pratt Parser implementation

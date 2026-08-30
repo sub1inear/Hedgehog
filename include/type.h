@@ -88,6 +88,7 @@ struct hhg_type {
     hhg_type_value_t value;
 };
 
+bool hhg_base_type_eq(hhg_base_type_t l, hhg_base_type_t r);
 void hhg_base_type_print(hhg_base_type_t base);
 void hhg_base_type_fprint(hhg_base_type_t base, FILE *stream);
 const char *hhg_base_type_to_str(hhg_base_type_t base);
