@@ -541,7 +541,7 @@ static void hhg_sema_run_bit_not(hhg_sema_t *sema, hhg_node_t *node)
     hhg_type_t *opnd_type = node->value.unary.opnd->value_type;
     if (!hhg_base_type_is_arith(opnd_type->type)) {
         hhg_sema_error(sema, node,
-                       "bitwise NOT operator `~` requires an arithmetic type: "
+                       "bitwise NOT operator requires an arithmetic type: "
                        "got `%T`",
                        "here", opnd_type);
         node->value_type =
@@ -556,7 +556,7 @@ static void hhg_sema_run_deref(hhg_sema_t *sema, hhg_node_t *node)
     hhg_type_t *opnd_type = node->value.unary.opnd->value_type;
     if (!hhg_base_type_eq(opnd_type->type, HHG_TYPE_REF)) {
         hhg_sema_error(sema, node,
-                       "dereference operator `*` requires a reference type: "
+                       "dereferencing requires a reference type: "
                        "got `%T`",
                        "here", opnd_type);
         node->value_type =
@@ -591,7 +591,7 @@ static void hhg_sema_run_arr_idx(hhg_sema_t *sema, hhg_node_t *node)
 
     if (!hhg_base_type_eq(arr_type->type, HHG_TYPE_ARR)) {
         hhg_sema_error(sema, node,
-                       "array index operator `[]` requires an array type: "
+                       "array indexing requires an array type: "
                        "got `%T`",
                        "here", arr_type);
         node->value_type =
@@ -599,10 +599,9 @@ static void hhg_sema_run_arr_idx(hhg_sema_t *sema, hhg_node_t *node)
         return;
     }
     if (!hhg_base_type_is_int(idx_type->type)) {
-        hhg_sema_error(
-            sema, node,
-            "array index operator `[]` requires an integer type: got `%T`",
-            "here", idx_type);
+        hhg_sema_error(sema, node,
+                       "array indexing requires an integer type: got `%T`",
+                       "here", idx_type);
         node->value_type =
             hhg_type_ctx_get_builtin(sema->type_ctx, HHG_TYPE_NONE);
         return;
