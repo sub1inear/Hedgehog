@@ -118,7 +118,7 @@ static const hhg_keyword_data_t keyword_data[] = {
     { "in",                  HHG_TOKEN_IN,           },
     { "match",               HHG_TOKEN_MATCH,        },
     { "break",               HHG_TOKEN_BREAK,        },
-    { "continue",              HHG_TOKEN_CONTINUE,     },
+    { "continue",            HHG_TOKEN_CONTINUE,     },
     { "return",              HHG_TOKEN_RETURN,       },
 
     { "and",                 HHG_TOKEN_AND,          },

@@ -1,5 +1,5 @@
-#ifndef HHG_H
-#define HHG_H
+#ifndef HHG_UTILS_H
+#define HHG_UTILS_H
 
 #include <stdint.h>
 #include <stdio.h>
