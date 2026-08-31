@@ -91,7 +91,7 @@ let a = x > 0 and y < 10 or not z
 | 11 | Logical NOT | `not` | Right |
 | 12 | Logical AND | `and` | Left |
 | 13 | Logical OR | `or` | Left |
-| 14 | Assignment | `=`, `+=`, `-=`, `*=`, `/=`, `%=`, `&=`, `|=` `^=` `<<=` `>>=` | None |
+| 14 | Assignment | `=`, `+=`, `-=`, `*=`, `/=`, `%=`, `&=`, `|=`, `^=`, `<<=`, `>>=` | None |
 
 ## Control Flow
 Blocks use braces and conditions do not require parentheses.
