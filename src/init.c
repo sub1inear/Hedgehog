@@ -26,10 +26,11 @@ bool hhg_init(hhg_cmd_args_init_t *init)
         main_filename = "main.hhg";
     } else {
         if (fs_exist(init->name))
-            hhg_fatal_error("project directory already exists: %s", init->name);
+            hhg_fatal_error("project directory already exists: `%s`",
+                            init->name);
 
         if (!fs_make_dir(init->name))
-            hhg_fatal_error("failed to create project directory: %s",
+            hhg_fatal_error("failed to create project directory: `%s`",
                             init->name);
 
         hhg_join_path(main_path, HHG_ARR_LEN(main_path), init->name,
