@@ -525,7 +525,12 @@ static bool hhg_lexer_lex_default(hhg_lexer_t *lexer, int c)
     }
     hhg_lexer_back_char(lexer);
     hhg_lexer_back_char(lexer);
-    hhg_lexer_error(lexer, "unexpected character `%i`", "here", c);
+    if (c == ';')
+        hhg_lexer_error(lexer, "semicolons are not supported", "here");
+    else if (isprint(c))
+        hhg_lexer_error(lexer, "unexpected character `%c`", "here", c);
+    else
+        hhg_lexer_error(lexer, "unexpected character `%i`", "here", c);
     return false;
 }
 
