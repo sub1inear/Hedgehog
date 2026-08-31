@@ -24,15 +24,30 @@ hhg_type_t *hhg_type_ctx_get_builtin(hhg_type_ctx_t *type_ctx,
 
 hhg_type_t *hhg_type_ctx_new_type(hhg_type_ctx_t *type_ctx, hhg_type_t type)
 {
-    hhg_type_ctx_tab_t *entry = hmgetp_null(type_ctx->tab, type);
+    hhg_type_t key = {0};
+    key.type = type.type;
+    switch (type.type) {
+    case HHG_TYPE_REF:
+        key.value.ref.base = type.value.ref.base;
+        key.value.ref.qual = type.value.ref.qual;
+        break;
+    case HHG_TYPE_ARR:
+        key.value.arr.elem = type.value.arr.elem;
+        key.value.arr.size = type.value.arr.size;
+        break;
+    default:
+        break;
+    }
+
+    hhg_type_ctx_tab_t *entry = hmgetp_null(type_ctx->tab, key);
 
     if (entry != NULL)
         return entry->value;
 
     hhg_type_t *new_type =
         hhg_arena_malloc(type_ctx->arena, sizeof(hhg_type_t));
-    *new_type = type;
-    hmput(type_ctx->tab, type, new_type);
+    *new_type = key;
+    hmput(type_ctx->tab, key, new_type);
     return new_type;
 }
 
