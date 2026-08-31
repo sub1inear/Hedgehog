@@ -27,8 +27,10 @@
 #endif
 
 #define hhg_assert(expr)                                                       \
-    if (!(expr))                                                               \
-    hhg_assert_core(#expr, __FILE__, __LINE__)
+    do                                                                         \
+        if (!(expr))                                                           \
+            hhg_assert_core(#expr, __FILE__, __LINE__);                        \
+    while (0)
 
 #define hhg_todo(msg) hhg_todo_core(msg, __FILE__, __LINE__)
 
