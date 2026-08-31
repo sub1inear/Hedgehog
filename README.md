@@ -23,16 +23,6 @@ Compile and run with:
 hhg run main.hhg
 ```
 
-
-## Features
-
-- **Static typing with inference**: annotate when you want, let the compiler figure out the rest
-- **Ownership model**: `unique<T>`, `shared<T>`, and `weak<T>` with no explicit lifetimes
-- **Generics**: angle-bracket syntax, eager monomorphization
-- **Classes, enums, and interfaces**: structured code with method dispatch and tagged unions
-- **F-strings**: `f"result: {value}"` for clean string interpolation
-- **Unsafe blocks**: raw pointers and low-level control when you need it
-
 ## Docs
 See the [docs](./docs/main.md) for more info.
 
