@@ -13,11 +13,7 @@
 #include "utils.h"
 
 #define hhg_lexer_msg(lexer, type, ...)                                        \
-    do {                                                                       \
-        hhg_msg(lexer->msg_ctx, type, &lexer->src, &lexer->token.range,        \
-                __VA_ARGS__);                                                  \
-        hhg_lexer_resync(lexer);                                               \
-    } while (0)
+    hhg_msg(lexer->msg_ctx, type, &lexer->src, &lexer->token.range, __VA_ARGS__)
 #define hhg_lexer_error(lexer, ...)                                            \
     hhg_lexer_msg(lexer, HHG_MSG_ERROR, __VA_ARGS__)
 #define hhg_lexer_warning(lexer, ...)                                          \
