@@ -79,7 +79,7 @@ let a = x > 0 and y < 10 or not z
 | # | Category | Operators | Assoc. |
 |---|----------|-----------|--------|
 | 1 | Postfix / access | `.`, `()`, `[]`, `?`, `!` | Left |
-| 2 | Unary prefix | `-` (neg), `~`, `*` (deref), `&`, `&mut` | Right |
+| 2 | Unary prefix | `not`, `-` (neg), `~`, `*` (deref), `&`, `&mut` | Right |
 | 3 | Multiplicative | `*`, `/`, `%` | Left |
 | 4 | Additive | `+`, `-` | Left |
 | 5 | Shift | `<<`, `>>` | Left |
@@ -88,7 +88,6 @@ let a = x > 0 and y < 10 or not z
 | 8 | Bitwise OR | `|` | Left |
 | 9 | Range | `..`, `..=` | None |
 | 10 | Comparison | `==`, `!=`, `<`, `>`, `<=`, `>=` | None |
-| 11 | Logical NOT | `not` | Right |
 | 12 | Logical AND | `and` | Left |
 | 13 | Logical OR | `or` | Left |
 | 14 | Assignment | `=`, `+=`, `-=`, `*=`, `/=`, `%=`, `&=`, `|=`, `^=`, `<<=`, `>>=` | None |

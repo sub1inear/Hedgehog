@@ -646,7 +646,11 @@ static hhg_node_t *hhg_parser_parse_return(hhg_parser_t *parser)
     hhg_lexer_next(parser->lexer);
     hhg_node_t *return_stmt = hhg_parser_node_new(parser, HHG_NODE_RETURN);
 
-    return_stmt->value.return_stmt.value = hhg_parser_parse_expr(parser);
+    if (parser->lexer->token.type == HHG_TOKEN_NEWLINE)
+        return_stmt->value.return_stmt.value =
+            hhg_parser_node_new(parser, HHG_NODE_NONE);
+    else
+        return_stmt->value.return_stmt.value = hhg_parser_parse_expr(parser);
 
     return return_stmt;
 }

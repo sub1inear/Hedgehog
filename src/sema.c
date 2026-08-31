@@ -316,8 +316,10 @@ static void hhg_sema_run_while(hhg_sema_t *sema, hhg_node_t *node)
 
 static void hhg_sema_run_return(hhg_sema_t *sema, hhg_node_t *node)
 {
-    hhg_sema_run(sema, node->value.return_stmt.value);
-    node->value_type = node->value.return_stmt.value->value_type;
+    if (node->value.return_stmt.value->type != HHG_NODE_NONE) {
+        hhg_sema_run(sema, node->value.return_stmt.value);
+        node->value_type = node->value.return_stmt.value->value_type;
+    }
 }
 
 static void hhg_sema_run_for(hhg_sema_t *sema, hhg_node_t *node)

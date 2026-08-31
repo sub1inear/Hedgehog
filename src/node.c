@@ -259,8 +259,9 @@ void hhg_node_fprint_core(hhg_node_t *node, int32_t indent, FILE *stream)
         hhg_node_fprint_core(node->value.while_stmt.body, next_indent, stream);
         break;
     case HHG_NODE_RETURN:
-        hhg_node_fprint_core(node->value.return_stmt.value, next_indent,
-                             stream);
+        if (node->value.return_stmt.value->type != HHG_NODE_NONE)
+            hhg_node_fprint_core(node->value.return_stmt.value, next_indent,
+                                 stream);
         break;
     case HHG_NODE_FOR:
         hhg_node_fprint_id(node->value.for_stmt.id, next_indent, stream);
