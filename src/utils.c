@@ -51,10 +51,12 @@ FILE *hhg_fopen(const char *filename, const char *mode)
 void hhg_join_path(char *buf, size_t size, const char *left, const char *right)
 {
     int result = fs_join_path(buf, size, left, right);
+    // compare result < 0 first to avoid signed-unsigned comparison
+    if (result < 0)
+        hhg_fatal_error("failed to join paths: `%s` `%s`", left, right);
+    // safe to compare now that result is not negative
     if (result >= size)
         hhg_fatal_error("joined path is too long: `%s` `%s`", left, right);
-    else if (result < 0)
-        hhg_fatal_error("failed to join paths: `%s` `%s`", left, right);
 }
 
 #ifdef HHG_WINDOWS
