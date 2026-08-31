@@ -33,8 +33,7 @@ static void hhg_msg_print_indicator(int32_t start, int32_t end,
 static void hhg_msg_process_msg_type(hhg_msg_ctx_t *msg_ctx,
                                      hhg_msg_type_t type);
 
-// prints the message type (error, warning, ...) with color if enabled
-// if color is not enabled, color can be NULL
+// prints the message type (error, warning, ...) with color
 static void hhg_msg_print_msg_type_str(const char *str, const char *color);
 
 static void hhg_vfprintf(FILE *stream, const char *fmt, va_list args);
@@ -229,14 +228,14 @@ static void hhg_msg_process_msg_type(hhg_msg_ctx_t *msg_ctx,
         hhg_msg_print_msg_type_str("warning", HHG_ANSI_COLOR_YELLOW);
         break;
     case HHG_MSG_INFO:
-        hhg_msg_print_msg_type_str("info", NULL);
+        hhg_msg_print_msg_type_str("info", "");
         break;
     }
 }
 
 static void hhg_msg_print_msg_type_str(const char *str, const char *color)
 {
-    fprintf(stderr, "%s%s" HHG_ANSI_COLOR_CLEAR ": ", color ? color : "", str);
+    fprintf(stderr, "%s%s" HHG_ANSI_COLOR_CLEAR ": ", color, str);
 }
 
 static void hhg_vfprintf(FILE *stream, const char *fmt, va_list va)
