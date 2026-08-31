@@ -675,7 +675,7 @@ static hhg_node_t *hhg_parser_parse_neg(hhg_parser_t *parser)
     hhg_lexer_next(parser->lexer);
     hhg_node_t *neg = hhg_parser_node_new(parser, HHG_NODE_NEG);
 
-    neg->value.unary.opnd = hhg_parser_parse_expr(parser);
+    neg->value.unary.opnd = hhg_parser_parse_unary(parser);
 
     return neg;
 }
@@ -685,7 +685,7 @@ static hhg_node_t *hhg_parser_parse_bit_not(hhg_parser_t *parser)
     hhg_lexer_next(parser->lexer);
     hhg_node_t *bit_not = hhg_parser_node_new(parser, HHG_NODE_BIT_NOT);
 
-    bit_not->value.unary.opnd = hhg_parser_parse_expr(parser);
+    bit_not->value.unary.opnd = hhg_parser_parse_unary(parser);
 
     return bit_not;
 }
@@ -695,7 +695,7 @@ static hhg_node_t *hhg_parser_parse_deref(hhg_parser_t *parser)
     hhg_lexer_next(parser->lexer);
     hhg_node_t *deref = hhg_parser_node_new(parser, HHG_NODE_DEREF);
 
-    deref->value.unary.opnd = hhg_parser_parse_expr(parser);
+    deref->value.unary.opnd = hhg_parser_parse_unary(parser);
 
     return deref;
 }
@@ -710,7 +710,7 @@ static hhg_node_t *hhg_parser_parse_ref(hhg_parser_t *parser)
     } else
         ref->value.ref.qual = HHG_REF_QUAL_IMMUT;
 
-    ref->value.ref.opnd = hhg_parser_parse_expr(parser);
+    ref->value.ref.opnd = hhg_parser_parse_unary(parser);
     return ref;
 }
 
@@ -765,7 +765,7 @@ static hhg_node_t *hhg_parser_parse_arr_lit(hhg_parser_t *parser)
     hhg_lexer_next(parser->lexer);
     while (parser->lexer->token.type != HHG_TOKEN_RBRACKET &&
            parser->lexer->token.type != HHG_TOKEN_EOF) {
-        arrput(arr_lit->value.arr_lit.elems, hhg_parser_parse_expr(parser));
+        arrput(arr_lit->value.arr_lit.elems, hhg_parser_parse_unary(parser));
         if (parser->lexer->token.type != HHG_TOKEN_RBRACKET &&
             parser->lexer->token.type != HHG_TOKEN_EOF)
             hhg_lexer_match(parser->lexer, HHG_TOKEN_COMMA);
@@ -781,7 +781,7 @@ static hhg_node_t *hhg_parser_parse_arr_idx(hhg_parser_t *parser,
 
     arr_idx->value.arr_idx.arr = arr;
     hhg_lexer_match(parser->lexer, HHG_TOKEN_LBRACKET);
-    arr_idx->value.arr_idx.idx = hhg_parser_parse_expr(parser);
+    arr_idx->value.arr_idx.idx = hhg_parser_parse_unary(parser);
     hhg_lexer_match(parser->lexer, HHG_TOKEN_RBRACKET);
 
     return arr_idx;
@@ -799,7 +799,7 @@ static hhg_node_t *hhg_parser_parse_fn_call(hhg_parser_t *parser,
 
     while (parser->lexer->token.type != HHG_TOKEN_RPAREN &&
            parser->lexer->token.type != HHG_TOKEN_EOF) {
-        arrput(fn_call->value.fn_call.args, hhg_parser_parse_expr(parser));
+        arrput(fn_call->value.fn_call.args, hhg_parser_parse_unary(parser));
         if (parser->lexer->token.type != HHG_TOKEN_RPAREN &&
             parser->lexer->token.type != HHG_TOKEN_EOF)
             hhg_lexer_match(parser->lexer, HHG_TOKEN_COMMA);
