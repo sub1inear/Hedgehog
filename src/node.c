@@ -12,6 +12,7 @@
 #define HHG_NODE_PRINT_INDENT 4
 
 const char *const node_type_to_str[] = {
+    [HHG_NODE_NONE] = "none",
     [HHG_NODE_ID] = "id",
     [HHG_NODE_FN_DECL] = "fn",
     [HHG_NODE_PARAM] = "param",
