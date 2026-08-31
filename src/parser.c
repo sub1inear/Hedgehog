@@ -403,7 +403,7 @@ static hhg_node_t *hhg_parser_parse_expr_core(hhg_parser_t *parser,
         hhg_lexer_next(parser->lexer);
 
         new_left->value.expr.right =
-            hhg_parser_parse_expr_core(parser, bind.prec);
+            hhg_parser_parse_expr_core(parser, bind.prec + 1);
 
         new_left->range =
             (hhg_file_range_t){.start = left->range.start,
