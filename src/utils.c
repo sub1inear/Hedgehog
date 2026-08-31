@@ -44,7 +44,7 @@ FILE *hhg_fopen(const char *filename, const char *mode)
 {
     FILE *file = fopen(filename, mode);
     if (file == NULL)
-        hhg_fatal_error("opening %s: %s", filename, strerror(errno));
+        hhg_fatal_error("opening `%s`: `%s`", filename, strerror(errno));
     return file;
 }
 
