@@ -1,6 +1,7 @@
 #ifndef HHG_MSG_H
 #define HHG_MSG_H
 
+#include <stdbool.h>
 #include <stdint.h>
 
 typedef struct hhg_cmd_args hhg_cmd_args_t;
@@ -10,6 +11,7 @@ typedef struct hhg_file_src hhg_file_src_t;
 typedef struct hhg_msg_ctx {
     int32_t error_count;
     hhg_cmd_args_t *cmd_args;
+    bool use_color;
 } hhg_msg_ctx_t;
 
 typedef enum hhg_msg_type {

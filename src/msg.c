@@ -1,7 +1,9 @@
 #include <inttypes.h>
 #include <stdarg.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "cmd_args.h"
 #include "file_pos.h"
@@ -14,6 +16,11 @@
 #include "type.h"
 #include "utils.h"
 
+#ifdef HHG_WINDOWS
+#include <io.h>
+#elif defined(HHG_POSIX)
+#include <unistd.h>
+#endif
 /*
 Message format:
 <level>: <message>
@@ -24,6 +31,7 @@ Message format:
 */
 
 static int32_t hhg_msg_num_digits(int32_t num);
+static bool hhg_msg_use_color();
 static void hhg_msg_print_src_line(hhg_file_src_t *src, int32_t line,
                                    int32_t line_width);
 static void hhg_msg_print_indicator(int32_t start, int32_t end,
@@ -34,14 +42,18 @@ static void hhg_msg_process_msg_type(hhg_msg_ctx_t *msg_ctx,
                                      hhg_msg_type_t type);
 
 // prints the message type (error, warning, ...) with color
-static void hhg_msg_print_msg_type_str(const char *str, const char *color);
+static void hhg_msg_print_msg_type_str(const char *str, const char *color,
+                                       bool use_color);
 
 static void hhg_vfprintf(FILE *stream, const char *fmt, va_list args);
 
 void hhg_msg_ctx_init(hhg_msg_ctx_t *msg_ctx, hhg_cmd_args_t *cmd_args)
 {
-    msg_ctx->error_count = 0;
-    msg_ctx->cmd_args = cmd_args;
+    *msg_ctx = (hhg_msg_ctx_t){
+        .error_count = 0,
+        .cmd_args = cmd_args,
+        .use_color = hhg_msg_use_color(),
+    };
 }
 
 void hhg_msg_ctx_deinit(hhg_msg_ctx_t *msg_ctx)
@@ -134,10 +146,8 @@ void hhg_compiler_error(const char *msg, ...)
 
     hhg_vfprintf(stderr, msg, va);
 
-    fprintf(
-        stderr,
-        "\n\nplease report this to the developers at\n" HHG_GITHUB_ISSUES_URL
-        "\n");
+    fprintf(stderr, "\n\nplease report this to the developers "
+                    "at\n" HHG_GITHUB_ISSUES_URL "\n");
 
     va_end(va);
     abort();
@@ -184,6 +194,23 @@ static int32_t hhg_msg_num_digits(int32_t num)
     return 1;
 }
 
+static bool hhg_msg_use_color()
+{
+    char *no_color_env = getenv("NO_COLOR");
+    if (no_color_env != NULL && no_color_env[0] != '\0')
+        return false;
+
+    char *term_env = getenv("TERM");
+    if (term_env != NULL && strcmp(term_env, "dumb") == 0)
+        return false;
+
+#ifdef HHG_WINDOWS
+    return _isatty(2);
+#elif HHG_POSIX
+    return isatty(2);
+#endif
+}
+
 static void hhg_msg_print_src_line(hhg_file_src_t *src, int32_t line,
                                    int32_t line_width)
 {
@@ -222,20 +249,24 @@ static void hhg_msg_process_msg_type(hhg_msg_ctx_t *msg_ctx,
     switch (type) {
     case HHG_MSG_ERROR:
         msg_ctx->error_count++;
-        hhg_msg_print_msg_type_str("error", HHG_ANSI_COLOR_RED);
+        hhg_msg_print_msg_type_str("error", HHG_ANSI_COLOR_RED,
+                                   msg_ctx->use_color);
         break;
     case HHG_MSG_WARNING:
-        hhg_msg_print_msg_type_str("warning", HHG_ANSI_COLOR_YELLOW);
+        hhg_msg_print_msg_type_str("warning", HHG_ANSI_COLOR_YELLOW,
+                                   msg_ctx->use_color);
         break;
     case HHG_MSG_INFO:
-        hhg_msg_print_msg_type_str("info", "");
+        hhg_msg_print_msg_type_str("info", "", msg_ctx->use_color);
         break;
     }
 }
 
-static void hhg_msg_print_msg_type_str(const char *str, const char *color)
+static void hhg_msg_print_msg_type_str(const char *str, const char *color,
+                                       bool use_color)
 {
-    fprintf(stderr, "%s%s" HHG_ANSI_COLOR_CLEAR ": ", color, str);
+    fprintf(stderr, "%s%s" HHG_ANSI_COLOR_CLEAR ": ", use_color ? color : "",
+            str);
 }
 
 static void hhg_vfprintf(FILE *stream, const char *fmt, va_list va)
