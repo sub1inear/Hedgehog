@@ -418,7 +418,6 @@ static void hhg_sema_run_bool_lit(hhg_sema_t *sema, hhg_node_t *node)
 
 static void hhg_sema_run_arr_lit(hhg_sema_t *sema, hhg_node_t *node)
 {
-    hhg_sema_run_children(sema, node->value.arr_lit.elems);
 
     bool infer_type = node->value_type == NULL;
 
