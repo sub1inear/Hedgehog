@@ -330,8 +330,7 @@ static void hhg_sema_run_for(hhg_sema_t *sema, hhg_node_t *node)
 
     hhg_sema_run_range(sema, node->value.for_stmt.iter);
 
-    hhg_base_type_t iter_type = node->value.for_stmt.iter->value_type->type;
-
+    hhg_sym_tab_enter_scope(sema->sym_tab);
     hhg_sym_t *sym = hhg_sym_tab_insert(
         sema->sym_tab,
         (hhg_sym_t){
@@ -339,12 +338,13 @@ static void hhg_sema_run_for(hhg_sema_t *sema, hhg_node_t *node)
             .value =
                 {
                     .sym_type = HHG_SYM_VAR,
-                    .type = hhg_type_ctx_get_builtin(sema->type_ctx, iter_type),
+                    .type = node->value.for_stmt.iter->value_type,
                 },
         });
     node->value.for_stmt.id.sym = sym;
 
     hhg_sema_run(sema, node->value.for_stmt.body);
+    hhg_sym_tab_exit_scope(sema->sym_tab);
 }
 
 static void hhg_sema_run_int_lit(hhg_sema_t *sema, hhg_node_t *node)
