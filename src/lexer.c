@@ -388,16 +388,15 @@ static void hhg_lexer_lex_num(hhg_lexer_t *lexer, int c)
         c = hhg_lexer_next_char(lexer);
         switch (c) {
         case 'x':
-            base = 16;
-            break;
         case 'b':
-            base = 2;
-            break;
         case 'o':
-            base = 8;
+            base = c == 'x' ? 16 : c == 'b' ? 2 : 8;
+            hhg_str_append_fmt(&lexer->token.str, "0%c", c);
+            c = hhg_lexer_next_char(lexer);
             break;
         case '.':
-            seen_decimal = true;
+            hhg_lexer_back_char(lexer);
+            c = '0';
             break;
         default: {
             if (isalpha(c)) {
@@ -420,8 +419,6 @@ static void hhg_lexer_lex_num(hhg_lexer_t *lexer, int c)
             return;
         }
         }
-        hhg_str_append_fmt(&lexer->token.str, "0%c", c);
-        c = hhg_lexer_next_char(lexer);
     }
 
     while (true) {
