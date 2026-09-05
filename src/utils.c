@@ -147,7 +147,7 @@ const char *hhg_file_to_exec(hhg_arena_t *arena, const char *name)
     strcpy(exec + new_ext_start, ".exe");
     return exec;
 }
-#elif HHG_POSIX
+#elif defined(HHG_POSIX)
 const char *hhg_file_to_exec(hhg_arena_t *arena, const char *name)
 {
     HHG_UNUSED(arena);
