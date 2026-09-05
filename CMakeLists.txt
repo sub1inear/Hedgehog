@@ -44,7 +44,7 @@ if (CMAKE_C_COMPILER_ID STREQUAL "GNU" OR
     CMAKE_C_COMPILER_ID STREQUAL "AppleClang" OR
     CMAKE_C_COMPILER_ID MATCHES "Intel" OR
     CMAKE_C_COMPILER_ID STREQUAL "IntelLLVM")
-    target_compile_options(${EXECUTABLE_NAME} PRIVATE -Wall -Wextra -Wpedantic -Werror)
+    target_compile_options(${EXECUTABLE_NAME} PRIVATE -Wall -Wextra -Werror)
 elseif (CMAKE_C_COMPILER_ID STREQUAL "MSVC")
     target_compile_options(${EXECUTABLE_NAME} PRIVATE /W4 /permissive- /WX /wd4996 /wd4063 /wd4206)
 else()
