@@ -21,6 +21,9 @@
 #elif defined(HHG_POSIX)
 #include <unistd.h>
 #endif
+
+#define HHG_MSG_MULTILINE_THRESHOLD 4
+
 /*
 Message format:
 <level>: <message>
@@ -29,7 +32,6 @@ Message format:
         | ^~~~ <note> (optional)
 (repeat for each line in range)
 */
-
 static int32_t hhg_msg_num_digits(int32_t num);
 static bool hhg_msg_use_color();
 static void hhg_msg_print_src_line(hhg_file_src_t *src, int32_t line,
@@ -101,6 +103,15 @@ void hhg_msg(hhg_msg_ctx_t *msg_ctx, hhg_msg_type_t type, hhg_file_src_t *src,
     fputc('\n', stderr);
 
     for (int32_t line = range->start.line; line <= range->end.line; line++) {
+        if (line == range->start.line + HHG_MSG_MULTILINE_THRESHOLD / 2) {
+            int32_t new_end =
+                range->end.line - HHG_MSG_MULTILINE_THRESHOLD / 2 + 1;
+            if (new_end >= line) {
+                fputs("...\n", stderr);
+                line = new_end;
+            }
+        }
+
         hhg_msg_print_src_line(src, line, max_line_width);
 
         int32_t start_col = line == range->start.line ? range->start.col : 0;
