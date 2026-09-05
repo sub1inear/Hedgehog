@@ -247,11 +247,19 @@ void hhg_lexer_next(hhg_lexer_t *lexer)
 
 void hhg_lexer_resync(hhg_lexer_t *lexer)
 {
-    do
+    int32_t depth = 0;
+    while (lexer->token.type != HHG_TOKEN_EOF) {
+        if (lexer->token.type == HHG_TOKEN_LBRACE) {
+            depth++;
+        } else if (lexer->token.type == HHG_TOKEN_RBRACE) {
+            if (depth == 0)
+                break;
+            depth--;
+        } else if (lexer->token.type == HHG_TOKEN_NEWLINE && depth == 0) {
+            break;
+        }
         hhg_lexer_next(lexer);
-    while (lexer->token.type != HHG_TOKEN_NEWLINE &&
-           lexer->token.type != HHG_TOKEN_EOF);
-    hhg_lexer_next(lexer);
+    }
 }
 
 void hhg_lexer_match(hhg_lexer_t *lexer, hhg_token_type_t type)
