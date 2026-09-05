@@ -56,7 +56,7 @@ void hhg_join_path(char *buf, size_t size, const char *left, const char *right)
     if (result < 0)
         hhg_fatal_error("failed to join paths: `%s` `%s`", left, right);
     // safe to compare now that result is not negative
-    if (result >= size)
+    if ((size_t)result >= size)
         hhg_fatal_error("joined path is too long: `%s` `%s`", left, right);
 }
 
