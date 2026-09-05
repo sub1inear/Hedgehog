@@ -206,7 +206,7 @@ static bool hhg_msg_use_color()
 
 #ifdef HHG_WINDOWS
     return _isatty(2);
-#elif HHG_POSIX
+#elif defined(HHG_POSIX)
     return isatty(2);
 #endif
 }
