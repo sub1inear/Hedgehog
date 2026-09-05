@@ -20,6 +20,6 @@ bool hhg_cmd_exec_run(hhg_cmd_args_t *cmd_args, hhg_msg_ctx_t *msg_ctx,
     default:
         hhg_compiler_error("unhandled subcommand `%i` in `%s`", cmd_args->type,
                            __func__);
-        return true;
+        return false;
     }
 }
