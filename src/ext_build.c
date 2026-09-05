@@ -132,6 +132,7 @@ void hhg_ext_build_run(hhg_ext_build_t *ext_build, hhg_code_gen_t *code_gen,
     hhg_str_deinit(&stdouterr);
 }
 
+#ifdef HHG_WINDOWS
 static const char **hhg_ext_build_cl_setup(hhg_ext_build_t *ext_build,
                                            const char **argv)
 {
@@ -307,3 +308,4 @@ static const char **hhg_ext_build_cl_copy_lib_core(hhg_ext_build_t *ext_build,
 
     return argv;
 }
+#endif
