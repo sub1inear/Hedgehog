@@ -12,14 +12,40 @@
 #include "str.h"
 #include "utils.h"
 
-#define hhg_lexer_msg(lexer, type, ...)                                        \
-    hhg_msg(lexer->msg_ctx, type, &lexer->src, &lexer->token.range, __VA_ARGS__)
-#define hhg_lexer_error(lexer, ...)                                            \
-    hhg_lexer_msg(lexer, HHG_MSG_ERROR, __VA_ARGS__)
-#define hhg_lexer_warning(lexer, ...)                                          \
-    hhg_lexer_msg(lexer, HHG_MSG_WARNING, __VA_ARGS__)
-#define hhg_lexer_info(lexer, ...)                                             \
-    hhg_lexer_msg(lexer, HHG_MSG_INFO, __VA_ARGS__)
+#define hhg_lexer_msg(lexer, type, range, ...)                                 \
+    hhg_msg(lexer->msg_ctx, type, &lexer->src, range, __VA_ARGS__)
+
+#define hhg_lexer_msg_token(lexer, type, ...)                                  \
+    hhg_lexer_msg(lexer, type,                                                 \
+                  &(hhg_file_range_t){                                         \
+                      .start = lexer->token.range.start,                       \
+                      .end = lexer->pos,                                       \
+                  },                                                           \
+                  __VA_ARGS__)
+#define hhg_lexer_error_token(lexer, ...)                                      \
+    hhg_lexer_msg_token(lexer, HHG_MSG_ERROR, __VA_ARGS__)
+#define hhg_lexer_warning_token(lexer, ...)                                    \
+    hhg_lexer_msg_token(lexer, HHG_MSG_WARNING, __VA_ARGS__)
+#define hhg_lexer_info_token(lexer, ...)                                       \
+    hhg_lexer_msg_token(lexer, HHG_MSG_INFO, __VA_ARGS__)
+
+#define hhg_lexer_msg_char(lexer, type, ...)                                   \
+    hhg_lexer_msg(lexer, type,                                                 \
+                  &(hhg_file_range_t){                                         \
+                      .start =                                                 \
+                          (hhg_file_pos_t){                                    \
+                              .col = lexer->pos.col - 1,                       \
+                              .line = lexer->pos.line,                         \
+                          },                                                   \
+                      .end = lexer->pos,                                       \
+                  },                                                           \
+                  __VA_ARGS__)
+#define hhg_lexer_error_char(lexer, ...)                                       \
+    hhg_lexer_msg_char(lexer, HHG_MSG_ERROR, __VA_ARGS__)
+#define hhg_lexer_warning_char(lexer, ...)                                     \
+    hhg_lexer_msg_char(lexer, HHG_MSG_WARNING, __VA_ARGS__)
+#define hhg_lexer_info_char(lexer, ...)                                        \
+    hhg_lexer_msg_char(lexer, HHG_MSG_INFO, __VA_ARGS__)
 
 typedef struct hhg_op_data {
     char str[3];
@@ -40,7 +66,6 @@ static void hhg_lexer_lex_str_lit(hhg_lexer_t *lexer, int c);
 static void hhg_lexer_lex_char_lit(hhg_lexer_t *lexer, int c);
 static bool hhg_lexer_lex_default(hhg_lexer_t *lexer, int c);
 static bool hhg_lexer_is_valid_digit(int c, int base);
-static hhg_file_range_t hhg_lexer_get_char_range(hhg_lexer_t *lexer);
 
 // clang-format off
 static const hhg_op_data_t op_data[] = {
@@ -178,39 +203,43 @@ void hhg_lexer_next(hhg_lexer_t *lexer)
     while (true) {
         int c = hhg_lexer_next_char(lexer);
         if (c == ' ' || c == '\t' || c == '\r' || c == '\f' || c == '\v')
-            ;
-        else {
-            // past whitespace, start lexing token
-            lexer->token.range.start = (hhg_file_pos_t){
-                .line = lexer->pos.line,
-                // first character has already been consumed so decrement
-                // exception: EOF is not consumed
-                .col = c == EOF ? lexer->pos.col : lexer->pos.col - 1,
-            };
-            if (isalpha(c) || c == '_') {
-                hhg_lexer_lex_id(lexer, c);
+            continue;
+        // past whitespace, start lexing token
+        lexer->token.range.start = (hhg_file_pos_t){
+            .line = lexer->pos.line,
+            // first character has already been consumed so decrement
+            // exception: EOF is not consumed
+            .col = c == EOF ? lexer->pos.col : lexer->pos.col - 1,
+        };
+        if (c == EOF) {
+            lexer->token.type = HHG_TOKEN_EOF;
+            break;
+        } else if (!isascii(c))
+            hhg_lexer_error_char(lexer, "invalid ASCII character `%i`", "here",
+                                 c);
+        else if (isalpha(c) || c == '_') {
+            hhg_lexer_lex_id(lexer, c);
+            break;
+        } else if (isdigit(c)) {
+            hhg_lexer_lex_num(lexer, c);
+            break;
+        } else if (c == '"') {
+            hhg_lexer_lex_str_lit(lexer, c);
+            break;
+        } else if (c == '\'') {
+            hhg_lexer_lex_char_lit(lexer, c);
+            break;
+        } else if (c == EOF) {
+            lexer->token.type = HHG_TOKEN_EOF;
+            break;
+        } else if (c == '\n') {
+            if (hhg_lexer_ends_stmt(lexer->token.type)) {
+                lexer->token.type = HHG_TOKEN_NEWLINE;
                 break;
-            } else if (isdigit(c)) {
-                hhg_lexer_lex_num(lexer, c);
-                break;
-            } else if (c == '"') {
-                hhg_lexer_lex_str_lit(lexer, c);
-                break;
-            } else if (c == '\'') {
-                hhg_lexer_lex_char_lit(lexer, c);
-                break;
-            } else if (c == EOF) {
-                lexer->token.type = HHG_TOKEN_EOF;
-                break;
-            } else if (c == '\n') {
-                if (hhg_lexer_ends_stmt(lexer->token.type)) {
-                    lexer->token.type = HHG_TOKEN_NEWLINE;
-                    break;
-                } else
-                    continue;
-            } else if (hhg_lexer_lex_default(lexer, c))
-                break;
-        }
+            } else
+                continue;
+        } else if (hhg_lexer_lex_default(lexer, c))
+            break;
     }
     lexer->last_pos = lexer->token.range.end;
     lexer->token.range.end = lexer->pos;
@@ -228,8 +257,8 @@ void hhg_lexer_resync(hhg_lexer_t *lexer)
 void hhg_lexer_match(hhg_lexer_t *lexer, hhg_token_type_t type)
 {
     if (lexer->token.type != type) {
-        hhg_lexer_error(lexer, "expected `%t`, got `%t`", "here", type,
-                        lexer->token.type);
+        hhg_lexer_error_token(lexer, "expected `%t`, got `%t`", "here", type,
+                              lexer->token.type);
     } else
         hhg_lexer_next(lexer);
 }
@@ -363,16 +392,15 @@ static void hhg_lexer_lex_num(hhg_lexer_t *lexer, int c)
             seen_decimal = true;
             break;
         default: {
-            hhg_file_range_t range = hhg_lexer_get_char_range(lexer);
             if (isalpha(c)) {
-                hhg_msg(lexer->msg_ctx, HHG_MSG_ERROR, &lexer->src, &range,
-                        "unknown base prefix `%c`", NULL, c);
+                hhg_lexer_error_char(lexer, "unknown base prefix `%c`", NULL,
+                                     c);
                 do
                     c = hhg_lexer_next_char(lexer);
                 while (isalnum(c) || c == '_');
             } else if (isdigit(c) || c == '_') {
-                hhg_msg(
-                    lexer->msg_ctx, HHG_MSG_ERROR, &lexer->src, &range,
+                hhg_lexer_error_char(
+                    lexer,
                     "leading zeros (C-style octal literals) are not supported",
                     NULL);
                 do
@@ -406,14 +434,13 @@ static void hhg_lexer_lex_num(hhg_lexer_t *lexer, int c)
         else if (isalnum(c)) {
             hhg_str_append_char(&lexer->token.str, c);
             if (!hhg_lexer_is_valid_digit(c, base)) {
-                hhg_file_range_t range = hhg_lexer_get_char_range(lexer);
                 if (base == 10)
-                    hhg_msg(lexer->msg_ctx, HHG_MSG_ERROR, &lexer->src, &range,
-                            "invalid character `%c` in number", "here", c);
+                    hhg_lexer_error_char(
+                        lexer, "invalid character `%c` in number", "here", c);
                 else
-                    hhg_msg(lexer->msg_ctx, HHG_MSG_ERROR, &lexer->src, &range,
-                            "invalid character `%c` for base `%i` number",
-                            "here", c, base);
+                    hhg_lexer_error_char(
+                        lexer, "invalid character `%c` for base `%i` number",
+                        "here", c);
             }
         } else
             break;
@@ -434,7 +461,8 @@ static void hhg_lexer_lex_str_lit(hhg_lexer_t *lexer, int c)
         c = hhg_lexer_next_char(lexer);
         // not using switch to break out of loop
         if (c == EOF) {
-            hhg_lexer_error(lexer, "unexpected EOF in string literal", NULL);
+            hhg_lexer_error_token(lexer, "unexpected EOF in string literal",
+                                  NULL);
             break;
         } else if (c == '\\') {
             hhg_str_append_char(&lexer->token.str, '\\');
@@ -466,9 +494,15 @@ static void hhg_lexer_lex_char_lit(hhg_lexer_t *lexer, int c)
 
     if (c == '\'')
         hhg_str_append_char(&lexer->token.str, c);
-    else
-        hhg_lexer_error(lexer, "character constant is too long", NULL);
-
+    else {
+        do {
+            c = hhg_lexer_next_char(lexer);
+            if (c == EOF)
+                hhg_lexer_error_token(
+                    lexer, "unexpected EOF in character literal", NULL);
+        } while (c != '\'');
+        hhg_lexer_error_token(lexer, "character literal is too long", NULL);
+    }
     lexer->token.type = HHG_TOKEN_CHAR_LIT;
 }
 
@@ -489,7 +523,7 @@ static bool hhg_lexer_lex_default(hhg_lexer_t *lexer, int c)
                 c2 = c;
                 c = hhg_lexer_next_char(lexer);
                 if (c == EOF) {
-                    hhg_lexer_error(
+                    hhg_lexer_error_token(
                         lexer, "unexpected EOF in multi-line comment", NULL);
                     break;
                 }
@@ -522,11 +556,11 @@ static bool hhg_lexer_lex_default(hhg_lexer_t *lexer, int c)
     hhg_lexer_back_char(lexer);
     hhg_lexer_back_char(lexer);
     if (c == ';')
-        hhg_lexer_error(lexer, "semicolons are not supported", "here");
+        hhg_lexer_error_char(lexer, "semicolons are not supported", "here");
     else if (isprint(c))
-        hhg_lexer_error(lexer, "unexpected character `%c`", "here", c);
+        hhg_lexer_error_char(lexer, "unexpected character `%c`", "here", c);
     else
-        hhg_lexer_error(lexer, "unexpected character `%i`", "here", c);
+        hhg_lexer_error_char(lexer, "unexpected character `%i`", "here", c);
     return false;
 }
 
@@ -541,20 +575,4 @@ static bool hhg_lexer_is_valid_digit(int c, int base)
     else if (base == 2)
         return c == '0' || c == '1';
     return false;
-}
-
-static hhg_file_range_t hhg_lexer_get_char_range(hhg_lexer_t *lexer)
-{
-    return (hhg_file_range_t){
-        .start =
-            (hhg_file_pos_t){
-                .col = lexer->pos.col - 1,
-                .line = lexer->pos.line,
-            },
-        .end =
-            (hhg_file_pos_t){
-                .col = lexer->pos.col,
-                .line = lexer->pos.line,
-            },
-    };
 }
