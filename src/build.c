@@ -27,7 +27,7 @@ typedef struct hhg_build_data {
 
 typedef struct hhg_build_stage_desc {
     hhg_cmd_args_stage_t stage;
-    void (*emit_func)(void *);
+    void (*emit_func)(void *arg);
     void *emit_arg;
 } hhg_build_stage_desc_t;
 
@@ -42,12 +42,14 @@ static hhg_build_check_exit_result_t
 hhg_build_check_exit(hhg_cmd_args_build_t *build, hhg_msg_ctx_t *msg_ctx,
                      hhg_build_stage_desc_t *stage_desc,
                      hhg_build_data_t *build_data);
-static void hhg_build_emit_lexer(hhg_lexer_t *lexer);
-static void hhg_build_emit_parser(hhg_node_t *prog);
-static void hhg_build_emit_sema(hhg_node_t *prog);
-static void hhg_build_emit_mir_gen(hhg_mir_gen_t *mir_gen);
-static void hhg_build_emit_code_gen(hhg_code_gen_t *code_gen);
+static void hhg_build_emit_lexer(void *arg);
+static void hhg_build_emit_parser(void *arg);
+static void hhg_build_emit_sema(void *arg);
+#if 0
+static void hhg_build_emit_mir_gen(void *arg);
+static void hhg_build_emit_code_gen(void *arg);
 static void hhg_build_emit_ext_build(void *arg);
+#endif
 
 bool hhg_build(hhg_cmd_args_build_t *build, hhg_msg_ctx_t *msg_ctx,
                hhg_arena_t *arena)
@@ -257,8 +259,9 @@ void hhg_build_cleanup(hhg_build_data_t *build_data)
         hhg_lexer_deinit(build_data->lexer);
 }
 
-static void hhg_build_emit_lexer(hhg_lexer_t *lexer)
+static void hhg_build_emit_lexer(void *arg)
 {
+    hhg_lexer_t *lexer = (hhg_lexer_t *)arg;
     do {
         hhg_lexer_next(lexer);
         hhg_token_print(&lexer->token);
@@ -266,27 +269,33 @@ static void hhg_build_emit_lexer(hhg_lexer_t *lexer)
     } while (lexer->token.type != HHG_TOKEN_EOF);
 }
 
-static void hhg_build_emit_parser(hhg_node_t *prog)
+static void hhg_build_emit_parser(void *arg)
 {
+    hhg_node_t *prog = (hhg_node_t *)arg;
     hhg_node_print(prog);
 }
 
-static void hhg_build_emit_sema(hhg_node_t *prog)
+static void hhg_build_emit_sema(void *arg)
 {
+    hhg_node_t *prog = (hhg_node_t *)arg;
     hhg_node_print(prog);
 }
-
-static void hhg_build_emit_mir_gen(hhg_mir_gen_t *mir_gen)
+#if 0
+static void hhg_build_emit_mir_gen(void *arg)
 {
+    hhg_mir_gen_t *mir_gen = (hhg_mir_gen_t *)arg;
     hhg_mir_gen_print(mir_gen);
 }
 
-static void hhg_build_emit_code_gen(hhg_code_gen_t *code_gen)
+static void hhg_build_emit_code_gen(void *arg)
 {
+    hhg_code_gen_t *code_gen = (hhg_code_gen_t *)arg;
     HHG_UNUSED(code_gen);
 }
 
 static void hhg_build_emit_ext_build(void *arg)
 {
-    HHG_UNUSED(arg);
+    hhg_ext_build_t *ext_build = (hhg_ext_build_t *)arg;
+    HHG_UNUSED(ext_build);
 }
+#endif
