@@ -872,7 +872,7 @@ so Windows and MacOS versions must do the same manually to be consistent.
 */
 #ifdef FS_WINDOWS
 char *
-fs_exec_path(char *buf)
+fs_exec_path(char buf[FS_MAX_PATH])
 {
     char tmp_buf[FS_MAX_PATH];
     if (!GetModuleFileNameA(NULL, tmp_buf, (DWORD)sizeof(tmp_buf)))
@@ -883,7 +883,7 @@ fs_exec_path(char *buf)
 }
 #elif defined(FS_LINUX)
 char *
-fs_exec_path(char *buf)
+fs_exec_path(char buf[FS_MAX_PATH])
 {
     ssize_t len = readlink("/proc/self/exe", buf, FS_MAX_PATH - 1);
     if (len == -1)
@@ -895,7 +895,7 @@ fs_exec_path(char *buf)
 }
 #elif defined(FS_MACOS)
 char *
-fs_exec_path(char *buf)
+fs_exec_path(char buf[FS_MAX_PATH])
 {
     char tmp_buf[FS_MAX_PATH];
     uint32_t tmp_buf_size = (uint32_t)sizeof(tmp_buf);
