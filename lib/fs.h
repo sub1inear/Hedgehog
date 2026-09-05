@@ -720,7 +720,7 @@ fs_extention(const char *path)
 
 #ifdef FS_WINDOWS
 char *
-fs_absolute(const char *path, char *buf)
+fs_absolute(const char *path, char buf[FS_MAX_PATH])
 {
     HANDLE h = CreateFileA(
         path,
@@ -747,7 +747,7 @@ fs_absolute(const char *path, char *buf)
 }
 #elif defined(FS_POSIX)
 char *
-fs_absolute(const char *path, char *buf)
+fs_absolute(const char *path, char buf[FS_MAX_PATH])
 {
 	if (!realpath(path, buf))
 	{
