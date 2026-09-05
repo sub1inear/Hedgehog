@@ -11,15 +11,6 @@
 
 #include "msg.h"
 
-#undef hhg_malloc
-#undef hhg_realloc
-#undef hhg_free
-#undef hhg_strdup
-#undef hhg_arena_new
-#undef hhg_arena_malloc
-#undef hhg_arena_strdup
-#undef hhg_arena_free
-
 void *hhg_malloc(size_t size)
 {
     void *ptr = malloc(size);
