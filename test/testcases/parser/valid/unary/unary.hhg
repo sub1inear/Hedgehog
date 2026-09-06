@@ -1,0 +1,9 @@
+fn main() {
+    let x = 5
+    let y = -x
+    let z = ~x
+    let p = &x
+    let d = *p
+    let mut m = 5
+    let rm = &mut m
+}

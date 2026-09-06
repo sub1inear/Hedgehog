@@ -1,0 +1,7 @@
+const pi: f64 = 3.14
+const answer = 42
+
+fn main() {
+    print(pi)
+    print(answer)
+}

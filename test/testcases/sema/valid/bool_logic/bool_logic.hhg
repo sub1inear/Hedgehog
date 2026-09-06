@@ -1,0 +1,12 @@
+fn main() {
+    let a: bool = true
+    let b: bool = false
+    let c: bool = a and b
+    let d: bool = a or b
+    if a and b {
+        print(1)
+    }
+    while a or b {
+        print(2)
+    }
+}

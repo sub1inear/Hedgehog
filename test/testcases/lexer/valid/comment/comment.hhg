@@ -3,3 +3,7 @@
    comment */
 /* single-line block comment */
 1 // inline comment after expression
+"// not a comment"
+"/* also not a comment */"
+2
+/* comment at end of file */

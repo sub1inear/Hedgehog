@@ -1,0 +1,13 @@
+fn main() {
+    let x: i32 = 5
+    let y: i64 = x
+    let z: f64 = 1
+    let a: i8 = 1
+    let b: i16 = a
+    let c: i32 = b
+    let d: i64 = c
+    let e: u8 = 2
+    let f: u64 = e
+    let g: f32 = 1.0
+    let h: f64 = g
+}

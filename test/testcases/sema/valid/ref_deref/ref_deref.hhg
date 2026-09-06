@@ -1,0 +1,7 @@
+fn main() {
+    let x: i32 = 5
+    let r = &x
+    let v: i32 = *r
+    let mut y: i32 = 10
+    let rm = &mut y
+}

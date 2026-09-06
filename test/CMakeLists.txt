@@ -63,4 +63,7 @@ foreach(HHG_REL_PATH IN LISTS HHG_TEST_FILES)
 
     # register the test. Use the explicit command + args form.
     add_test(NAME "${TEST_DISPLAY_NAME}" COMMAND test_prog ${TEST_ARGS})
+    # bound each testcase so a compiler hang (e.g. an infinite lexer loop)
+    # fails one test instead of blocking the whole ctest run
+    set_tests_properties("${TEST_DISPLAY_NAME}" PROPERTIES TIMEOUT 10)
 endforeach()

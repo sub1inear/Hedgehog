@@ -4,3 +4,7 @@
 "newline\n"
 "tab\t"
 "backslash\\"
+""
+"\r"
+"\0"
+"\'"

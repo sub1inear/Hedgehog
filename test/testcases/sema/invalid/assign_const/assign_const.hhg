@@ -1,0 +1,4 @@
+fn main() {
+    const c = 5
+    c = 6
+}

@@ -1,6 +1,0 @@
-fn main() {
-    let x = 4
-    let y = 5
-    print(f"There are {x * y} ducks.")
-    print(f"x = {x}, y = {y}")
-}

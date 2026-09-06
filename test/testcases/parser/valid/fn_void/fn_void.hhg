@@ -1,0 +1,12 @@
+fn do_nothing() {
+    return
+}
+
+fn no_params() -> i32 {
+    return 42
+}
+
+fn main() {
+    do_nothing()
+    no_params()
+}

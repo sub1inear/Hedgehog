@@ -1,0 +1,5 @@
+fn main() {
+    let a: char = 'x'
+    let b = 'y'
+    let c: char = '\n'
+}

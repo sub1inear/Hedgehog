@@ -1,0 +1,10 @@
+fn main() {
+    let a: i32 = 1
+    let b: i32 = 2
+    let c: bool = a == b
+    let d: bool = a != b
+    let e: bool = a < b
+    let f: bool = a <= b
+    let g: bool = a > b
+    let h: bool = a >= b
+}

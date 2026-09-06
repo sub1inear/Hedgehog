@@ -1,0 +1,7 @@
+fn count(n: i32) -> i32 {
+    return count(n)
+}
+
+fn main() {
+    print(count(1))
+}

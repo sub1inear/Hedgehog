@@ -1,0 +1,16 @@
+fn main() {
+    let a: i8 = 1
+    let b: u8 = 2
+    let c: i16 = 3
+    let d: u16 = 4
+    let e: i32 = 5
+    let f: u32 = 6
+    let g: i64 = 7
+    let h: u64 = 8
+    let i: f32 = 1.0
+    let j: f64 = 2.0
+    let k: bool = true
+    let l: char = 'x'
+    let m: usize = 9
+    let n: isize = 10
+}

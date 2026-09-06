@@ -1,0 +1,7 @@
+let mut const
+fn class enum interface type import from as
+if else while for in match break continue return
+and or not
+true false null self
+static unsafe pub
+i8 u8 i16 u16 i32 u32 i64 u64 f32 f64 bool char isize usize void

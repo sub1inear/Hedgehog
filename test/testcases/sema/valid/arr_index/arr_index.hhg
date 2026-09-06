@@ -1,0 +1,6 @@
+fn main() {
+    let a: i32[3] = [1, 2, 3]
+    let x: i32 = a[0]
+    let i: usize = 1
+    let y: i32 = a[i]
+}

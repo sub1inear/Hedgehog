@@ -1,0 +1,9 @@
+// comment before function
+fn main() {
+    // comment before statement
+    let x = 1 // trailing comment
+    /* block comment */
+    let y = 2
+    // comment before closing brace
+}
+// comment after function

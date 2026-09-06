@@ -1,0 +1,13 @@
+fn log_it() {
+    print(1)
+}
+
+fn value() -> i32 {
+    return 42
+}
+
+fn main() {
+    log_it()
+    let x: i32 = value()
+    print(value())
+}

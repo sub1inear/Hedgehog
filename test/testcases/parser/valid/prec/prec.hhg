@@ -1,0 +1,7 @@
+fn main() {
+    let a = 1 + 2 * 3
+    let b = (1 + 2) * 3
+    let c = 1 << 2 & 3 ^ 4 | 5
+    let d = 1 < 2 and 3 > 2 or false
+    let e = -1 * ~2
+}

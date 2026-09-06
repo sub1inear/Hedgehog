@@ -1,0 +1,4 @@
+fn main() {
+    let x: u8 = 5
+    let y: i32 = x
+}

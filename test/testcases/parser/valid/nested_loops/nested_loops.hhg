@@ -1,0 +1,16 @@
+fn main() {
+    for i in 0..3 {
+        let mut j = 0
+        while j < 3 {
+            print(j)
+            j += 1
+        }
+    }
+    let mut k = 0
+    while k < 3 {
+        for l in 0..3 {
+            print(l)
+        }
+        k += 1
+    }
+}

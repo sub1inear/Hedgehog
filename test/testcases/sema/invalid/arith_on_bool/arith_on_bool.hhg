@@ -1,0 +1,4 @@
+fn main() {
+    let x: bool = true
+    let y: i32 = x + 1
+}

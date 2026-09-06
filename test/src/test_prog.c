@@ -13,7 +13,7 @@
 
 static const struct optparse_long longopts[] = {
     {"help", 'h', OPTPARSE_NONE},   {"lexer", 'l', OPTPARSE_NONE},
-    {"parser", 'p', OPTPARSE_NONE}, {"sem_an", 's', OPTPARSE_NONE},
+    {"parser", 'p', OPTPARSE_NONE}, {"sema", 's', OPTPARSE_NONE},
     {"mir", 'm', OPTPARSE_NONE},    {"codegen", 'c', OPTPARSE_NONE},
     {"fail", 'f', OPTPARSE_NONE},   {NULL, '\0', OPTPARSE_NONE},
 };
@@ -34,7 +34,7 @@ int main(int argc, char **argv)
                    "-h --help    : print this help message\n"
                    "-l --lexer   : run up to lexer stage (default)\n"
                    "-p --parser  : run up to parser stage\n"
-                   "-s --sem_an  : run up to semantic analysis stage\n"
+                   "-s --sema    : run up to semantic analysis stage\n"
                    "-m --mir     : run up to MIR generation stage\n"
                    "-c --codegen : run up to code generation stage\n"
                    "-f --fail    : expect the input file to fail\n",
