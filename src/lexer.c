@@ -261,6 +261,7 @@ void hhg_lexer_resync(hhg_lexer_t *lexer)
         }
         hhg_lexer_next(lexer);
     }
+    hhg_lexer_next(lexer);
 }
 
 void hhg_lexer_match(hhg_lexer_t *lexer, hhg_token_type_t type)
@@ -268,6 +269,7 @@ void hhg_lexer_match(hhg_lexer_t *lexer, hhg_token_type_t type)
     if (lexer->token.type != type) {
         hhg_lexer_error_token(lexer, "expected `%t`, got `%t`", "here", type,
                               lexer->token.type);
+        hhg_lexer_resync(lexer);
     } else
         hhg_lexer_next(lexer);
 }
