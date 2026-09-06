@@ -65,6 +65,7 @@ static void hhg_lexer_lex_num(hhg_lexer_t *lexer, int c);
 static void hhg_lexer_lex_str_lit(hhg_lexer_t *lexer, int c);
 static void hhg_lexer_lex_char_lit(hhg_lexer_t *lexer, int c);
 static bool hhg_lexer_lex_default(hhg_lexer_t *lexer, int c);
+static bool hhg_lexer_is_ascii(int c); // isascii() is not portable C
 static bool hhg_lexer_is_valid_digit(int c, int base);
 
 // clang-format off
@@ -214,7 +215,7 @@ void hhg_lexer_next(hhg_lexer_t *lexer)
         if (c == EOF) {
             lexer->token.type = HHG_TOKEN_EOF;
             break;
-        } else if (!isascii(c))
+        } else if (!hhg_lexer_is_ascii(c))
             hhg_lexer_error_char(lexer, "invalid ASCII character `%i`", "here",
                                  c);
         else if (isalpha(c) || c == '_') {
@@ -567,6 +568,11 @@ static bool hhg_lexer_lex_default(hhg_lexer_t *lexer, int c)
     else
         hhg_lexer_error_char(lexer, "unexpected character `%i`", "here", c);
     return false;
+}
+
+static bool hhg_lexer_is_ascii(int c)
+{
+    return c >= 0 && c <= 127;
 }
 
 static bool hhg_lexer_is_valid_digit(int c, int base)
