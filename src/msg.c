@@ -23,6 +23,7 @@
 #endif
 
 #define HHG_MSG_MULTILINE_THRESHOLD 4
+#define HHG_MSG_MAX_ERRORS 20
 
 /*
 Message format:
@@ -46,7 +47,7 @@ static void hhg_msg_process_msg_type(hhg_msg_ctx_t *msg_ctx,
 // prints the message type (error, warning, ...) with color
 static void hhg_msg_print_msg_type_str(const char *str, const char *color,
                                        bool use_color);
-
+static void hhg_msg_check_max_errors(hhg_msg_ctx_t *msg_ctx);
 static void hhg_vfprintf(FILE *stream, const char *fmt, va_list args);
 
 void hhg_msg_ctx_init(hhg_msg_ctx_t *msg_ctx, hhg_cmd_args_t *cmd_args)
@@ -133,6 +134,8 @@ void hhg_msg(hhg_msg_ctx_t *msg_ctx, hhg_msg_type_t type, hhg_file_src_t *src,
 
     va_end(va_note);
     va_end(va_msg);
+
+    hhg_msg_check_max_errors(msg_ctx);
 }
 
 void hhg_basic_msg(hhg_msg_ctx_t *msg_ctx, hhg_msg_type_t type, const char *msg,
@@ -146,6 +149,8 @@ void hhg_basic_msg(hhg_msg_ctx_t *msg_ctx, hhg_msg_type_t type, const char *msg,
 
     fputc('\n', stderr);
     va_end(va);
+
+    hhg_msg_check_max_errors(msg_ctx);
 }
 
 void hhg_compiler_error(const char *msg, ...)
@@ -278,6 +283,12 @@ static void hhg_msg_print_msg_type_str(const char *str, const char *color,
 {
     fprintf(stderr, "%s%s" HHG_ANSI_COLOR_CLEAR ": ", use_color ? color : "",
             str);
+}
+
+static void hhg_msg_check_max_errors(hhg_msg_ctx_t *msg_ctx)
+{
+    if (msg_ctx->error_count > HHG_MSG_MAX_ERRORS)
+        hhg_fatal_error("too many errors");
 }
 
 static void hhg_vfprintf(FILE *stream, const char *fmt, va_list va)
