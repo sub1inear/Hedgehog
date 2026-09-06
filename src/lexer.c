@@ -505,10 +505,7 @@ static void hhg_lexer_lex_char_lit(hhg_lexer_t *lexer, int c)
     else {
         do {
             c = hhg_lexer_next_char(lexer);
-            if (c == EOF)
-                hhg_lexer_error_token(
-                    lexer, "unexpected EOF in character literal", NULL);
-        } while (c != '\'');
+        } while (c != '\'' && c != EOF);
         hhg_lexer_error_token(lexer, "character literal is too long", NULL);
     }
     lexer->token.type = HHG_TOKEN_CHAR_LIT;
