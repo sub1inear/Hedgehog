@@ -503,9 +503,9 @@ static void hhg_lexer_lex_char_lit(hhg_lexer_t *lexer, int c)
     if (c == '\'')
         hhg_str_append_char(&lexer->token.str, c);
     else {
-        do {
+        do
             c = hhg_lexer_next_char(lexer);
-        } while (c != '\'' && c != EOF);
+        while (c != '\'' && c != EOF);
         hhg_lexer_error_token(lexer, "character literal is too long", NULL);
     }
     lexer->token.type = HHG_TOKEN_CHAR_LIT;
